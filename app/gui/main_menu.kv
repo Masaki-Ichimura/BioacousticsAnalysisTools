@@ -1,0 +1,23 @@
+#:import EditContainerWidget app.gui.widgets.edit_container.EditContainerWidget
+
+
+<MainMenuWidget>
+    BoxLayout:
+        orientation: 'vertical'
+        size: root.size
+
+        TabbedPanel:
+            do_default_tab: False
+            tab_width: 300
+
+            TabbedPanelItem:
+                text: '取り込み/編集'
+                EditContainerWidget:
+
+            TabbedPanelItem:
+                text: 'Menu2'
+                BoxLayout:
+                    Button:
+                        text: 'Test2-1'
+                    Button:
+                        text: 'Test2-2'

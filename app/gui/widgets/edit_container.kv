@@ -1,0 +1,53 @@
+#:import EditSideBarWidget  app.gui.widgets.edit_sidebar.EditSidebarWidget
+
+
+<EditContainerWidget>:
+    BoxLayout:
+        orientation: 'horizontal'
+        size: root.size
+
+        EditSidebarWidget:
+            id: edit_sidebar
+            size_hint_x: 24
+
+        Button:
+            size_hint_x: 1
+            text: '▷'
+            font_size: 18
+            on_press: root.select_button_clicked()
+
+        EditWorkingContainerWidget:
+            size_hint_x: 75
+
+
+<EditWorkingContainerWidget>:
+    id: edit_working_container
+
+    BoxLayout:
+        orientation: 'vertical'
+        size: root.size
+        pos: root.pos
+
+        EditAudioTimelineWidget:
+            size_hint_y: 40
+
+        EditAudioDisplayWidget:
+            size_hint_y: 60
+
+<EditAudioTimelineWidget>:
+    BoxLayout:
+        orientation: 'vertical'
+        size: root.size
+        pos: root.pos
+
+        Button:
+            text: 'Audio Timeline'
+
+<EditAudioDisplayWidget>:
+    BoxLayout:
+        orientation: 'vertical'
+        size: root.size
+        pos: root.pos
+
+        Button:
+            text: 'Audio Display'

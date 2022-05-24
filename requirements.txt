@@ -1,0 +1,12 @@
+# GUI ライブラリ
+kivy
+japanize-kivy
+
+# 計算ライブラリ
+torch
+torchaudio
+numpy
+librosa
+
+# 描画ライブラリ
+matplotlib

@@ -1,0 +1,22 @@
+<EditSidebarWidget>:
+    BoxLayout:
+        orientation: 'vertical'
+        size: root.size
+
+        Button:
+            size_hint_y: 5
+            text: 'choose audio file'
+            on_press: root.load_button_clicked()
+
+        Button:
+            size_hint_y: 5
+            text: 'reset audio file'
+            on_press: root.reset_button_clicked()
+
+        TreeView:
+            size_hint_y: 90
+            id: audio_treeview
+            root_options: {'text': 'audio data', 'font_size': 25}
+
+<AudioMetadataLabel>:
+    font_size: 25
