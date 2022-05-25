@@ -1,0 +1,24 @@
+#:import OffprocessSideBar app.gui.widgets.offprocess_sidebar.OffprocessSidebar
+
+
+<OffprocessContainer>:
+    BoxLayout:
+        orientation: 'horizontal'
+        size: root.size
+
+        OffprocessSidebar:
+            id: sidebar
+            size_hint_x: 25
+
+        OffprocessWorkingContainer:
+            id: working_container
+            size_hint_x: 75
+
+<OffprocessWorkingContainer>:
+    BoxLayout:
+        orientation: 'vertical'
+        size: root.size
+        pos: root.pos
+
+        Button:
+            text: 'Working space'

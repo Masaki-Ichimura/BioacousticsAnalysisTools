@@ -7,7 +7,7 @@ from kivy.garden.matplotlib import FigureCanvasKivyAgg
 from kivy.lang import Builder
 from kivy.properties import ObjectProperty, StringProperty, NumericProperty
 
-from app.gui.widgets.sidebar import SidebarWidget
+from app.gui.widgets.sidebar import Sidebar
 from app.gui.widgets.filechooser import FilechooserPopup
 from utils.audio import metadata_wav, load_wav
 from utils.plot import show_spec, show_wav
@@ -20,7 +20,7 @@ class AudioTreeViewLabel(TreeViewLabel):
     pass
 
 
-class EditSidebarWidget(SidebarWidget):
+class EditSidebar(Sidebar):
     file_path = StringProperty('')
     filechooser_popup = ObjectProperty(None)
 
@@ -121,10 +121,10 @@ class EditSidebarWidget(SidebarWidget):
 
             container = self.parent.parent
 
-            working_container = container.ids.edit_working_container
-            audio_display = working_container.ids.edit_audio_display
-            audio_timeline = audio_display.ids.edit_audio_timeline
-            audio_toolbar = audio_display.ids.edit_audio_toolbar
+            working_container = container.ids.working_container
+            audio_display = working_container.ids.audio_display
+            audio_timeline = audio_display.ids.audio_timeline
+            audio_toolbar = audio_display.ids.audio_toolbar
 
             fig, axes = plt.subplots(2, 1, tight_layout=True)
             show_wav(self.audio_data, self.audio_fs, ax=axes[0])

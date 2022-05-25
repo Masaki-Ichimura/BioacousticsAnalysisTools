@@ -4,5 +4,5 @@ from kivy.lang import Builder
 Builder.load_file('/'.join(__file__.split('/')[:-1])+'/sidebar.kv')
 
 
-class SidebarWidget(Widget):
+class Sidebar(Widget):
     pass

@@ -1,7 +1,8 @@
-#:import EditContainerWidget app.gui.widgets.edit_container.EditContainerWidget
+#:import EditContainer app.gui.widgets.edit_container.EditContainer
+#:import OffprocessContainer app.gui.widgets.offprocess_container.OffprocessContainer
 
 
-<MainMenuWidget>
+<MainMenu>
     BoxLayout:
         orientation: 'vertical'
         size: root.size
@@ -12,12 +13,8 @@
 
             TabbedPanelItem:
                 text: '取り込み/編集'
-                EditContainerWidget:
+                EditContainer:
 
             TabbedPanelItem:
-                text: 'Menu2'
-                BoxLayout:
-                    Button:
-                        text: 'Test2-1'
-                    Button:
-                        text: 'Test2-2'
+                text: 'オフライン信号処理'
+                OffprocessContainer:

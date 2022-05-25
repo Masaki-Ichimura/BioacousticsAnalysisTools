@@ -1,51 +1,51 @@
-#:import EditSideBarWidget app.gui.widgets.edit_sidebar.EditSidebarWidget
-#:import AudioToolbarWidget app.gui.widgets.audiotimeline.AudioToolbarWidget
+#:import EditSideBar app.gui.widgets.edit_sidebar.EditSidebar
+#:import AudioToolbar app.gui.widgets.audiotimeline.AudioToolbar
 
 
-<EditContainerWidget>:
+<EditContainer>:
     BoxLayout:
         orientation: 'horizontal'
         size: root.size
 
-        EditSidebarWidget:
-            id: edit_sidebar
+        EditSidebar:
+            id: sidebar
             size_hint_x: 25
 
-        EditWorkingContainerWidget:
-            id: edit_working_container
+        EditWorkingContainer:
+            id: working_container
             size_hint_x: 75
 
-<EditWorkingContainerWidget>:
+<EditWorkingContainer>:
     BoxLayout:
         orientation: 'vertical'
         size: root.size
         pos: root.pos
 
-        EditAudioDisplayWidget:
-            id: edit_audio_display
+        EditAudioDisplay:
+            id: audio_display
             size_hint_y: 40
 
-        EditAudioDetailWidget:
+        EditAudioDetail:
             size_hint_y: 60
 
-<EditAudioDisplayWidget>:
+<EditAudioDisplay>:
     BoxLayout:
         orientation: 'vertical'
         size: root.size
         pos: root.pos
 
-        AudioToolbarWidget:
-            id: edit_audio_toolbar
+        AudioToolbar:
+            id: audio_toolbar
             size_hint_y: 20
 
         HSeparator:
             height: dp(2)
 
-        AudioTimelineWidget:
-            id: edit_audio_timeline
+        AudioTimeline:
+            id: audio_timeline
             size_hint_y: 80
 
-<EditAudioDetailWidget>:
+<EditAudioDetail>:
     BoxLayout:
         orientation: 'vertical'
         size: root.size

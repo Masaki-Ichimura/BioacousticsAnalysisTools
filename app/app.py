@@ -4,7 +4,7 @@ from kivy.uix.widget import Widget
 import japanize_kivy
 
 
-class RootWidget(Widget):
+class Root(Widget):
     pass
 
 class MainApp(MDApp):
@@ -13,4 +13,4 @@ class MainApp(MDApp):
         self.title = 'BioacousticsAnalysis'
 
     def build(self):
-        return RootWidget()
+        return Root()
