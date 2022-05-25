@@ -13,8 +13,8 @@ class EditContainerWidget(MainContainerWidget):
 class EditWorkingContainerWidget(MainContainerWidget):
     pass
 
-class EditAudioTimelineWidget(MainContainerWidget):
+class EditAudioDisplayWidget(MainContainerWidget):
     pass
 
-class EditAudioDisplayWidget(MainContainerWidget):
+class EditAudioDetailWidget(MainContainerWidget):
     pass

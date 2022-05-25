@@ -1,4 +1,5 @@
 #:import EditSideBarWidget app.gui.widgets.edit_sidebar.EditSidebarWidget
+#:import AudioToolbarWidget app.gui.widgets.audiotimeline.AudioToolbarWidget
 
 
 <EditContainerWidget>:
@@ -14,27 +15,18 @@
             id: edit_working_container
             size_hint_x: 75
 
-
 <EditWorkingContainerWidget>:
     BoxLayout:
         orientation: 'vertical'
         size: root.size
         pos: root.pos
 
-        EditAudioTimelineWidget:
-            id: edit_audio_timeline
+        EditAudioDisplayWidget:
+            id: edit_audio_display
             size_hint_y: 40
 
-        EditAudioDisplayWidget:
+        EditAudioDetailWidget:
             size_hint_y: 60
-
-<EditAudioTimelineWidget>:
-    BoxLayout:
-        id: box
-        orientation: 'vertical'
-        size: root.size
-        pos: root.pos
-
 
 <EditAudioDisplayWidget>:
     BoxLayout:
@@ -42,5 +34,22 @@
         size: root.size
         pos: root.pos
 
+        AudioToolbarWidget:
+            id: edit_audio_toolbar
+            size_hint_y: 20
+
+        HSeparator:
+            height: dp(2)
+
+        AudioTimelineWidget:
+            id: edit_audio_timeline
+            size_hint_y: 80
+
+<EditAudioDetailWidget>:
+    BoxLayout:
+        orientation: 'vertical'
+        size: root.size
+        pos: root.pos
+
         Button:
-            text: 'Audio Display'
+            text: 'Audio Detail'

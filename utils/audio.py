@@ -5,7 +5,6 @@ def load_wav(file_name):
     data, fs = torchaudio.load(file_name, normalize=True)
     return data, fs
 
-
 def metadata_wav(file_name):
     metadata = torchaudio.info(file_name)
     params = [

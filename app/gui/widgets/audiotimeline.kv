@@ -1,0 +1,42 @@
+<AudioTimelineWidget>:
+    BoxLayout:
+        orientation: 'vertical'
+        size: root.size
+        pos: root.pos
+        id: box
+
+<AudioToolbarWidget>:
+    MDBoxLayout:
+        orientation: 'horizontal'
+        size: root.size
+        pos: root.pos
+
+        MDIconButton:
+            id: play
+            icon: 'play'
+            theme_text_color: 'Custom'
+            text_color: app.theme_cls.opposite_text_color
+            user_font_size: '18sp'
+            on_press: root.play()
+
+        MDIconButton:
+            id: pause
+            icon: 'pause'
+            theme_text_color: 'Custom'
+            text_color: app.theme_cls.opposite_text_color
+            user_font_size: '18sp'
+            on_press: root.pause()
+
+        MDIconButton:
+            id: stop
+            icon: 'stop'
+            theme_text_color: 'Custom'
+            text_color: app.theme_cls.opposite_text_color
+            user_font_size: '18sp'
+            on_press: root.stop()
+
+        # MDIconButton:
+        #     icon: 'skip-next'
+        #     theme_text_color: 'Custom'
+        #     text_color: app.theme_cls.opposite_text_color
+        #     user_font_size: '16sp'
