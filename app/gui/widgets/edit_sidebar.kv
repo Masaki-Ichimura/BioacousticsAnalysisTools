@@ -1,22 +1,97 @@
+#:include app/gui/widgets/separator.kv
+
+
 <EditSidebarWidget>:
     BoxLayout:
-        orientation: 'vertical'
+        orientation: 'horizontal'
         size: root.size
 
-        Button:
-            size_hint_y: 5
-            text: 'choose audio file'
-            on_press: root.load_button_clicked()
+        BoxLayout:
+            orientation: 'vertical'
+            size_hint_x: 96
 
-        Button:
-            size_hint_y: 5
-            text: 'reset audio file'
-            on_press: root.reset_button_clicked()
+            MDBoxLayout:
+                orientation: 'horizontal'
+                adaptive_height: True
 
-        TreeView:
-            size_hint_y: 90
-            id: audio_treeview
-            root_options: {'text': 'audio data', 'font_size': 25}
+                MDIconButton:
+                    icon: 'file-plus-outline'
+                    theme_text_color: 'Custom'
+                    text_color: app.theme_cls.opposite_text_color
+                    user_font_size: '16sp'
+                    on_press: root.choose_button_clicked()
 
-<AudioMetadataLabel>:
+                MDIconButton:
+                    icon: 'file-remove-outline'
+                    theme_text_color: 'Custom'
+                    text_color: app.theme_cls.opposite_text_color
+                    user_font_size: '16sp'
+                    on_press: root.remove_button_clicked(mode='choosed')
+
+                MDIconButton:
+                    icon: 'delete-forever-outline'
+                    theme_text_color: 'Custom'
+                    text_color: app.theme_cls.opposite_text_color
+                    user_font_size: '16sp'
+                    on_press: root.reset_button_clicked(mode='choosed')
+
+            HSeparator:
+                rgba: 0.5, 0.5, 0.5, 1
+
+            TreeView:
+                size_hint_y: 90/2
+                id: choosed_audio_treeview
+                root_options: {'text': 'choosed audio data', 'font_size': 25}
+
+            HSeparator:
+
+            MDBoxLayout:
+                orientation: 'horizontal'
+                adaptive_height: True
+
+                MDIconButton:
+                    icon: 'arrow-down-thick'
+                    theme_text_color: 'Custom'
+                    text_color: app.theme_cls.opposite_text_color
+                    user_font_size: '16sp'
+                    on_press: root.move_button_clicked()
+
+                MDIconButton:
+                    icon: 'file-remove-outline'
+                    theme_text_color: 'Custom'
+                    text_color: app.theme_cls.opposite_text_color
+                    user_font_size: '16sp'
+                    on_press: root.remove_button_clicked(mode='target')
+
+                MDIconButton:
+                    icon: 'delete-forever-outline'
+                    theme_text_color: 'Custom'
+                    text_color: app.theme_cls.opposite_text_color
+                    user_font_size: '16sp'
+                    on_press: root.reset_button_clicked(mode='target')
+
+            HSeparator:
+                rgba: 0.5, 0.5, 0.5, 1
+
+            TreeView:
+                size_hint_y: 90/2
+                id: target_audio_treeview
+                root_options: {'text': 'target audio data', 'font_size': 25}
+
+        BoxLayout:
+            orientation: 'vertical'
+            size_hint_x: 4
+
+            Button:
+                size_hint_y: 50
+                text: '▷'
+                font_size: 18
+                on_press: root.select_button_clicked()
+
+            Button:
+                size_hint_y: 50
+                text: '◁'
+                font_size: 18
+
+<AudioTreeViewLabel>:
     font_size: 25

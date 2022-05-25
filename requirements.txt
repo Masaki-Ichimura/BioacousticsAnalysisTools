@@ -1,5 +1,5 @@
 # GUI ライブラリ
-kivy
+kivymd
 kivy-garden
 japanize-kivy
 
