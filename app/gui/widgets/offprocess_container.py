@@ -1,5 +1,5 @@
-from kivy.uix.widget import Widget
 from kivy.lang import Builder
+from kivy.uix.widget import Widget
 
 from app.gui.main_container import MainContainer
 

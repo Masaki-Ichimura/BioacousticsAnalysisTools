@@ -1,17 +1,13 @@
 import datetime
-import matplotlib.pyplot as plt
 
+from kivy.lang import Builder
 from kivy.uix.widget import Widget
 from kivy.uix.treeview import TreeViewLabel
-from kivy.garden.matplotlib import FigureCanvasKivyAgg
-from kivy.lang import Builder
-from kivy.properties import ObjectProperty, StringProperty, NumericProperty
+from kivy.properties import ObjectProperty, StringProperty, ListProperty,  NumericProperty
 
 from app.gui.widgets.sidebar import Sidebar
 from app.gui.widgets.filechooser import FilechooserPopup
-from utils.audio import metadata_wav, load_wav
-from utils.plot import show_spec, show_wav
-
+from utils.audio import metadata_wav
 
 Builder.load_file('/'.join(__file__.split('/')[:-1])+'/edit_sidebar.kv')
 
@@ -25,11 +21,7 @@ class EditSidebar(Sidebar):
     filechooser_popup = ObjectProperty(None)
 
     choosed_audio_files = []
-    target_audio_files = []
-
-    audio_file = StringProperty('')
-    audio_data = None
-    audio_fs = NumericProperty(0)
+    target_audio_files = ListProperty([])
 
     def choose_button_clicked(self):
 
@@ -110,39 +102,18 @@ class EditSidebar(Sidebar):
     def select_button_clicked(self):
         selected_node = self.ids.choosed_audio_treeview.selected_node
         if selected_node and '.' in selected_node.text:
-            audio_file = selected_node.text
-            file_name = [
+            audio_file = [
                 fn for fn in self.choosed_audio_files
-                if audio_file == fn.split('/')[-1]
+                if selected_node.text == fn.split('/')[-1]
             ][0]
 
-            self.audio_file = file_name
-            self.audio_data, self.audio_fs = load_wav(file_name)
+            working_container = self.parent.parent.ids.working_container
 
-            container = self.parent.parent
+            working_container.audio_file = audio_file
 
-            working_container = container.ids.working_container
-            audio_display = working_container.ids.audio_display
-            audio_timeline = audio_display.ids.audio_timeline
-            audio_toolbar = audio_display.ids.audio_toolbar
+    def on_target_audio_files(self, instance, value):
+        main_menu = self.get_root_window().children[0].ids.main_menu
+        offprocess_sidebar = main_menu.ids.offprocess_container.ids.sidebar
+        offprocess_sidebar.target_audio_files = value
 
-            fig, axes = plt.subplots(2, 1, tight_layout=True)
-            show_wav(self.audio_data, self.audio_fs, ax=axes[0])
-            axes[0].set_xlim(0, self.audio_data.shape[-1]/self.audio_fs)
-            axes[0].tick_params(
-                bottom=False, labelbottom=False, left=False, labelleft=False
-            )
-            show_spec(self.audio_data, self.audio_fs, ax=axes[1])
-            axes[1].tick_params(
-                bottom=False, labelbottom=False, left=False, labelleft=False
-            )
-            axes[1].xaxis.set_visible(False); axes[1].yaxis.set_visible(False)
-
-            timeline_widget = FigureCanvasKivyAgg(fig)
-            audio_timeline.ids.box.clear_widgets()
-            audio_timeline.ids.box.add_widget(timeline_widget)
-
-            # fig.savefig('img.png')
-
-            audio_toolbar.audio_file = self.audio_file
-            audio_toolbar.set_audio()
+        offprocess_sidebar.set_target_treeview()

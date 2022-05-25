@@ -1,6 +1,6 @@
-from kivy.uix.widget import Widget
 from kivy.lang import Builder
 from kivy.properties import StringProperty, ObjectProperty, NumericProperty, BooleanProperty
+from kivy.uix.widget import Widget
 from kivy.core.audio import SoundLoader
 
 from app.gui.main_container import MainContainer
@@ -18,6 +18,8 @@ class AudioToolbar(MainContainer):
     pause_flag = BooleanProperty(False)
 
     def set_audio(self):
+        working_container = self.parent.parent.parent.parent
+        self.audio_file = working_container.audio_file
         self.sound = SoundLoader.load(self.audio_file)
 
     def play(self):
