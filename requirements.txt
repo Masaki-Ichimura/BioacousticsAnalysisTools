@@ -1,5 +1,6 @@
 # GUI ライブラリ
 kivy
+kivy-garden
 japanize-kivy
 
 # 計算ライブラリ
@@ -9,4 +10,7 @@ numpy
 librosa
 
 # 描画ライブラリ
-matplotlib
+matplotlib==3.1.3
+
+# etc
+ipython

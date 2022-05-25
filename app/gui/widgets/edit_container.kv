@@ -17,6 +17,7 @@
             on_press: root.select_button_clicked()
 
         EditWorkingContainerWidget:
+            id: edit_working_container
             size_hint_x: 75
 
 
@@ -29,6 +30,7 @@
         pos: root.pos
 
         EditAudioTimelineWidget:
+            id: edit_audio_timeline
             size_hint_y: 40
 
         EditAudioDisplayWidget:
@@ -36,12 +38,11 @@
 
 <EditAudioTimelineWidget>:
     BoxLayout:
+        id: box
         orientation: 'vertical'
         size: root.size
         pos: root.pos
 
-        Button:
-            text: 'Audio Timeline'
 
 <EditAudioDisplayWidget>:
     BoxLayout:
