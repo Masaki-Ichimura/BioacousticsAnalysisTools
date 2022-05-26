@@ -1,5 +1,5 @@
 from kivy.lang import Builder
-from kivy.properties import StringProperty, ObjectProperty, NumericProperty, BooleanProperty
+from kivy.properties import StringProperty, ObjectProperty, NumericProperty, BooleanProperty, Clock
 from kivy.uix.widget import Widget
 from kivy.core.audio import SoundLoader
 
@@ -15,7 +15,9 @@ class AudioToolbar(MainContainer):
     audio_file = StringProperty('')
     sound = ObjectProperty(None)
     audio_pos = NumericProperty(0)
-    pause_flag = BooleanProperty(False)
+
+    check_pos = None
+    check_dt = .1
 
     def set_audio(self):
         working_container = self.parent.parent.parent.parent
@@ -24,20 +26,31 @@ class AudioToolbar(MainContainer):
 
     def play(self):
         if self.sound.state == 'stop':
-            if self.pause_flag:
-                self.pause_flag = False
-            else:
-                self.audio_pos = 0
-
             self.sound.seek(self.audio_pos)
             self.sound.play()
+            self.check_pos = Clock.schedule_interval(
+                lambda dt: self.position(), self.check_dt
+            )
 
     def pause(self):
         if self.sound.state == 'play':
-            self.audio_pos = self.sound.get_pos()
             self.sound.stop()
-            self.pause_flag = True
+            Clock.unschedule(self.check_pos)
+            self.check_pos = None
 
     def stop(self):
-        self.audio_pos = 0
         self.sound.stop()
+        self.position(0)
+        Clock.unschedule(self.check_pos)
+        self.check_pos = None
+
+    def position(self, pos=None):
+        if pos is None:
+            self.audio_pos = self.sound.get_pos()
+        else:
+            self.audio_pos = pos
+
+        if self.check_pos:
+            if self.sound.length - self.audio_pos <= 2*self.check_dt:
+                self.audio_pos = 0
+                return False

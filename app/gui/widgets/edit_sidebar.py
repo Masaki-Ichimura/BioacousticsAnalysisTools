@@ -59,13 +59,17 @@ class EditSidebar(Sidebar):
         self.filechooser_popup.open()
 
     def move_button_clicked(self):
-        self.target_audio_files.extend(self.choosed_audio_files)
+        add_audio_files = [
+            fn for fn in self.choosed_audio_files
+            if fn not in self.target_audio_files
+        ]
         audio_treeview = self.ids.target_audio_treeview
         _ = [
             audio_treeview.add_node(AudioTreeViewLabel(text=node.text))
             for node in self.ids.choosed_audio_treeview.iterate_all_nodes()
-            if node.level == 1
+            if node.level == 1 and any([node.text==fn.split('/')[-1] for fn in add_audio_files])
         ]
+        self.target_audio_files.extend(add_audio_files)
 
     def remove_button_clicked(self, mode='choosed'):
         if mode == 'choosed':

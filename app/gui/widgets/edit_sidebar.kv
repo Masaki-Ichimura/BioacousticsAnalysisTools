@@ -5,7 +5,7 @@
 
         BoxLayout:
             orientation: 'vertical'
-            size_hint_x: 96
+            size_hint_x: 95
 
             MDBoxLayout:
                 orientation: 'horizontal'
@@ -38,10 +38,9 @@
             ScrollView:
                 do_scroll_x: False
 
-                TreeView:
+                FileTreeView:
                     id: choosed_audio_treeview
                     root_options: {'text': 'choosed audio data', 'font_size': 25}
-                    size_hint_y: 20
 
             HSeparator:
                 height: dp(2)
@@ -77,25 +76,24 @@
             ScrollView:
                 do_scroll_x: False
 
-                TreeView:
+                FileTreeView:
                     id: target_audio_treeview
-                    size_hint_y: 20
                     root_options: {'text': 'target audio data', 'font_size': 25}
 
         BoxLayout:
             orientation: 'vertical'
-            size_hint_x: 4
+            size_hint_x: 5
 
             Button:
                 size_hint_y: 50
                 text: '▷'
-                font_size: 18
+                font_size: 20
                 on_press: root.select_button_clicked()
 
             Button:
                 size_hint_y: 50
                 text: '◁'
-                font_size: 18
+                font_size: 20
 
 <AudioTreeViewLabel>:
     font_size: 25
