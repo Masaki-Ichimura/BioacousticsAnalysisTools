@@ -6,6 +6,7 @@ japanize-kivy
 # 計算ライブラリ
 torch
 torchaudio
+asteroid
 numpy
 librosa
 

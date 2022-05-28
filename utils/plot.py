@@ -1,31 +1,22 @@
 import torch
-import librosa
-import librosa.display
+from librosa import amplitude_to_db
+from librosa.display import specshow, waveshow
 import matplotlib.pyplot as plt
 
 
-def show_spec(waveform, fs, n_fft=2048, **kw):
+def show_spec(waveform, fs, n_fft, **kwargs):
     waveform = waveform if waveform.ndim == 1 else waveform.mean(0)
-    amp_np = torch.stft(
-        waveform, n_fft=n_fft, return_complex=True
-    ).abs().numpy()
-
-    plt_obj = librosa.display.specshow(
-        librosa.amplitude_to_db(amp_np),
-        sr=fs,
-        y_axis='log', x_axis='time',
-        **kw
+    db_np = amplitude_to_db(
+        torch.stft(
+            waveform, n_fft=n_fft, return_complex=True
+        ).abs().numpy()
+    )
+    plt_obj = specshow(
+        db_np, sr=fs, y_axis='log', x_axis='time', **kwargs
     )
     return plt_obj
 
-def show_wav(waveform, fs, ax=None):
+def show_wav(waveform, fs, ax=None, **kwargs):
     waveform = waveform if waveform.ndim == 1 else waveform.mean(0)
-    t_len = waveform.shape[0]
-    t = torch.linspace(1/fs, t_len/fs, t_len)
-
-    if ax:
-        ax.plot(t, waveform)
-        return ax
-    else:
-        plt_obj = plt.plot(t, waveform)
-        return plt_obj
+    plt_obj = waveshow(waveform.numpy(), sr=fs, **kwargs)
+    return plt_obj

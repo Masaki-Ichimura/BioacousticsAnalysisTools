@@ -1,9 +1,26 @@
 <AudioTimeline>:
     BoxLayout:
-        id: box
-        orientation: 'vertical'
-        size: root.size
+        orientation: 'horizontal'
         pos: root.pos
+        size: root.size
+
+        BoxLayout:
+            id: box_yaxis
+            size_hint_x: 1
+            orientation: 'vertical'
+
+        ScrollView:
+            do_scroll_y: False
+            size_hint_x: 20
+
+            BoxLayout:
+                id: box_tl
+                orientation: 'vertical'
+                size_hint_x: None
+                width: self.minimum_width
+
+<TimelineXgrid>:
+    canvas:
 
 <AudioToolbar>:
     MDBoxLayout:
@@ -35,8 +52,18 @@
             user_font_size: '18sp'
             on_press: root.stop()
 
-        # MDIconButton:
-        #     icon: 'skip-next'
-        #     theme_text_color: 'Custom'
-        #     text_color: app.theme_cls.opposite_text_color
-        #     user_font_size: '16sp'
+        MDIconButton:
+            id: magnify_plus
+            icon: 'magnify-plus-outline'
+            theme_text_color: 'Custom'
+            text_color: app.theme_cls.opposite_text_color
+            user_font_size: '18sp'
+            on_press: root.magnify(mode='plus')
+
+        MDIconButton:
+            id: magnify_minus
+            icon: 'magnify-minus-outline'
+            theme_text_color: 'Custom'
+            text_color: app.theme_cls.opposite_text_color
+            user_font_size: '18sp'
+            on_press: root.magnify(mode='minus')
