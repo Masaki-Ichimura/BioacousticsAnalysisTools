@@ -10,7 +10,7 @@ from kivy.core.audio import SoundLoader
 from app.gui.main_container import MainContainer
 from utils.plot import show_spec, show_wav
 
-Builder.load_file('/'.join(__file__.split('/')[:-1])+'/audiotimeline.kv')
+Builder.load_file('/'.join(__file__.split('/')[:-1])+'/audiodisplay.kv')
 
 
 class AudioTimeline(MainContainer):
@@ -65,8 +65,9 @@ class AudioTimeline(MainContainer):
             left=False, labelleft=False, right=False, labelright=False
         )
         ax_wav.set_xlabel(''); ax_wav.set_ylabel('')
-        fig_wav.subplots_adjust(left=0, right=1, bottom=0, top=1)
-        fig_wav.patch.set_alpha(0)
+        #fig_wav.subplots_adjust(left=0, right=1, bottom=0, top=1)
+        #fig_wav.patch.set_alpha(0)
+        fig_wav.tight_layout(pad=0, rect=(0,0,0,0))
 
         fig_spec, ax_spec = plt.subplots(tight_layout=True)
         show_spec(audio_data, audio_fs, n_fft=2048, ax=ax_spec)
@@ -239,8 +240,10 @@ class AudioTimeline(MainContainer):
     def on_audio_pos(self, instance, value):
         seekbar = self.ids.seekbar
         bar = seekbar.canvas.children[-1]
+        pad = 13
+        fig_width = self.ids.box_tl.width-2*pad
         bar.pos = (
-            self.ids.box_tl.width*(self.audio_pos/self.sound.length)+15,
+            fig_width*(self.audio_pos/self.sound.length)+pad,
             bar.pos[1]
         )
 
@@ -297,7 +300,8 @@ class AudioToolbar(MainContainer):
         audio_timeline = self.parent.parent.ids.audio_timeline
         seekbar = audio_timeline.ids.seekbar
         bar = seekbar.canvas.children[-1]
-        bar_x = [bar.pos[0]][0]
+        pad = 13
+        bar_x = [bar.pos[0]][0]-pad
 
         if not audio_timeline.audio_file:
             return None
@@ -308,13 +312,13 @@ class AudioToolbar(MainContainer):
             audio_timeline.timeline_width *= 2
             audio_timeline.timeline_t_unit /= 2
 
-            bar.pos = (bar_x*2, bar.pos[1])
+            bar.pos = (bar_x*2+pad, bar.pos[1])
 
         elif mode == 'minus':
             audio_timeline.timeline_width /= 2
             audio_timeline.timeline_t_unit *= 2
 
-            bar.pos = (bar_x/2, bar.pos[1])
+            bar.pos = (bar_x/2+pad, bar.pos[1])
 
     def close(self):
         working_container = self.parent.parent.parent.parent
