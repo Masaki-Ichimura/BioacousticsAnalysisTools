@@ -86,3 +86,11 @@
             text_color: app.theme_cls.opposite_text_color
             user_font_size: '18sp'
             on_press: root.magnify(mode='minus')
+
+        MDIconButton:
+            id: magnify_minus
+            icon: 'close'
+            theme_text_color: 'Custom'
+            text_color: app.theme_cls.opposite_text_color
+            user_font_size: '18sp'
+            on_press: root.close()

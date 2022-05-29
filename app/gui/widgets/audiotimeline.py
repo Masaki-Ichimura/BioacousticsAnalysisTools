@@ -31,6 +31,16 @@ class AudioTimeline(MainContainer):
     check_dt = .05
 
     def on_audio_file(self, instance, value):
+        if not value:
+            seekbar = self.ids.box_tl.children[0]
+            self.audio_pos = 0
+            if self.sound:
+                self.sound.unload()
+            self.ids.box_tl.clear_widgets()
+            self.ids.box_yaxis.clear_widgets()
+            self.ids.box_tl.add_widget(seekbar)
+            return None
+
         working_container = self.parent.parent.parent.parent
         audio_data = working_container.audio_data
         audio_fs = working_container.audio_fs
@@ -289,6 +299,9 @@ class AudioToolbar(MainContainer):
         bar = seekbar.canvas.children[-1]
         bar_x = [bar.pos[0]][0]
 
+        if not audio_timeline.audio_file:
+            return None
+
         # グラフの width の変化から拾ってほしいが，そっちだと上手く反映されないため，
         # 手動でバーの設定を行う
         if mode == 'plus':
@@ -302,3 +315,8 @@ class AudioToolbar(MainContainer):
             audio_timeline.timeline_t_unit *= 2
 
             bar.pos = (bar_x/2, bar.pos[1])
+
+    def close(self):
+        working_container = self.parent.parent.parent.parent
+        audio_timeline = self.parent.parent.ids.audio_timeline
+        audio_timeline.audio_file = working_container.audio_file =  ''

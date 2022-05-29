@@ -18,6 +18,9 @@ class EditWorkingContainer(MainContainer):
     audio_fs = NumericProperty(0)
 
     def on_audio_file(self, instance, value):
+        if not value:
+            audio_data = None
+            return None
         audio_toolbar = self.ids.audio_display.ids.audio_toolbar
         audio_timeline = self.ids.audio_display.ids.audio_timeline
 
