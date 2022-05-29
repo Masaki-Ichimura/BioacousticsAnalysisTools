@@ -20,7 +20,6 @@ class EditWorkingContainer(MainContainer):
     def on_audio_file(self, instance, value):
         audio_toolbar = self.ids.audio_display.ids.audio_toolbar
         audio_timeline = self.ids.audio_display.ids.audio_timeline
-        audio_toolbar.set_audio()
 
         audio_data, audio_fs = load_wav(self.audio_file)
 

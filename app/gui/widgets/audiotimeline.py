@@ -25,6 +25,11 @@ class AudioTimeline(MainContainer):
     timeline_t_unit = NumericProperty(1.)
     timeline_width = NumericProperty(1000)
 
+    sound = ObjectProperty(None)
+    audio_pos = NumericProperty(0)
+
+    check_dt = .05
+
     def on_audio_file(self, instance, value):
         working_container = self.parent.parent.parent.parent
         audio_data = working_container.audio_data
@@ -40,29 +45,30 @@ class AudioTimeline(MainContainer):
         t_ticks = torch.arange(t_start, t_end+t_unit*.1, t_unit)
 
         fig_wav, ax_wav = plt.subplots(tight_layout=True)
-        show_wav(audio_data, audio_fs, ax=ax_wav)
+        show_wav(audio_data, audio_fs, ax=ax_wav, color='b')
         ax_wav.set_xticks(t_ticks)
         ax_wav.set_xlim(0, audio_data.shape[-1]/audio_fs)
         ax_wav.patch.set_alpha(0)
         ax_wav.tick_params(
-            which='both', axis='both', labelsize=15, length=0,#labelcolor=(0,0,0,0),
+            which='both', axis='both', labelsize=15, length=0,
             top=False, labeltop=False, bottom=False, labelbottom=False,
             left=False, labelleft=False, right=False, labelright=False
         )
         ax_wav.set_xlabel(''); ax_wav.set_ylabel('')
         fig_wav.subplots_adjust(left=0, right=1, bottom=0, top=1)
+        fig_wav.patch.set_alpha(0)
 
         fig_spec, ax_spec = plt.subplots(tight_layout=True)
         show_spec(audio_data, audio_fs, n_fft=2048, ax=ax_spec)
-        # ax_spec.xaxis.set_major_formatter(StrMethodFormatter('{x:.1f}'))
         ax_spec.tick_params(
-            which='both', axis='both', labelsize=15, length=0, #labelcolor=(0,0,0,0),
+            which='both', axis='both', labelsize=15, length=0,
             top=False, labeltop=False, bottom=False, labelbottom=False,
             left=False, labelleft=False, right=False, labelright=False
         )
         ax_spec.tick_params(axis='y', labelsize=10)
         ax_spec.set_xlabel(''); ax_spec.set_ylabel('')
         fig_spec.subplots_adjust(left=0, right=1, bottom=0, top=1)
+        fig_spec.patch.set_alpha(fig_wav.patch.get_alpha())
 
         self.fig_wav, self.fig_spec = fig_wav, fig_spec
 
@@ -83,6 +89,7 @@ class AudioTimeline(MainContainer):
         spec_widget.width = self.timeline_width
         spec_widget.size_hint_x = None
 
+        seekbar = self.ids.box_tl.children[0]
         self.ids.box_tl.clear_widgets()
         self.ids.box_yaxis.clear_widgets()
 
@@ -92,6 +99,10 @@ class AudioTimeline(MainContainer):
         self.ids.box_tl.add_widget(t_widget)
         self.ids.box_tl.add_widget(wav_widget)
         self.ids.box_tl.add_widget(spec_widget)
+        self.ids.box_tl.add_widget(seekbar)
+
+        self.sound = SoundLoader.load(self.audio_file)
+        self.on_audio_pos(None, None)
 
     def on_fig_wav(self, instance, value):
         audio_data, audio_fs = self.audio_data, self.audio_fs
@@ -120,6 +131,7 @@ class AudioTimeline(MainContainer):
         ax_t.spines['bottom'].set_visible(False)
         ax_t.spines['right'].set_visible(False)
         ax_t.spines['left'].set_visible(False)
+        fig_t.patch.set_alpha(self.fig_wav.patch.get_alpha())
 
         fig_y = plt.figure()
         ax_y = fig_y.add_subplot(sharey=ax_wav)
@@ -141,6 +153,7 @@ class AudioTimeline(MainContainer):
         ax_y.spines['top'].set_visible(False)
         ax_y.spines['bottom'].set_visible(False)
         ax_y.spines['right'].set_visible(False)
+        fig_y.patch.set_alpha(self.fig_wav.patch.get_alpha())
 
         fig_y.subplots_adjust(left=.85)
         self.fig_t, self.fig_y = fig_t, fig_y
@@ -168,6 +181,7 @@ class AudioTimeline(MainContainer):
         ax_f.spines['top'].set_visible(False)
         ax_f.spines['bottom'].set_visible(False)
         ax_f.spines['right'].set_visible(False)
+        fig_f.patch.set_alpha(self.fig_spec.patch.get_alpha())
 
         # fig_f.tight_layout()
         fig_f.subplots_adjust(left=.85)
@@ -188,13 +202,14 @@ class AudioTimeline(MainContainer):
         t_widget.size = (self.timeline_width, 80)
         t_widget.size_hint = (None, None)
 
-        self.ids.box_tl.remove_widget(self.ids.box_tl.children[2])
+        seekbar = self.ids.box_tl.children[0]
+
+        self.ids.box_tl.clear_widgets([seekbar, self.ids.box_tl.children[-1]])
         self.ids.box_tl.add_widget(t_widget, index=2)
+        self.ids.box_tl.add_widget(seekbar)
 
         for child in self.ids.box_tl.children:
-            print(child.width)
             child.width = self.timeline_width
-            print(child.width)
 
     def init_timeline(self):
         scrollview_width = self.ids.box_yaxis.parent.width
@@ -211,58 +226,79 @@ class AudioTimeline(MainContainer):
         self.timeline_t_unit = t_unit
         self.timeline_width = int(audio_s/t_unit*width_per_unit)
 
+    def on_audio_pos(self, instance, value):
+        seekbar = self.ids.seekbar
+        bar = seekbar.canvas.children[-1]
+        bar.pos = (
+            self.ids.box_tl.width*(self.audio_pos/self.sound.length)+15,
+            bar.pos[1]
+        )
+
 class AudioToolbar(MainContainer):
-    audio_file = StringProperty('')
-    sound = ObjectProperty(None)
-    audio_pos = NumericProperty(0)
-
     check_pos = None
-    check_dt = .1
-
-    def set_audio(self):
-        working_container = self.parent.parent.parent.parent
-        self.audio_file = working_container.audio_file
-        self.sound = SoundLoader.load(self.audio_file)
 
     def play(self):
-        if self.sound and self.sound.state == 'stop':
-            self.sound.seek(self.audio_pos)
-            self.sound.play()
+        audio_timeline = self.parent.parent.ids.audio_timeline
+        sound = audio_timeline.sound
+
+        if sound and sound.state == 'stop':
+            sound.seek(audio_timeline.audio_pos)
+            sound.play()
             self.check_pos = Clock.schedule_interval(
-                lambda dt: self.position(), self.check_dt
+                lambda dt: self.position(), audio_timeline.check_dt
             )
 
     def pause(self):
-        if self.sound and self.sound.state == 'play':
-            self.sound.stop()
+        audio_timeline = self.parent.parent.ids.audio_timeline
+        sound = audio_timeline.sound
+
+        if sound and sound.state == 'play':
+            sound.stop()
             Clock.unschedule(self.check_pos)
             self.check_pos = None
 
     def stop(self):
-        if self.sound:
-            self.sound.stop()
+        audio_timeline = self.parent.parent.ids.audio_timeline
+        sound = audio_timeline.sound
+
+        if sound:
+            sound.stop()
             self.position(0)
             Clock.unschedule(self.check_pos)
             self.check_pos = None
+        else:
+            self.position(0)
 
     def position(self, pos=None):
+        audio_timeline = self.parent.parent.ids.audio_timeline
+        sound = audio_timeline.sound
+
         if pos is None:
-            self.audio_pos = self.sound.get_pos()
+            audio_timeline.audio_pos = sound.get_pos()
         else:
-            self.audio_pos = pos
+            audio_timeline.audio_pos = pos
 
         if self.check_pos:
-            if self.sound.length - self.audio_pos <= 2*self.check_dt:
-                self.audio_pos = 0
+            if sound.length - audio_timeline.audio_pos <= 4*audio_timeline.check_dt:
+                audio_timeline.audio_pos = 0
                 return False
 
     def magnify(self, mode='plus'):
-        audio_display = self.parent.parent
-        audio_timeline = audio_display.ids.audio_timeline
+        audio_timeline = self.parent.parent.ids.audio_timeline
+        seekbar = audio_timeline.ids.seekbar
+        bar = seekbar.canvas.children[-1]
+        bar_x = [bar.pos[0]][0]
 
+        # グラフの width の変化から拾ってほしいが，そっちだと上手く反映されないため，
+        # 手動でバーの設定を行う
         if mode == 'plus':
             audio_timeline.timeline_width *= 2
             audio_timeline.timeline_t_unit /= 2
+
+            bar.pos = (bar_x*2, bar.pos[1])
+
         elif mode == 'minus':
             audio_timeline.timeline_width /= 2
             audio_timeline.timeline_t_unit *= 2
+
+            bar.pos = (bar_x/2, bar.pos[1])

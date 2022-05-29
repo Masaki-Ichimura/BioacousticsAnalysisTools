@@ -1,4 +1,11 @@
 <AudioTimeline>:
+    canvas.before:
+        Color:
+            rgba: 1, 1, 1, .8
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
     BoxLayout:
         orientation: 'horizontal'
         pos: root.pos
@@ -10,8 +17,11 @@
             orientation: 'vertical'
 
         ScrollView:
+            id: scroll_tl
             do_scroll_y: False
             size_hint_x: 20
+            scroll_type: ['bars', 'content']
+            scroll_distance: 40
 
             BoxLayout:
                 id: box_tl
@@ -19,14 +29,23 @@
                 size_hint_x: None
                 width: self.minimum_width
 
-<TimelineXgrid>:
-    canvas:
+                Widget:
+                    id: seekbar
+                    height: 0
+                    size_hint_y: None
+
+                    canvas:
+                        Color:
+                            rgba: 0, 1, 0, 1
+                        Rectangle:
+                            size: (5, scroll_tl.height)
 
 <AudioToolbar>:
     MDBoxLayout:
         orientation: 'horizontal'
         size: root.size
         pos: root.pos
+
 
         MDIconButton:
             id: play
