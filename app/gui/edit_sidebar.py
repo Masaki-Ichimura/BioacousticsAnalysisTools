@@ -5,15 +5,11 @@ from kivy.uix.widget import Widget
 from kivy.uix.treeview import TreeViewLabel
 from kivy.properties import ObjectProperty, StringProperty, ListProperty,  NumericProperty
 
-from app.gui.widgets.sidebar import Sidebar
+from app.gui.widgets.sidebar import Sidebar, AudioTreeViewLabel
 from app.gui.widgets.filechooser import FilechooserPopup
 from utils.audio import metadata_wav
 
 Builder.load_file('/'.join(__file__.split('/')[:-1])+'/edit_sidebar.kv')
-
-
-class AudioTreeViewLabel(TreeViewLabel):
-    pass
 
 
 class EditSidebar(Sidebar):

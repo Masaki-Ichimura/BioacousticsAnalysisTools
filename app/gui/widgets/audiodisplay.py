@@ -7,13 +7,13 @@ from kivy.uix.widget import Widget
 from kivy.garden.matplotlib import FigureCanvasKivyAgg
 from kivy.core.audio import SoundLoader
 
-from app.gui.main_container import MainContainer
+from app.gui.widgets.container import Container
 from utils.plot import show_spec, show_wav
 
 Builder.load_file('/'.join(__file__.split('/')[:-1])+'/audiodisplay.kv')
 
 
-class AudioTimeline(MainContainer):
+class AudioTimeline(Container):
     audio_file = StringProperty('')
 
     audio_data = None
@@ -65,9 +65,8 @@ class AudioTimeline(MainContainer):
             left=False, labelleft=False, right=False, labelright=False
         )
         ax_wav.set_xlabel(''); ax_wav.set_ylabel('')
-        #fig_wav.subplots_adjust(left=0, right=1, bottom=0, top=1)
-        #fig_wav.patch.set_alpha(0)
-        fig_wav.tight_layout(pad=0, rect=(0,0,0,0))
+        fig_wav.subplots_adjust(left=0, right=1, bottom=0, top=1)
+        fig_wav.patch.set_alpha(0)
 
         fig_spec, ax_spec = plt.subplots(tight_layout=True)
         show_spec(audio_data, audio_fs, n_fft=2048, ax=ax_spec)
@@ -199,7 +198,10 @@ class AudioTimeline(MainContainer):
         self.fig_f = fig_f
 
     def on_timeline_t_unit(self, instance, value):
-        ax_t = self.fig_t.axes[0]
+        try:
+            ax_t = self.fig_t.axes[0]
+        except AttributeError:
+            return None
 
         t_unit = self.timeline_t_unit
         t_start = 0
@@ -247,7 +249,7 @@ class AudioTimeline(MainContainer):
             bar.pos[1]
         )
 
-class AudioToolbar(MainContainer):
+class AudioToolbar(Container):
     check_pos = None
 
     def play(self):

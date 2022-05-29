@@ -13,22 +13,16 @@
 
                 MDIconButton:
                     icon: 'file-plus-outline'
-                    theme_text_color: 'Custom'
-                    text_color: app.theme_cls.opposite_text_color
                     user_font_size: '16sp'
                     on_press: root.choose_button_clicked()
 
                 MDIconButton:
                     icon: 'file-remove-outline'
-                    theme_text_color: 'Custom'
-                    text_color: app.theme_cls.opposite_text_color
                     user_font_size: '16sp'
                     on_press: root.remove_button_clicked(mode='choosed')
 
                 MDIconButton:
                     icon: 'delete-forever-outline'
-                    theme_text_color: 'Custom'
-                    text_color: app.theme_cls.opposite_text_color
                     user_font_size: '16sp'
                     on_press: root.reset_button_clicked(mode='choosed')
 
@@ -51,22 +45,16 @@
 
                 MDIconButton:
                     icon: 'arrow-down-thick'
-                    theme_text_color: 'Custom'
-                    text_color: app.theme_cls.opposite_text_color
                     user_font_size: '16sp'
                     on_press: root.move_button_clicked()
 
                 MDIconButton:
                     icon: 'file-remove-outline'
-                    theme_text_color: 'Custom'
-                    text_color: app.theme_cls.opposite_text_color
                     user_font_size: '16sp'
                     on_press: root.remove_button_clicked(mode='target')
 
                 MDIconButton:
                     icon: 'delete-forever-outline'
-                    theme_text_color: 'Custom'
-                    text_color: app.theme_cls.opposite_text_color
                     user_font_size: '16sp'
                     on_press: root.reset_button_clicked(mode='target')
 
@@ -94,6 +82,3 @@
                 size_hint_y: 50
                 text: '◁'
                 font_size: 20
-
-<AudioTreeViewLabel>:
-    font_size: 25

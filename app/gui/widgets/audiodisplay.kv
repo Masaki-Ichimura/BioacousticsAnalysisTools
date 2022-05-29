@@ -46,51 +46,38 @@
         size: root.size
         pos: root.pos
 
-
         MDIconButton:
             id: play
             icon: 'play'
-            theme_text_color: 'Custom'
-            text_color: app.theme_cls.opposite_text_color
             user_font_size: '18sp'
             on_press: root.play()
 
         MDIconButton:
             id: pause
             icon: 'pause'
-            theme_text_color: 'Custom'
-            text_color: app.theme_cls.opposite_text_color
             user_font_size: '18sp'
             on_press: root.pause()
 
         MDIconButton:
             id: stop
             icon: 'stop'
-            theme_text_color: 'Custom'
-            text_color: app.theme_cls.opposite_text_color
             user_font_size: '18sp'
             on_press: root.stop()
 
         MDIconButton:
             id: magnify_plus
             icon: 'magnify-plus-outline'
-            theme_text_color: 'Custom'
-            text_color: app.theme_cls.opposite_text_color
             user_font_size: '18sp'
             on_press: root.magnify(mode='plus')
 
         MDIconButton:
             id: magnify_minus
             icon: 'magnify-minus-outline'
-            theme_text_color: 'Custom'
-            text_color: app.theme_cls.opposite_text_color
             user_font_size: '18sp'
             on_press: root.magnify(mode='minus')
 
         MDIconButton:
             id: close
             icon: 'close'
-            theme_text_color: 'Custom'
-            text_color: app.theme_cls.opposite_text_color
             user_font_size: '18sp'
             on_press: root.close()

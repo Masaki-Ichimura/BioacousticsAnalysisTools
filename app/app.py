@@ -6,6 +6,9 @@ import japanize_kivy
 
 class Root(Widget):
     def init(self):
+        main_menu = self.ids.main_menu
+        print(main_menu.ids.edit.parent)
+
         self.init_edit_tab()
         self.init_offprocess_tab()
 
@@ -43,6 +46,7 @@ class MainApp(MDApp):
         self.title = 'BioacousticsAnalysis'
 
     def build(self):
+        self.theme_cls.theme_style = 'Dark'
         root = Root()
         root.init()
         return root
