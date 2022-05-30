@@ -1,5 +1,5 @@
 from kivy.lang import Builder
-from kivy.properties import ObjectProperty
+from kivy.properties import *
 from kivy.uix.popup import Popup
 
 

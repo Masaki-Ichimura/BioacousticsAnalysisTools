@@ -24,14 +24,13 @@ class Root(Widget):
         audio_timeline = audio_display.ids.audio_timeline
 
         def touch_up_timeline(instance, event):
-            pad = 13
             bar = instance.children[0].canvas.children[-1]
             audio_pos = audio_timeline.audio_pos
-            fig_width = max(0, instance.width-2*pad)
-            bar.pos = (min(max(pad, event.pos[0]), fig_width), bar.pos[1])
+            fig_width = max(0, instance.width)
+            bar.pos = (min(event.pos[0], fig_width), bar.pos[1])
             if audio_timeline.audio_file:
                 sound = audio_timeline.sound
-                audio_timeline.audio_pos = max(0, (bar.pos[0]-pad)/fig_width*sound.length)
+                audio_timeline.audio_pos = max(0, bar.pos[0]/fig_width*sound.length)
 
         audio_timeline.ids.box_tl.bind(on_touch_up=touch_up_timeline)
 

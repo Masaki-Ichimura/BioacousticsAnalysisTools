@@ -2,17 +2,14 @@ import datetime
 import matplotlib.pyplot as plt
 
 from kivy.lang import Builder
-from kivy.properties import ObjectProperty, StringProperty,  ListProperty, NumericProperty
+from kivy.properties import *
 from kivy.uix.widget import Widget
 from kivy.garden.matplotlib import FigureCanvasKivyAgg
 
 from app.gui.widgets.sidebar import Sidebar, AudioTreeViewLabel
 from app.gui.widgets.filechooser import FilechooserPopup
 
-
 Builder.load_file('/'.join(__file__.split('/')[:-1])+'/offprocess_sidebar.kv')
-
-
 
 
 class OffprocessSidebar(Sidebar):

@@ -1,7 +1,7 @@
 import torch
+import matplotlib.pyplot as plt
 from librosa import amplitude_to_db
 from librosa.display import specshow, waveshow
-import matplotlib.pyplot as plt
 
 
 def show_spec(waveform, fs, n_fft, **kwargs):
@@ -16,7 +16,7 @@ def show_spec(waveform, fs, n_fft, **kwargs):
     )
     return plt_obj
 
-def show_wav(waveform, fs, ax=None, **kwargs):
+def show_wave(waveform, fs, **kwargs):
     waveform = waveform if waveform.ndim == 1 else waveform.mean(0)
     plt_obj = waveshow(waveform.numpy(), sr=fs, **kwargs)
     return plt_obj

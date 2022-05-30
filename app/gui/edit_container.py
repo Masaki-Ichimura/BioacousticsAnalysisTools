@@ -1,10 +1,10 @@
 from kivy.lang import Builder
-from kivy.properties import ObjectProperty, NumericProperty, StringProperty
+from kivy.properties import *
 from kivy.uix.widget import Widget
 
 from app.gui.widgets.container import Container
-from utils.audio import load_wav
-from utils.plot import show_spec, show_wav
+from utils.audio import load_wave
+from utils.plot import show_spec, show_wave
 
 Builder.load_file('/'.join(__file__.split('/')[:-1])+'/edit_container.kv')
 
@@ -24,7 +24,7 @@ class EditWorkingContainer(Container):
         audio_toolbar = self.ids.audio_display.ids.audio_toolbar
         audio_timeline = self.ids.audio_display.ids.audio_timeline
 
-        audio_data, audio_fs = load_wav(self.audio_file)
+        audio_data, audio_fs = load_wave(self.audio_file)
 
         self.audio_data, self.audio_fs = audio_data, audio_fs
 

@@ -3,11 +3,11 @@ import datetime
 from kivy.lang import Builder
 from kivy.uix.widget import Widget
 from kivy.uix.treeview import TreeViewLabel
-from kivy.properties import ObjectProperty, StringProperty, ListProperty,  NumericProperty
+from kivy.properties import *
 
 from app.gui.widgets.sidebar import Sidebar, AudioTreeViewLabel
 from app.gui.widgets.filechooser import FilechooserPopup
-from utils.audio import metadata_wav
+from utils.audio import metadata_wave
 
 Builder.load_file('/'.join(__file__.split('/')[:-1])+'/edit_sidebar.kv')
 
@@ -28,7 +28,7 @@ class EditSidebar(Sidebar):
                 file_path = str(selection)
 
                 if file_path and file_path not in self.choosed_audio_files:
-                    metadata = metadata_wav(file_path)
+                    metadata = metadata_wave(file_path)
                     metadata = {
                         '再生時間': datetime.timedelta(
                             seconds=metadata['num_frames']//metadata['sample_rate']
