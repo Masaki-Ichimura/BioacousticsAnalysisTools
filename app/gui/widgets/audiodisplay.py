@@ -33,7 +33,7 @@ class AudioTimeline(Container):
 
     def on_audio_file(self, instance, value):
         if not value:
-            seekbar = self.ids.box_tl.children[0]
+            seekbar = self.ids.seekbar
             self.audio_pos = 0
             if self.sound:
                 self.sound.unload()
@@ -87,7 +87,7 @@ class AudioTimeline(Container):
         wave_widget.width = spec_widget.width = self.timeline_width
         wave_widget.size_hint_x = spec_widget.size_hint_x = None
 
-        seekbar = self.ids.box_tl.children[0]
+        seekbar = self.ids.seekbar
 
         self.ids.box_tl.clear_widgets()
         self.ids.box_yaxis.clear_widgets()
@@ -101,7 +101,17 @@ class AudioTimeline(Container):
         self.ids.box_tl.add_widget(spec_widget)
         self.ids.box_tl.add_widget(seekbar)
 
+        audio_toolbar = self.parent.parent.ids.audio_toolbar
+
         self.sound = SoundLoader.load(self.audio_file)
+        self.sound.volume = audio_toolbar.ids.volume.value
+
+        def on_value(instance, value):
+            self.sound.volume = value
+
+        audio_toolbar.ids.volume.unbind()
+        audio_toolbar.ids.volume.bind(value=on_value)
+
         self.on_audio_pos(None, None)
 
     def on_fig_wave(self, instance, value):
@@ -191,10 +201,10 @@ class AudioTimeline(Container):
         ax_t.set_xticks(t_ticks)
 
         t_widget = FigureCanvasKivyAgg(self.fig_t)
-        t_widget.size = (self.timeline_width, 80)
+        t_widget.size = (self.timeline_width, 70)
         t_widget.size_hint = (None, None)
 
-        seekbar = self.ids.box_tl.children[0]
+        seekbar = self.ids.seekbar
 
         self.ids.box_tl.clear_widgets([seekbar, self.ids.box_tl.children[-1]])
         self.ids.box_tl.add_widget(t_widget, index=2)
@@ -207,7 +217,7 @@ class AudioTimeline(Container):
         scrollview_width = self.ids.box_yaxis.parent.width
         audio_s = self.audio_data.shape[-1]/self.audio_fs
 
-        width_per_unit = 210
+        width_per_unit = 200
 
         maximum_unit_num = scrollview_width//width_per_unit
 

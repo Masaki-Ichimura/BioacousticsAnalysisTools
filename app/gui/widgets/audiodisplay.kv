@@ -10,6 +10,7 @@
         orientation: 'horizontal'
         pos: root.pos
         size: root.size
+        padding: 0, 5
 
         BoxLayout:
             id: box_yaxis
@@ -46,35 +47,60 @@
         size: root.size
         pos: root.pos
 
-        MDIconButton:
-            id: play
-            icon: 'play'
-            user_font_size: '18sp'
-            on_press: root.play()
+        StackLayout:
+            orientation: 'lr-tb'
 
-        MDIconButton:
-            id: pause
-            icon: 'pause'
-            user_font_size: '18sp'
-            on_press: root.pause()
+            MDIconButton:
+                id: play
+                icon: 'play'
+                user_font_size: '18sp'
+                on_press: root.play()
 
-        MDIconButton:
-            id: stop
-            icon: 'stop'
-            user_font_size: '18sp'
-            on_press: root.stop()
+            MDIconButton:
+                id: pause
+                icon: 'pause'
+                user_font_size: '18sp'
+                on_press: root.pause()
 
-        MDIconButton:
-            id: magnify_plus
-            icon: 'magnify-plus-outline'
-            user_font_size: '18sp'
-            on_press: root.magnify(mode='plus')
+            MDIconButton:
+                id: stop
+                icon: 'stop'
+                user_font_size: '18sp'
+                on_press: root.stop()
 
-        MDIconButton:
-            id: magnify_minus
-            icon: 'magnify-minus-outline'
-            user_font_size: '18sp'
-            on_press: root.magnify(mode='minus')
+            MDIconButton:
+                id: magnify_plus
+                icon: 'magnify-plus-outline'
+                user_font_size: '18sp'
+                on_press: root.magnify(mode='plus')
+
+            MDIconButton:
+                id: magnify_minus
+                icon: 'magnify-minus-outline'
+                user_font_size: '18sp'
+                on_press: root.magnify(mode='minus')
+
+        MDBoxLayout:
+            orientation: 'horizontal'
+            width: 450
+            size_hint_x: None
+
+            MDIcon:
+                icon: 'volume-low'
+                font_size: '18sp'
+                size_hint_x: None
+
+            MDSlider:
+                id: volume
+                min: 0.
+                max: 1.
+                value: 1.
+                hint: False
+
+            MDIcon:
+                icon: 'volume-high'
+                font_size: '18sp'
+                size_hint_x: None
 
         MDIconButton:
             id: close

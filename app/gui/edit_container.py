@@ -4,7 +4,6 @@ from kivy.uix.widget import Widget
 
 from app.gui.widgets.container import Container
 from utils.audio import load_wave
-from utils.plot import show_spec, show_wave
 
 Builder.load_file('/'.join(__file__.split('/')[:-1])+'/edit_container.kv')
 
