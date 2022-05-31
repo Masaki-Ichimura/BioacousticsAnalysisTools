@@ -7,7 +7,7 @@ from kivy.properties import *
 
 from app.gui.widgets.sidebar import Sidebar, AudioTreeViewLabel
 from app.gui.widgets.filechooser import FilechooserPopup
-from utils.audio import metadata_wave
+from utils.audio.wave import metadata_wave
 
 Builder.load_file('/'.join(__file__.split('/')[:-1])+'/edit_sidebar.kv')
 

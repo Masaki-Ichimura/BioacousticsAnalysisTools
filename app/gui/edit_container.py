@@ -3,7 +3,7 @@ from kivy.properties import *
 from kivy.uix.widget import Widget
 
 from app.gui.widgets.container import Container
-from utils.audio import load_wave
+from utils.audio.wave import load_wave
 
 Builder.load_file('/'.join(__file__.split('/')[:-1])+'/edit_container.kv')
 
