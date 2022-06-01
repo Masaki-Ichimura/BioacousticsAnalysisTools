@@ -8,6 +8,8 @@
             size_hint_x: 95
 
             MDBoxLayout:
+                id: choosed_bar
+                size_hint_y: None
                 orientation: 'horizontal'
                 adaptive_height: True
 
@@ -31,6 +33,8 @@
 
             ScrollView:
                 do_scroll_x: False
+                size_hint_y: None
+                height: select.height-choosed_bar.height-3
 
                 FileTreeView:
                     id: choosed_audio_treeview
@@ -40,6 +44,7 @@
                 height: dp(2)
 
             MDBoxLayout:
+                size_hint_y: None
                 orientation: 'horizontal'
                 adaptive_height: True
 
@@ -73,12 +78,14 @@
             size_hint_x: 5
 
             Button:
-                size_hint_y: 50
+                id: select
+                size_hint_y: 40
                 text: '▷'
                 font_size: 20
                 on_press: root.select_button_clicked()
 
             Button:
-                size_hint_y: 50
+                id: fetch
+                size_hint_y: 60
                 text: '◁'
                 font_size: 20

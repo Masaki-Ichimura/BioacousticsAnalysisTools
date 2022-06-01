@@ -1,6 +1,8 @@
 from kivy.lang import Builder
 from kivy.properties import *
 from kivy.uix.widget import Widget
+from kivymd.uix.tab import MDTabsBase
+from kivymd.uix.floatlayout import MDFloatLayout
 
 from app.gui.widgets.container import Container
 from utils.audio.wave import load_wave
@@ -20,6 +22,7 @@ class EditWorkingContainer(Container):
         if not value:
             audio_data = None
             return None
+
         audio_toolbar = self.ids.audio_display.ids.audio_toolbar
         audio_timeline = self.ids.audio_display.ids.audio_timeline
 
@@ -34,3 +37,7 @@ class EditAudioDisplay(Container):
 
 class EditAudioDetail(Container):
     pass
+
+class Tab(MDFloatLayout, MDTabsBase):
+    '''Class implementing content for a tab.'''
+    content_text = StringProperty('')

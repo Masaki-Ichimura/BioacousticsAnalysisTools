@@ -9,7 +9,7 @@ from kivy.clock import Clock
 from kivy.core.audio import SoundLoader
 
 from app.gui.widgets.container import Container
-from utils.plot import show_spec, show_wave
+from utils.audio.plot import show_spec, show_wave
 
 Builder.load_file('/'.join(__file__.split('/')[:-1])+'/audiodisplay.kv')
 

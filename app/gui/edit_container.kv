@@ -33,14 +33,16 @@
 
         AudioToolbar:
             id: audio_toolbar
-            size_hint_y: 20
+            size_hint_y: None
 
         HSeparator:
-            height: dp(2)
+            rgba: 0.5, 0.5, 0.5, 1
 
         AudioTimeline:
             id: audio_timeline
-            size_hint_y: 80
+
+        HSeparator:
+            height: dp(2)
 
 <EditAudioDetail>:
     BoxLayout:
@@ -48,5 +50,25 @@
         size: root.size
         pos: root.pos
 
+        MDTabs:
+            tab_bar_height: 110
+
+            RemovingSilenceTab:
+
+            Tab:
+                title: 'Tab 2'
+
+                Button:
+                    text: 'Test space'
+
+<RemovingSilenceTab@Tab>:
+    title: '無音区間除去'
+
+    BoxLayout:
+        orientation: 'horizontal'
+
         Button:
-            text: 'Audio Detail'
+            size_hint_x: 30
+
+        Button:
+            size_hint_x: 70

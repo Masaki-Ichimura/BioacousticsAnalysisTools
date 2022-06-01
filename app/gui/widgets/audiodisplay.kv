@@ -42,53 +42,67 @@
                             size: (5, scroll_tl.height)
 
 <AudioToolbar>:
-    MDBoxLayout:
-        orientation: 'horizontal'
-        size: root.size
-        pos: root.pos
+    # わざわざ書かなくてもいいじゃん…でも要るんだよねぇこれ…
+    height: box.minimum_height
 
-        StackLayout:
-            orientation: 'lr-tb'
+    MDBoxLayout:
+        id: box
+        orientation: 'horizontal'
+        width: root.width
+        pos: root.pos
+        spacing: 20
+        adaptive_size: True
+
+        MDBoxLayout:
+            orientation: 'horizontal'
+            adaptive_height: True
 
             MDIconButton:
                 id: play
                 icon: 'play'
-                user_font_size: '18sp'
+                user_font_size: '16sp'
                 on_press: root.play()
 
             MDIconButton:
                 id: pause
                 icon: 'pause'
-                user_font_size: '18sp'
+                user_font_size: '16sp'
                 on_press: root.pause()
 
             MDIconButton:
                 id: stop
                 icon: 'stop'
-                user_font_size: '18sp'
+                user_font_size: '16sp'
                 on_press: root.stop()
 
             MDIconButton:
                 id: magnify_plus
                 icon: 'magnify-plus-outline'
-                user_font_size: '18sp'
+                user_font_size: '16sp'
                 on_press: root.magnify(mode='plus')
 
             MDIconButton:
                 id: magnify_minus
                 icon: 'magnify-minus-outline'
-                user_font_size: '18sp'
+                user_font_size: '16sp'
                 on_press: root.magnify(mode='minus')
+
+        # spacer
+        # Widget:
+        #     height: box.minimum_height
+        #     width: 800
+        #     size_hint_x: None
 
         MDBoxLayout:
             orientation: 'horizontal'
-            width: 450
+            width: 400
             size_hint_x: None
+            height: box.minimum_height
 
             MDIcon:
                 icon: 'volume-low'
-                font_size: '18sp'
-                size_hint_x: None
+                font_size: '16sp'
+                size_hint_x: 1
 
             MDSlider:
                 id: volume
@@ -96,14 +110,15 @@
                 max: 1.
                 value: 1.
                 hint: False
+                size_hint_x: 5
 
             MDIcon:
                 icon: 'volume-high'
-                font_size: '18sp'
-                size_hint_x: None
+                font_size: '16sp'
+                size_hint_x: 1
 
         MDIconButton:
             id: close
             icon: 'close'
-            user_font_size: '18sp'
-            on_press: root.close()
+            user_font_size: '16sp'
+            on_press: print(root.close(), root.height)

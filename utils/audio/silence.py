@@ -1,15 +1,21 @@
 """
 This module is based on pydub
     - https://github.com/jiaaro/pydub/blob/master/pydub/silence.py
+
+NOTE:
+    - signal xnt is normalized torch.Tensor (channel, time).
+        - if you want to use NOT normalized signal,
+            1. in code -> max_possible_amplitude value
 """
 import itertools
+from math import log
 
 
 def db_to_float(db, using_amplitude=True):
     db = float(db)
     if using_amplitude:
         return 10 ** (db / 20)
-    else:  # using power
+    else:
         return 10 ** (db / 10)
 
 def ratio_to_db(ratio, val2=None, using_amplitude=True):
@@ -35,7 +41,7 @@ def rms(xnt):
 def dBFS(xnt):
     rms = rms(xnt)
     if not rms:
-        return -float('infinity')
+        return -float('inf')
     return ratio_to_db(rms / 1.)
 
 
@@ -176,11 +182,11 @@ def detect_leading_silence(
     sample_rate,
     silence_threshold=-50.0, chunk_size=10
 ):
-    trim_ms = 0 # ms
-
+    trim_ms = 0
     sig_len = 1000*round(xnt.shape[-1]/sample_rate)
 
-    assert chunk_size > 0 # to avoid infinite loop
+    assert chunk_size > 0
+
     while dBFS(xnt[
         :,
         max(msec_to_index(trim_ms, sample_rate), 0) : \
