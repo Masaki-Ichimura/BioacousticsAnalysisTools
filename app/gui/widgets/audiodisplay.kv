@@ -87,12 +87,6 @@
                 user_font_size: '16sp'
                 on_press: root.magnify(mode='minus')
 
-        # spacer
-        # Widget:
-        #     height: box.minimum_height
-        #     width: 800
-        #     size_hint_x: None
-
         MDBoxLayout:
             orientation: 'horizontal'
             width: 400
@@ -103,6 +97,7 @@
                 icon: 'volume-low'
                 font_size: '16sp'
                 size_hint_x: 1
+                height: 10
 
             MDSlider:
                 id: volume

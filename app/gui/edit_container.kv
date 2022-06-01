@@ -61,14 +61,90 @@
                 Button:
                     text: 'Test space'
 
-<RemovingSilenceTab@Tab>:
+<RemovingSilenceTab>:
     title: '無音区間除去'
 
     BoxLayout:
         orientation: 'horizontal'
+        pos: root.pos
+        size: root.size
 
-        Button:
-            size_hint_x: 30
+        Container:
+            id: buttons
+            size_hint_x: 60
 
-        Button:
-            size_hint_x: 70
+            BoxLayout:
+                orientation: 'vertical'
+                pos: buttons.pos
+                size: buttons.size
+
+                Button:
+                    text: 'OK'
+                    on_press: root.ok_button_clicked()
+
+        Container:
+            id: options
+            size_hint_x: 40
+
+            BoxLayout:
+                orientation: 'vertical'
+                pos: options.pos
+                size: options.size
+                padding: 30
+                spacing: 30
+
+                MDBoxLayout:
+                    orientation: 'horizontal'
+                    adaptive_height: True
+
+                    MDIcon:
+                        icon: 'cog-outline'
+                        font_size: '20sp'
+                        size_hint_x: None
+
+                    MDLabel:
+                        font_style: 'H6'
+                        text: 'Settings'
+
+                MDTextField:
+                    id: freq_high
+                    font_size: '12sp'
+                    text: '4096'
+                    hint_text: 'Highest frequency that can be used (Hz).'
+                    helper_text: 'default: 4,096 (Hz)'
+                    helper_text_mode: 'persistent'
+
+                MDTextField:
+                    id: freq_low
+                    font_size: '12sp'
+                    text: '512'
+                    hint_text: 'Lowest frequency that can be used (Hz).'
+                    helper_text: 'default: 512 (Hz)'
+                    helper_text_mode: 'persistent'
+
+                MDTextField:
+                    id: min_silence_len
+                    font_size: '12sp'
+                    text: '1000'
+                    hint_text: 'Minimum length for silent sections in msec.'
+                    helper_text: 'default: 1,000 (ms)'
+                    helper_text_mode: 'persistent'
+
+                MDTextField:
+                    id: silence_thresh
+                    font_size: '12sp'
+                    _hint_text_font_size: '12sp'
+                    text: '-16'
+                    hint_text: 'The upper bound for how quiet is silent in dBFS.'
+                    helper_text: 'default: -16 (dB)'
+                    helper_text_mode: 'persistent'
+
+                MDTextField:
+                    id: seek_step
+                    font_size: '12sp'
+                    text: '100'
+                    hint_text: '1 Size of the step for checking for silence in msec.'
+                    helper_text: 'default: 100 (ms)'
+                    helper_text_mode: 'persistent'
+
+                # Spacer
