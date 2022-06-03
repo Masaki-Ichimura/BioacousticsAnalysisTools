@@ -61,6 +61,10 @@
                 Button:
                     text: 'Test space'
 
+<RemovingSilenceOptionTextField@MDTextField>
+    font_size: '15sp'
+    helper_text_mode: 'persistent'
+
 <RemovingSilenceTab>:
     title: '無音区間除去'
 
@@ -70,7 +74,7 @@
         size: root.size
 
         ScrollView:
-            size_hint_x: 30
+            size_hint_x: 35
             do_scroll_x: False
             size_hint_y: None
             height: root.height
@@ -79,20 +83,11 @@
                 id: treeview
                 root_options: {'text': 'splited audio data', 'font_size': 25}
 
-        BoxLayout:
-            id: buttons
-            size_hint_x: 30
-            orientation: 'vertical'
-            pos: buttons.pos
-            size: buttons.size
-
-            Button:
-                text: 'OK'
-                on_press: root.ok_button_clicked()
+        VSeparator:
 
         Container:
             id: options
-            size_hint_x: 40
+            size_hint_x: 45
 
             BoxLayout:
                 orientation: 'vertical'
@@ -122,42 +117,49 @@
                         padding: 10
                         spacing: 20
 
-                        MDTextField:
+                        RemovingSilenceOptionTextField:
                             id: freq_high
-                            font_size: '15sp'
                             text: '4096'
                             hint_text: 'Highest frequency that can be used (Hz).'
                             helper_text: 'default: 4,096 (Hz)'
-                            helper_text_mode: 'persistent'
 
-                        MDTextField:
+                        RemovingSilenceOptionTextField:
                             id: freq_low
-                            font_size: '15sp'
                             text: '512'
                             hint_text: 'Lowest frequency that can be used (Hz).'
                             helper_text: 'default: 512 (Hz)'
-                            helper_text_mode: 'persistent'
 
-                        MDTextField:
+                        RemovingSilenceOptionTextField:
                             id: min_silence_len
-                            font_size: '15sp'
                             text: '1000'
                             hint_text: 'Minimum length for silent sections in msec.'
                             helper_text: 'default: 1,000 (ms)'
-                            helper_text_mode: 'persistent'
 
-                        MDTextField:
+                        RemovingSilenceOptionTextField:
                             id: silence_thresh
-                            font_size: '15sp'
                             text: '-16'
                             hint_text: 'The upper bound for how quiet is silent in dBFS.'
                             helper_text: 'default: -16 (dB)'
-                            helper_text_mode: 'persistent'
 
-                        MDTextField:
+                        RemovingSilenceOptionTextField:
                             id: seek_step
-                            font_size: '15sp'
                             text: '100'
                             hint_text: '1 Size of the step for checking for silence in msec.'
                             helper_text: 'default: 100 (ms)'
-                            helper_text_mode: 'persistent'
+
+        VSeparator:
+
+        BoxLayout:
+            id: buttons
+            size_hint_x: 20
+            orientation: 'vertical'
+            pos: buttons.pos
+            size: buttons.size
+
+            Button:
+                text: 'OK'
+                on_press: root.ok_button_clicked()
+
+            Button:
+                text: 'reset'
+                on_press: root.reset_button_clicked()

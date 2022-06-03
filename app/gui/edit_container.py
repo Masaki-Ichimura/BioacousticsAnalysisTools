@@ -67,8 +67,6 @@ class RemovingSilenceTab(Tab):
             'silence_thresh': float(self.ids.silence_thresh.text),
             'seek_step': int(self.ids.seek_step.text),
         }
-        print(freq_dict)
-        print(args_dict)
 
         audio_detail = self.parent.parent.parent.parent.parent.parent
         working_container = audio_detail.parent.parent
@@ -107,3 +105,19 @@ class RemovingSilenceTab(Tab):
             facecolor='r', alpha=.5
         )
         audio_timeline.fig_wave.canvas.draw()
+
+    def reset_button_clicked(self):
+        audio_detail = self.parent.parent.parent.parent.parent.parent
+        working_container = audio_detail.parent.parent
+        audio_timeline = working_container.ids.audio_display.ids.audio_timeline
+        fig_wave = audio_timeline.fig_wave
+
+        if not fig_wave:
+            return None
+
+        ax_wave = fig_wave.axes[0]
+
+        if len(ax_wave.collections)>1:
+            ax_wave.collections[-1].remove()
+
+        fig_wave.canvas.draw()
