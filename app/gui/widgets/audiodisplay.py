@@ -31,6 +31,19 @@ class AudioTimeline(Container):
 
     check_dt = .05
 
+    def on_kv_post(self, *args, **kwargs):
+
+        def touch_up_timeline(instance, event):
+            if self.audio_file and event.button == 'left':
+                sound_length = self.sound.length
+                fig_width = instance.width
+
+                self.audio_pos = max(
+                    0, min(event.pos[0], fig_width)/fig_width*sound_length
+                )
+
+        self.ids.box_tl.bind(on_touch_up=touch_up_timeline)
+
     def on_audio_file(self, instance, value):
         if not value:
             seekbar = self.ids.seekbar

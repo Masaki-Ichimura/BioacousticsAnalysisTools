@@ -1,0 +1,51 @@
+<ConfigDrawerItem@MDNavigationDrawerItem>
+    icon_color: app.theme_cls.text_color
+    theme_text_color: 'Custom'
+    text_color: app.theme_cls.text_color
+    selected_color: app.theme_cls.secondary_text_color
+
+<ConfigContainer>:
+    MDNavigationLayout:
+        size: root.size
+        pos: root.pos
+
+        ScreenManager:
+            id: screen_manager
+
+            MDScreen:
+                name: 'spec'
+
+                BoxLayout:
+                    orientation: 'vertical'
+
+                    Button:
+                        text: 'Test1'
+
+            MDScreen:
+                name: 'conf2'
+
+                BoxLayout:
+                    orientation: 'vertical'
+
+                    Button:
+                        text: 'Test2'
+
+        MDNavigationDrawer:
+            id: nav_drawer
+            type: 'standard'
+            pos: root.pos
+            width: root.width*.25
+
+            MDNavigationDrawerMenu:
+
+                ConfigDrawerItem:
+                    icon: 'cog-outline'
+                    text: 'スペクトログラム'
+                    on_press:
+                        screen_manager.current = 'spec'
+
+                ConfigDrawerItem:
+                    icon: 'cog-outline'
+                    text: 'STFT'
+                    on_press:
+                        screen_manager.current = 'conf2'

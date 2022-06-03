@@ -90,7 +90,6 @@ class RemovingSilenceTab(Tab):
 
         print(silence_sections)
 
-
         d_min, d_max = xnt.mean(0).min().item(), xnt.mean(0).max().item()
         d_min, d_max = min(d_min, -abs(d_max)), max(d_max, abs(d_min))
         silence = d_max*torch.ones(int(audio_data.shape[-1]/audio_fs*1000))
@@ -99,13 +98,12 @@ class RemovingSilenceTab(Tab):
 
         ax_wave = audio_timeline.fig_wave.axes[0]
 
-        if len(ax_wave.lines)>1:
-            ax_wave.lines[-1].remove()
+        if len(ax_wave.collections)>1:
+            ax_wave.collections[-1].remove()
 
-        ax_wave.plot(
+        ax_wave.fill_between(
             torch.linspace(0, audio_data.shape[-1]/audio_fs, steps=len(silence)),
-            silence,
-            color='r'
+            silence, d_min,
+            facecolor='r', alpha=.5
         )
-
         audio_timeline.fig_wave.canvas.draw()
