@@ -96,6 +96,7 @@
                 padding: 30
 
                 MDBoxLayout:
+                    id: options_label
                     orientation: 'horizontal'
                     spacing: 20
                     adaptive_height: True
@@ -163,3 +164,9 @@
             Button:
                 text: 'reset'
                 on_press: root.reset_button_clicked()
+
+            Button:
+                text: 'split(仮)'
+
+            Button:
+                text: 'dump(仮)'

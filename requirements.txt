@@ -4,9 +4,12 @@ kivy-garden
 japanize-kivy
 
 # 計算ライブラリ
+# pytorch関連
 torch
 torchaudio
+torchnmf
 asteroid
+# etc
 numpy
 librosa
 
