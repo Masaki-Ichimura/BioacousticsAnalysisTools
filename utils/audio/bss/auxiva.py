@@ -1,5 +1,5 @@
 """
-    This module is based on PyAudioAnalysis (MIT Licence)
+    This module is based on Pyroomacoustics (MIT Licence)
         - https://pyroomacoustics.readthedocs.io/en/pypi-release/pyroomacoustics.bss.html
 
     NOTE:
