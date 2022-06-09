@@ -1,10 +1,10 @@
 """
-pyroomacousticsからの移植バージョン
-    - https://pyroomacoustics.readthedocs.io/en/pypi-release/pyroomacoustics.bss.html
+    This module is based on PyAudioAnalysis (MIT Licence)
+        - https://pyroomacoustics.readthedocs.io/en/pypi-release/pyroomacoustics.bss.html
 
-NOTE:
-    n_src, n_iter 以外の引数をデフォルト値から変えたことはないので，
-    その辺り適用したらエラー出るかも
+    NOTE:
+        n_src, n_iter 以外の引数をデフォルト値から変えたことはないので，
+        その辺り適用したらエラー出るかも
 """
 
 import torch
@@ -12,7 +12,7 @@ from .base import tf_bss_model_base
 from .common import projection_back
 
 
-class auxiva(tf_bss_model_base):
+class AuxIVA(tf_bss_model_base):
     def __init__(self, **stft_args):
         super().__init__(**stft_args)
 

@@ -5,10 +5,10 @@ import torch
 from torchnmf.nmf import NMF
 
 from .base import tf_bss_model_base
-from .fastmnmf import fastmnmf
+from .fastmnmf import FastMNMF
 
 
-class lgm(tf_bss_model_base):
+class LGM(tf_bss_model_base):
     def __init__(self, **stft_args):
         super().__init__(**stft_args)
 
@@ -24,7 +24,7 @@ class lgm(tf_bss_model_base):
         raise NotImplementedError
 
 
-class nmflgm(lgm):
+class NMFLGM(LGM):
     def __init__(self, **stft_args):
         super().__init__(**stft_args)
 
@@ -72,7 +72,7 @@ class nmflgm(lgm):
             return detA
 
         # init parameters using MNMF
-        mnmf = fastmnmf(**self.stft_args)
+        mnmf = FastMNMF(**self.stft_args)
         V_nft = mnmf.separate(
             Xnkl, n_src=n_src, n_iter=30, n_components=2
         ).abs()
@@ -110,20 +110,20 @@ class nmflgm(lgm):
             G = R_nftcc @ Rx_inv
             Qh = torch.einsum('nftcd,ftd->nftc', G, X_ftc)
             Rh_nftcc = \
-                torch.einsum('nftc,nftd->nftcd', Qh, Qh.conj()) + \
-                (I-G) @ R_nftcc
+                torch.einsum('nftc,nftd->nftcd', Qh, Qh.conj()) \
+                + (I-G) @ R_nftcc
 
             G = R_nkftcc @ Rx_inv
             Qh = torch.einsum('nkftcd,ftd->nkftc', G, X_ftc)
             Rh_nkftcc = \
-                torch.einsum('nkftc,nkftd->nkftcd', Qh, Qh.conj()) + \
-                (I-G) @ R_nkftcc
+                torch.einsum('nkftc,nkftd->nkftcd', Qh, Qh.conj()) \
+                + (I-G) @ R_nkftcc
 
             G = Rb_fcc[:, None] @ Rx_inv
             Qh = torch.einsum('ftcd,ftd->ftc', G, X_ftc)
             Rbh_ftcc = \
-                torch.einsum('ftc,ftd->ftcd', Qh, Qh.conj()) + \
-                (I-G) @ Rb_fcc[:, None]
+                torch.einsum('ftc,ftd->ftcd', Qh, Qh.conj()) \
+                + (I-G) @ Rb_fcc[:, None]
 
             # M-step
             R_nfcc = (Rh_nftcc/V_nft.clip(eps)[..., None, None]).mean(2)
@@ -144,8 +144,8 @@ class nmflgm(lgm):
                 loss = (
                     torch.einsum(
                         'ftc,ftcd,ftd->ft', X_ftc.conj(), Rx_inv, X_ftc
-                    ).real.abs() + \
-                    torch.log(determinant(Rx_ftcc).real.abs()+eps)
+                    ).real.abs() \
+                    + torch.log(determinant(Rx_ftcc).real.abs()+eps)
                 ).sum()
                 loss_list.append(loss.item())
 

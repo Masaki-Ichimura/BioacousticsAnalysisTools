@@ -1,5 +1,5 @@
 """
-    pyroomacousticsからの移植バージョン
+    This module is based on PyAudioAnalysis (MIT Licence)
         - https://pyroomacoustics.readthedocs.io/en/pypi-release/pyroomacoustics.bss.html
 """
 import torch
@@ -7,7 +7,7 @@ from .base import tf_bss_model_base
 from .common import projection_back
 
 
-class ilrma(tf_bss_model_base):
+class ILRMA(tf_bss_model_base):
     def __init__(self, **stft_args):
         super().__init__(**stft_args)
 

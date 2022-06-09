@@ -1,5 +1,5 @@
 """
-This module is based on pydub
+This module is based on pydub (MIT Licence)
     - https://github.com/jiaaro/pydub/blob/master/pydub/silence.py
 
 NOTE:
@@ -39,10 +39,10 @@ def rms(xnt):
     return (xnt**2).mean().sqrt()
 
 def dBFS(xnt):
-    rms = rms(xnt)
-    if not rms:
+    rms_ = rms(xnt)
+    if not rms_:
         return -float('inf')
-    return ratio_to_db(rms / 1.)
+    return ratio_to_db(rms_ / 1.)
 
 
 def detect_silence(
@@ -190,7 +190,7 @@ def detect_leading_silence(
     while dBFS(xnt[
         :,
         max(msec_to_index(trim_ms, sample_rate), 0) : \
-        min(msec_to_index(trim_ms+chunk_siz, sample_rate), sig_len)
+        min(msec_to_index(trim_ms+chunk_size, sample_rate), sig_len)
     ]) < silence_threshold and trim_ms < sig_len:
         trim_ms += chunk_size
 

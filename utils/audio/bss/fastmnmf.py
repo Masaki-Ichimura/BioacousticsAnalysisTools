@@ -1,12 +1,12 @@
 """
-    pyroomacousticsからの移植バージョン
+    This module is based on PyAudioAnalysis (MIT Licence)
         - https://pyroomacoustics.readthedocs.io/en/pypi-release/pyroomacoustics.bss.html
 """
 import torch
 from .base import tf_bss_model_base
 
 
-class fastmnmf(tf_bss_model_base):
+class FastMNMF(tf_bss_model_base):
     def __init__(self, **stft_args):
         super().__init__(**stft_args)
 
@@ -39,9 +39,9 @@ class fastmnmf(tf_bss_model_base):
             ]  # determined case (the number of source = the number of microphone)
 
         if initialize_ilrma:  # initialize by using ILRMA
-            from .utils.bss.ilrma import ilrma
+            from .utils.bss.ilrma import ILRMA
 
-            ilrma = ilrma(**self.stft_args).to(device)
+            ilrma = ILRMA(**self.stft_args).to(device)
 
             Y_TFM, W = ilrma.separate(
                 X, n_iter=10, n_components=2, proj_back=False, return_filters=True

@@ -1,5 +1,6 @@
 """
-    pyroomacousticsからの移植バージョン
+    This module is based on PyAudioAnalysis (MIT Licence)
+        - https://pyroomacoustics.readthedocs.io/en/pypi-release/pyroomacoustics.bss.html
 """
 import torch
 
