@@ -5,39 +5,32 @@
 import torch
 from torchaudio.functional import create_dct
 
+from typing import Union
+
 from sklearn.svm import SVC
 
 EPS = 1e-15
 
 
 def silence_removal(
-    signal, sample_rate, win_msec, seek_msec,
-    smooth_window_msec=500, min_duration_msec=200, weight=.5
+    signal,
+    sample_rate: int, win_msec: int, seek_msec: int,
+    freq_low: Union[float, int]=0, freq_high: Union[float, int]=float('inf'),
+    smooth_window_msec: int=500, min_duration_msec: Union[None, int]=200,
+    weight: float=.5
 ):
     weight = max(0, min(1, weight))
+
     # signal: torch.tensor (channel, t) -> (t,)
     signal = signal.mean(0)
 
-    window = int(win_msec/1000*sample_rate)
-    seek = int(seek_msec/1000*sample_rate)
+    window = win_msec*sample_rate//1000
+    seek = seek_msec*sample_rate//1000
     n_fft = window//2
 
-    # split signal
-    split_signal, st_energy = [], []
-    current_pos = 0
-    while 1:
-        x = signal[current_pos:current_pos+window]
-
-        if x.numel() == 0:
-            break
-        else:
-            if len(x) != window:
-                x = torch.nn.functional.pad(x, [0, window-len(x)])
-            current_pos += seek
-            split_signal.append(x)
-
     fbank, freq = mfcc_filter_banks(sample_rate, n_fft)
-    n_mfcc_feats = 13
+    freq = freq[1:-1]
+    fbank = fbank[torch.logical_and(freq>=freq_low, freq<=freq_high)]
     def feature_extraction(frame, fft_magnitude, fft_magnitude_previous):
         feature = [
             zero_crossing_rate(frame),
@@ -47,38 +40,55 @@ def silence_removal(
             spectral_entropy(fft_magnitude),
             spectral_flux(fft_magnitude, fft_magnitude_previous),
             spectral_rolloff(fft_magnitude, .9),
-            *mfcc(fft_magnitude, fbank, n_mfcc_feats),
+            *mfcc(fft_magnitude, fbank, -1),
             *chroma_features(fft_magnitude, sample_rate, n_fft)
         ]
         return torch.stack(feature)
 
     features = []
-    for i, x in enumerate(split_signal):
-        x_prev = split_signal[max(0, i-1)]
-        fft_mag = torch.fft.fft(x)[:n_fft].abs()/n_fft
+    current_pos = 0
+    while 1:
+        x = signal[current_pos:current_pos+window]
 
-        if i == 0:
-            fft_mag_prev = fft_mag[:]
-            fft_mag_pprev = fft_mag[:]
+        if x.numel() == 0:
+            break
+        else:
+            if len(x) != window:
+                x = torch.nn.functional.pad(x, [0, window-len(x)])
 
-        feature = feature_extraction(x, fft_mag, fft_mag_prev)
+            prev_pos = current_pos-seek
+            if prev_pos < 0:
+                x_prev = x
+            else:
+                x_prev = signal[prev_pos:prev_pos+window]
 
-        # delta features
-        feature_prev = feature_extraction(x_prev, fft_mag_prev, fft_mag_pprev)
-        delta = feature-feature_prev
+            fft_mag = torch.fft.fft(x)[:n_fft].abs()/n_fft
 
-        features.append(torch.cat((feature, delta)))
+            if current_pos == 0:
+                # not required to copy tensor
+                fft_mag_prev = fft_mag
+                fft_mag_pprev = fft_mag
 
-        # not required to copy tensor
-        fft_mag_prev = fft_mag
-        fft_mag_pprev = fft_mag_prev
+            feature = feature_extraction(x, fft_mag, fft_mag_prev)
+
+            # delta features
+            feature_prev = feature_extraction(x_prev, fft_mag_prev, fft_mag_pprev)
+            delta = feature-feature_prev
+
+            features.append(torch.cat((feature, delta)))
+
+            # not required to copy tensor
+            fft_mag_prev = fft_mag
+            fft_mag_pprev = fft_mag_prev
+
+            current_pos += seek
 
     features = torch.stack(features)
     features_norm = (features-features.mean(0))/features.std(0)
     energies = features[:, 1]
     en_val, en_indices = energies.sort()
 
-    n_split = len(split_signal)
+    n_split = len(features)
     st_windows_fraction = n_split//10
 
     split_indices = torch.arange(n_split)
@@ -118,38 +128,43 @@ def silence_removal(
     prob_thr = (1-weight)*prob_sort[:nt].mean()+weight*prob_sort[-nt:].mean()
     prob = torch.where(prob>prob_thr, 0, 1)
 
-    idx = torch.where(prob == 0)[0][0]
-    while idx < len(prob):
-        high_t = prob[idx:] == 1
-        if (high_t == False).all():
-            break
+    # clustering
+    start_t = prob == 0
+    if start_t.any():
+        idx = torch.where(start_t)[0][0]
+        while 1:
+            high_t = prob[idx:] == 1
+            if not high_t.any():
+                break
 
-        next_idx = idx + torch.where(high_t)[0][0] - 1
-        if next_idx - idx <= 3:
-            prob[list(range(idx, next_idx+1))] = 1
+            next_idx = idx + torch.where(high_t)[0][0].item() - 1
+            if next_idx - idx <= 3:
+                prob[list(range(idx, next_idx+1))] = 1
 
-        low_t = prob[next_idx:] == 0
-        if (low_t == False).all():
-            break
+            low_t = prob[next_idx:] == 0
+            if not low_t.any():
+                break
 
-        idx = next_idx + torch.where(low_t)[0][0]
+            idx = next_idx + torch.where(low_t)[0][0].item()
 
+    idx = 0
     nonsilent_sections = []
-    tmp = 0
-    for i, p in enumerate(prob):
-        if p == 0:
-            if tmp:
-                start_i, end_i = i-1-tmp, i-1
-                start_msec, end_msec = start_i*seek_msec, end_i*seek_msec
-                nonsilent_sections.append([max(0, start_msec), end_msec])
-                tmp = 0
+    while 1:
+        start_t = prob[idx:] == 1
+        if not start_t.any():
+            break
         else:
-            tmp += 1
-    else:
-        if tmp:
-            start_i, end_i = i-tmp, i
-            start_msec, end_msec = start_i*seek_msec, end_i*seek_msec
-            nonsilent_sections.append([max(0, start_msec), end_msec])
+            start_idx = idx + torch.where(start_t)[0][0].item()
+
+            end_t = prob[start_idx:] == 0
+            if not end_t.any():
+                end_idx = len(prob)
+            else:
+                end_idx = start_idx + torch.where(end_t)[0][0].item()-1
+
+            nonsilent_sections.append([start_idx*seek_msec, end_idx*seek_msec])
+
+        idx = end_idx+1
 
     if min_duration_msec:
         nonsilent_sections = [
@@ -220,7 +235,7 @@ def spectral_entropy(fft_magnitude, n_short_blocks=10):
     n_fft = len(fft_magnitude)
     total_energy = (fft_magnitude ** 2).sum()
 
-    sub_win_len = int(n_fft / n_short_blocks)
+    sub_win_len = n_fft//n_short_blocks
 
     if n_fft != sub_win_len * n_short_blocks:
         fft_magnitude = fft_magnitude[:sub_win_len * n_short_blocks]
@@ -245,7 +260,7 @@ def spectral_rolloff(fft_magnitude, c):
 
 def mfcc_filter_banks(
     sample_rate, n_fft,
-    lowfreq=133.33, linc=200 / 3, logsc=1.0711703,
+    freq_low=133.33, linc=200 / 3, logsc=1.0711703,
     num_lin_filt=13, num_log_filt=27
 ):
 
@@ -255,7 +270,7 @@ def mfcc_filter_banks(
     num_filt_total = num_lin_filt + num_log_filt
 
     freq = torch.zeros(num_filt_total + 2)
-    freq[:num_lin_filt] = lowfreq + torch.arange(num_lin_filt) * linc
+    freq[:num_lin_filt] = freq_low + torch.arange(num_lin_filt) * linc
     freq[num_lin_filt:] = freq[num_lin_filt - 1] * logsc ** \
                                  torch.arange(1, num_log_filt + 3)
     heights = 2. / (freq[2:] - freq[0:-2])
@@ -286,6 +301,8 @@ def mfcc_filter_banks(
     return fbank, freq
 
 def mfcc(fft_magnitude, fbank, num_mfcc_feats):
+    if num_mfcc_feats == -1:
+        num_mfcc_feats = None
     mspec = (fbank@fft_magnitude + EPS).log10()
     dct_ceps = create_dct(n_mfcc=len(mspec), n_mels=len(mspec), norm='ortho')
     return (dct_ceps.T@mspec)[:num_mfcc_feats]
