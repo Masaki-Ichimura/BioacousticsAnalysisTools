@@ -11,6 +11,7 @@ torchnmf
 asteroid
 # etc
 numpy
+scikit-learn
 librosa
 
 # 音声再生ライブラリ

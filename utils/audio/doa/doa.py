@@ -1,5 +1,5 @@
 """
-    pyroomacousticsからの移植バージョン
+    This module is based on Pyroomacoustics (MIT Licence)
         - https://pyroomacoustics.readthedocs.io/en/pypi-release/pyroomacoustics.doa.html
 """
 import torch
