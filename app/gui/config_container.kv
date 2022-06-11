@@ -4,6 +4,10 @@
     text_color: app.theme_cls.text_color
     selected_color: app.theme_cls.secondary_text_color
 
+<ConfigTextField@MDTextField>
+    font_size: '15sp'
+    helper_text_mode: 'persistent'
+
 <ConfigContainer>:
     MDNavigationLayout:
         size: root.size
@@ -22,13 +26,33 @@
                         text: 'Test1'
 
             MDScreen:
-                name: 'conf2'
+                name: 'stft'
 
-                BoxLayout:
+                MDBoxLayout:
                     orientation: 'vertical'
+                    padding: 10
+                    spacing: 20
+
+                    ConfigTextField:
+                        id: n_fft
+                        text: '1024'
+                        hint_text: 'STFT window length.'
+                        helper_text: 'default: '
+
+                    ConfigTextField:
+                        id: hop_length
+                        text: '256'
+                        hint_text: 'STFT hop length.'
+                        helper_text: 'default: '
+
+                    ConfigTextField:
+                        id: window
+                        text: 'hann'
+                        hint_text: 'STFT window function'
+                        helper_text: 'defaut: (dummy)'
 
                     Button:
-                        text: 'Test2'
+                        on_press: print(root.get_stft_args())
 
         MDNavigationDrawer:
             id: nav_drawer
@@ -48,4 +72,4 @@
                     icon: 'cog-outline'
                     text: 'STFT'
                     on_press:
-                        screen_manager.current = 'conf2'
+                        screen_manager.current = 'stft'

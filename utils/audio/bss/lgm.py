@@ -111,23 +111,23 @@ class NMFLGM(LGM):
             Qh = torch.einsum('nftcd,ftd->nftc', G, X_ftc)
             Rh_nftcc = \
                 torch.einsum('nftc,nftd->nftcd', Qh, Qh.conj()) \
-                + (I-G) @ R_nftcc
+                + (I - G) @ R_nftcc
 
             G = R_nkftcc @ Rx_inv
             Qh = torch.einsum('nkftcd,ftd->nkftc', G, X_ftc)
             Rh_nkftcc = \
                 torch.einsum('nkftc,nkftd->nkftcd', Qh, Qh.conj()) \
-                + (I-G) @ R_nkftcc
+                + (I - G) @ R_nkftcc
 
             G = Rb_fcc[:, None] @ Rx_inv
             Qh = torch.einsum('ftcd,ftd->ftc', G, X_ftc)
             Rbh_ftcc = \
                 torch.einsum('ftc,ftd->ftcd', Qh, Qh.conj()) \
-                + (I-G) @ Rb_fcc[:, None]
+                + (I - G) @ Rb_fcc[:, None]
 
             # M-step
-            R_nfcc = (Rh_nftcc/V_nft.clip(eps)[..., None, None]).mean(2)
-            R_inv = (R_nfcc+I_eps).pinverse()
+            R_nfcc = (Rh_nftcc / V_nft.clip(eps)[..., None, None]).mean(2)
+            R_inv = (R_nfcc + I_eps).pinverse()
 
             Vh_nkft = trace(
                 torch.einsum('nfcd,nkftde->nkftce', R_inv, Rh_nkftcc)
@@ -145,7 +145,7 @@ class NMFLGM(LGM):
                     torch.einsum(
                         'ftc,ftcd,ftd->ft', X_ftc.conj(), Rx_inv, X_ftc
                     ).real.abs() \
-                    + torch.log(determinant(Rx_ftcc).real.abs()+eps)
+                    + torch.log(determinant(Rx_ftcc).real.abs() + eps)
                 ).sum()
                 loss_list.append(loss.item())
 
@@ -156,8 +156,8 @@ class NMFLGM(LGM):
         Y = torch.einsum('nftcd,ftd->nftc', R_nftcc@Rx_inv, X_ftc)
 
         Ymnkl = Y.permute(0, 3, 1, 2)
-        Ymnkl = Ymnkl*(
-            Xnkl.abs().max()/Ymnkl.reshape(n_src, -1).abs().max(-1).values
+        Ymnkl = Ymnkl * (
+            Xnkl.abs().max() / Ymnkl.reshape(n_src, -1).abs().max(-1).values
         )[:, None, None, None]
 
         if return_losses:

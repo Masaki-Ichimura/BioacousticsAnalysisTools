@@ -9,3 +9,10 @@ Builder.load_file('/'.join(__file__.split('/')[:-1])+'/config_container.kv')
 class ConfigContainer(Container):
     def on_kv_post(self, *arg, **kwargs):
         self.ids.nav_drawer.set_state('open')
+
+    def get_stft_args(self):
+        args = dict(
+            n_fft=int(self.ids.n_fft.text),
+            hop_length=int(self.ids.hop_length.text)
+        )
+        return args

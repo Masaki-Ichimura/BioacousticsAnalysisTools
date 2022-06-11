@@ -1,0 +1,302 @@
+<RemovalSilenceOptionTextField@MDTextField>
+    font_size: '15sp'
+    helper_text_mode: 'persistent'
+
+<PydubBasedRemovalSilenceTab>:
+    title: '無音区間除去(pydub)'
+
+    BoxLayout:
+        orientation: 'horizontal'
+        pos: root.pos
+        size: root.size
+
+        ScrollView:
+            size_hint_x: 35
+            do_scroll_x: False
+            size_hint_y: None
+            height: root.height
+
+            FileTreeView:
+                id: treeview
+                root_options: {'text': 'splited audio data', 'font_size': 25}
+
+        VSeparator:
+
+        Container:
+            id: options
+            size_hint_x: 45
+
+            BoxLayout:
+                orientation: 'vertical'
+                pos: options.pos
+                size: options.size
+                padding: 30
+
+                MDBoxLayout:
+                    id: options_label
+                    orientation: 'horizontal'
+                    spacing: 10
+                    adaptive_height: True
+
+                    MDIcon:
+                        icon: 'cog-outline'
+                        font_size: '20sp'
+                        size_hint_x: None
+
+                    MDLabel:
+                        font_style: 'H6'
+                        text: 'Settings'
+
+                ScrollView:
+                    do_scroll_x: False
+                    size_hint_y: 1
+
+                    MDBoxLayout:
+                        orientation: 'vertical'
+                        padding: 10
+                        spacing: 20
+                        adaptive_height: True
+
+                        MDBoxLayout:
+                            orientation: 'vertical'
+                            padding: 10
+                            adaptive_height: True
+
+                            MDBoxLayout:
+                                orientation: 'horizontal'
+                                padding: 20
+                                adaptive_height: True
+
+                                MDLabel:
+                                    font_style: 'Subtitle1'
+                                    text: 'Limit frequency'
+
+                                MDSwitch:
+                                    id: limit_freq
+                                    on_active:
+                                        freq_high.disabled = not self.active
+                                        freq_low.disabled = not self.active
+
+                            RemovalSilenceOptionTextField:
+                                id: freq_high
+                                disabled: True
+                                text: '4096'
+                                hint_text: 'Highest frequency that can be used (Hz).'
+                                helper_text: 'default: 4,096 (Hz)'
+
+                            RemovalSilenceOptionTextField:
+                                id: freq_low
+                                disabled: True
+                                text: '1024'
+                                hint_text: 'Lowest frequency that can be used (Hz).'
+                                helper_text: 'default: 1,024 (Hz)'
+
+                        MDBoxLayout:
+                            orientation: 'vertical'
+                            padding: 10
+                            adaptive_height: True
+
+                            MDBoxLayout:
+                                padding: 20
+                                adaptive_height: True
+
+                                MDLabel:
+                                    font_style: 'Subtitle1'
+                                    text: 'Others'
+
+                            RemovalSilenceOptionTextField:
+                                id: min_silence_len
+                                text: '1000'
+                                hint_text: 'Minimum length for silent sections in msec.'
+                                helper_text: 'default: 1,000 (ms)'
+
+                            RemovalSilenceOptionTextField:
+                                id: silence_thresh
+                                text: '-16'
+                                hint_text: 'The upper bound for how quiet is silent in dBFS.'
+                                helper_text: 'default: -16 (dB)'
+
+                            RemovalSilenceOptionTextField:
+                                id: seek_step
+                                text: '100'
+                                hint_text: '1 Size of the step for checking for silence in msec.'
+                                helper_text: 'default: 100 (ms)'
+
+        VSeparator:
+
+        BoxLayout:
+            id: buttons
+            size_hint_x: 20
+            orientation: 'vertical'
+            pos: buttons.pos
+            size: buttons.size
+
+            Button:
+                text: 'OK'
+                on_press: root.ok_button_clicked()
+
+            Button:
+                text: 'reset'
+                on_press: root.reset_button_clicked()
+
+            Button:
+                text: 'split(仮)'
+
+            Button:
+                text: 'dump(仮)'
+
+<PyAudioAnalysisBasedRemovalSilenceTab>:
+    title: '無音区間除去(pyAudioAnalysis)'
+
+    BoxLayout:
+        orientation: 'horizontal'
+        pos: root.pos
+        size: root.size
+
+        ScrollView:
+            size_hint_x: 35
+            do_scroll_x: False
+            size_hint_y: None
+            height: root.height
+
+            FileTreeView:
+                id: treeview
+                root_options: {'text': 'splited audio data', 'font_size': 25}
+
+        VSeparator:
+
+        Container:
+            id: options
+            size_hint_x: 45
+
+            BoxLayout:
+                orientation: 'vertical'
+                pos: options.pos
+                size: options.size
+                padding: 30
+
+                MDBoxLayout:
+                    id: options_label
+                    orientation: 'horizontal'
+                    spacing: 20
+                    adaptive_height: True
+
+                    MDIcon:
+                        icon: 'cog-outline'
+                        font_size: '20sp'
+                        size_hint_x: None
+
+                    MDLabel:
+                        font_style: 'H6'
+                        text: 'Settings'
+
+                ScrollView:
+                    do_scroll_x: False
+                    size_hint_y: 1
+
+                    MDBoxLayout:
+                        orientation: 'vertical'
+                        padding: 10
+                        spacing: 10
+                        adaptive_height: True
+
+                        MDBoxLayout:
+                            orientation: 'vertical'
+                            padding: 10
+                            adaptive_height: True
+
+                            MDBoxLayout:
+                                orientation: 'horizontal'
+                                padding: 20
+                                adaptive_height: True
+
+                                MDLabel:
+                                    font_style: 'Subtitle1'
+                                    text: 'Limit frequency'
+
+                                MDSwitch:
+                                    id: limit_freq
+                                    on_active:
+                                        freq_high.disabled = not self.active
+                                        freq_low.disabled = not self.active
+
+                            RemovalSilenceOptionTextField:
+                                id: freq_high
+                                disabled: True
+                                text: '4096'
+                                hint_text: 'Highest frequency that can be used (Hz).'
+                                helper_text: 'default: 4,096 (Hz)'
+
+                            RemovalSilenceOptionTextField:
+                                id: freq_low
+                                disabled: True
+                                text: '1024'
+                                hint_text: 'Lowest frequency that can be used (Hz).'
+                                helper_text: 'default: 1,024 (Hz)'
+
+                        MDBoxLayout:
+                            orientation: 'vertical'
+                            padding: 10
+                            adaptive_height: True
+
+                            MDBoxLayout:
+                                padding: 20
+                                adaptive_height: True
+
+                                MDLabel:
+                                    font_style: 'Subtitle1'
+                                    text: 'Others'
+
+                            RemovalSilenceOptionTextField:
+                                id: win_msec
+                                text: '1000'
+                                hint_text: 'short-term window size.'
+                                helper_text: 'default: 1000 (ms)'
+
+                            RemovalSilenceOptionTextField:
+                                id: seek_msec
+                                text: '500'
+                                hint_text: 'short-term window step.'
+                                helper_text: 'default: 500 (ms)'
+
+                            RemovalSilenceOptionTextField:
+                                id: weight
+                                text: '0.5'
+                                hint_text: 'weight factor(0 < weight < 1). the higher, the more strict.'
+                                helper_text: 'default: 0.5'
+
+                            RemovalSilenceOptionTextField:
+                                id: smooth_window_msec
+                                text: '500'
+                                hint_text: 'smoothing parameter using the SVM probabilistic sequence.'
+                                helper_text: 'default: 500 (ms)'
+
+                            RemovalSilenceOptionTextField:
+                                id: min_duration_msec
+                                text: '200'
+                                hint_text: 'minimum duration of nonsilence.'
+                                helper_text: 'default: 200 (ms)'
+
+
+        VSeparator:
+
+        BoxLayout:
+            id: buttons
+            size_hint_x: 20
+            orientation: 'vertical'
+            pos: buttons.pos
+            size: buttons.size
+
+            Button:
+                text: 'OK'
+                on_press: root.ok_button_clicked()
+
+            Button:
+                text: 'reset'
+                on_press: root.reset_button_clicked()
+
+            Button:
+                text: 'split(仮)'
+
+            Button:
+                text: 'dump(仮)'
