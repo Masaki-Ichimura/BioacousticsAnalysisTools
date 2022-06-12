@@ -127,9 +127,9 @@ def silence_removal(
             if not high_t.any():
                 break
 
-            next_idx = idx + torch.where(high_t)[0][0].item() - 1
+            next_idx = idx + torch.where(high_t)[0][0].item()
             if next_idx - idx <= 3:
-                prob[list(range(idx, next_idx+1))] = 1
+                prob[list(range(idx, next_idx))] = 1
 
             low_t = prob[next_idx:] == 0
             if not low_t.any():
@@ -168,13 +168,23 @@ def silence_removal(
     General utility functions
 """
 def smooth_moving_avg(x, n_win=11):
-    if x.ndim == 1:
-        x = x[None, None]
-    elif x.ndim == 2:
-        x = x[:, None]
-    w = torch.ones((n_win, 1, 1), dtype=x.dtype)
+    if n_win < 3:
+        return x
 
-    return torch.conv1d(x, w, bias=None, padding='valid').squeeze() / n_win
+    if x.ndim == 1:
+        x = x[None]
+    elif x.ndim > 2:
+        raise ValueError('')
+
+    s = torch.hstack([
+        2*x[..., 0][:, None] - x.flip(-1)[..., -n_win:],
+        x,
+        2*x[..., -1][:, None] - x.flip(-1)[..., :n_win-1]
+    ])[:, None]
+    w = torch.ones((1, 1, n_win), dtype=s.dtype)/n_win
+
+    y = torch.conv1d(s, w, bias=None, padding='same').squeeze()
+    return y[..., n_win-1:-n_win]
 
 
 """

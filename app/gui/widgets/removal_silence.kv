@@ -1,5 +1,7 @@
 <RemovalSilenceOptionTextField@MDTextField>
     font_size: '15sp'
+    text_color_normal: app.theme_cls.text_color
+    disabled_foreground_color: app.theme_cls.secondary_text_color
     helper_text_mode: 'persistent'
 
 <PydubBasedRemovalSilenceTab>:
@@ -44,7 +46,7 @@
                         size_hint_x: None
 
                     MDLabel:
-                        font_style: 'H6'
+                        font_style: 'H5'
                         text: 'Settings'
 
                 ScrollView:
@@ -68,7 +70,7 @@
                                 adaptive_height: True
 
                                 MDLabel:
-                                    font_style: 'Subtitle1'
+                                    font_style: 'H6'
                                     text: 'Limit frequency'
 
                                 MDSwitch:
@@ -81,14 +83,14 @@
                                 id: freq_high
                                 disabled: True
                                 text: '4096'
-                                hint_text: 'Highest frequency that can be used (Hz).'
+                                hint_text: 'highest frequency that can be used (Hz).'
                                 helper_text: 'default: 4,096 (Hz)'
 
                             RemovalSilenceOptionTextField:
                                 id: freq_low
                                 disabled: True
                                 text: '1024'
-                                hint_text: 'Lowest frequency that can be used (Hz).'
+                                hint_text: 'lowest frequency that can be used (Hz).'
                                 helper_text: 'default: 1,024 (Hz)'
 
                         MDBoxLayout:
@@ -101,19 +103,19 @@
                                 adaptive_height: True
 
                                 MDLabel:
-                                    font_style: 'Subtitle1'
+                                    font_style: 'H6'
                                     text: 'Others'
 
                             RemovalSilenceOptionTextField:
                                 id: min_silence_len
                                 text: '1000'
-                                hint_text: 'Minimum length for silent sections in msec.'
+                                hint_text: 'minimum length for silent sections in msec.'
                                 helper_text: 'default: 1,000 (ms)'
 
                             RemovalSilenceOptionTextField:
                                 id: silence_thresh
                                 text: '-16'
-                                hint_text: 'The upper bound for how quiet is silent in dBFS.'
+                                hint_text: 'the upper bound for how quiet is silent in dBFS.'
                                 helper_text: 'default: -16 (dB)'
 
                             RemovalSilenceOptionTextField:
@@ -187,7 +189,7 @@
                         size_hint_x: None
 
                     MDLabel:
-                        font_style: 'H6'
+                        font_style: 'H5'
                         text: 'Settings'
 
                 ScrollView:
@@ -211,7 +213,7 @@
                                 adaptive_height: True
 
                                 MDLabel:
-                                    font_style: 'Subtitle1'
+                                    font_style: 'H6'
                                     text: 'Limit frequency'
 
                                 MDSwitch:
@@ -224,14 +226,14 @@
                                 id: freq_high
                                 disabled: True
                                 text: '4096'
-                                hint_text: 'Highest frequency that can be used (Hz).'
+                                hint_text: 'highest frequency that can be used (Hz).'
                                 helper_text: 'default: 4,096 (Hz)'
 
                             RemovalSilenceOptionTextField:
                                 id: freq_low
                                 disabled: True
                                 text: '1024'
-                                hint_text: 'Lowest frequency that can be used (Hz).'
+                                hint_text: 'lowest frequency that can be used (Hz).'
                                 helper_text: 'default: 1,024 (Hz)'
 
                         MDBoxLayout:
@@ -244,7 +246,7 @@
                                 adaptive_height: True
 
                                 MDLabel:
-                                    font_style: 'Subtitle1'
+                                    font_style: 'H6'
                                     text: 'Others'
 
                             RemovalSilenceOptionTextField:
@@ -276,7 +278,6 @@
                                 text: '200'
                                 hint_text: 'minimum duration of nonsilence.'
                                 helper_text: 'default: 200 (ms)'
-
 
         VSeparator:
 

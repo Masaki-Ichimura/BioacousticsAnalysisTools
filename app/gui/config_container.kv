@@ -6,6 +6,7 @@
 
 <ConfigTextField@MDTextField>
     font_size: '15sp'
+    text_color_normal: app.theme_cls.text_color
     helper_text_mode: 'persistent'
 
 <ConfigContainer>:
@@ -23,7 +24,7 @@
                     orientation: 'vertical'
 
                     Button:
-                        text: 'Test1'
+                        text: 'dummy'
 
             MDScreen:
                 name: 'stft'
@@ -34,22 +35,23 @@
                     spacing: 20
 
                     ConfigTextField:
-                        id: n_fft
+                        id: stft_n_fft
                         text: '1024'
                         hint_text: 'STFT window length.'
-                        helper_text: 'default: '
+                        helper_text: 'default: 1024 (pt)'
 
                     ConfigTextField:
-                        id: hop_length
+                        id: stft_hop_length
                         text: '256'
                         hint_text: 'STFT hop length.'
-                        helper_text: 'default: '
+                        helper_text: 'default: 256 (pt)'
 
                     ConfigTextField:
-                        id: window
+                        id: stft_window
                         text: 'hann'
-                        hint_text: 'STFT window function'
-                        helper_text: 'defaut: (dummy)'
+                        hint_text: 'STFT window function.'
+                        helper_text: 'default: hann'
+                        on_focus: if self.focus: root.stft_window_menu.open()
 
                     Button:
                         text: 'dummy'

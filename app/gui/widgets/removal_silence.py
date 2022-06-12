@@ -12,6 +12,7 @@ Builder.load_file('/'.join(__file__.split('/')[:-1])+'/removal_silence.kv')
 class Tab(MDFloatLayout, MDTabsBase):
     pass
 
+
 class RemovalSilenceTab(Tab):
     def get_freq_args(self):
         args = dict(
