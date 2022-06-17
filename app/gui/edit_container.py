@@ -35,20 +35,3 @@ class EditAudioDisplay(Container):
 
 class EditAudioDetail(Container):
     pass
-
-
-
-# '''
-#     以下仮置き，コード移動不可避
-# '''
-# import torch
-# from utils.audio.silence import *
-#
-# stft_dict = dict(
-#     n_fft=1024,
-#     hop_length=256,
-#     window=torch.hann_window(1024+2)[1:-1]
-# )
-#
-# stft = lambda x: torch.stft(x, return_complex=True, **stft_dict)
-# istft = lambda x, l: torch.istft(x, length=l, **stft_dict)

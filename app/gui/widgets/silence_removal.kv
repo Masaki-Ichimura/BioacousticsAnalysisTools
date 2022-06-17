@@ -1,10 +1,10 @@
-<RemovalSilenceOptionTextField@MDTextField>
+<SilenceRemovalOptionTextField@MDTextField>
     font_size: '15sp'
     text_color_normal: app.theme_cls.text_color
     disabled_foreground_color: app.theme_cls.secondary_text_color
     helper_text_mode: 'persistent'
 
-<PydubBasedRemovalSilenceTab>:
+<PydubBasedSilenceRemovalTab>:
     title: '無音区間除去(pydub based)'
 
     BoxLayout:
@@ -79,14 +79,14 @@
                                         freq_high.disabled = not self.active
                                         freq_low.disabled = not self.active
 
-                            RemovalSilenceOptionTextField:
+                            SilenceRemovalOptionTextField:
                                 id: freq_high
                                 disabled: True
                                 text: '4096'
                                 hint_text: 'highest frequency that can be used (Hz).'
                                 helper_text: 'default: 4,096 (Hz)'
 
-                            RemovalSilenceOptionTextField:
+                            SilenceRemovalOptionTextField:
                                 id: freq_low
                                 disabled: True
                                 text: '1024'
@@ -106,19 +106,19 @@
                                     font_style: 'H6'
                                     text: 'Others'
 
-                            RemovalSilenceOptionTextField:
+                            SilenceRemovalOptionTextField:
                                 id: min_silence_len
                                 text: '1000'
                                 hint_text: 'minimum length for silent sections in msec.'
                                 helper_text: 'default: 1,000 (ms)'
 
-                            RemovalSilenceOptionTextField:
+                            SilenceRemovalOptionTextField:
                                 id: silence_thresh
                                 text: '-16'
                                 hint_text: 'the upper bound for how quiet is silent in dBFS.'
                                 helper_text: 'default: -16 (dB)'
 
-                            RemovalSilenceOptionTextField:
+                            SilenceRemovalOptionTextField:
                                 id: seek_step
                                 text: '100'
                                 hint_text: '1 Size of the step for checking for silence in msec.'
@@ -147,7 +147,7 @@
             Button:
                 text: 'dump(仮)'
 
-<PyAudioAnalysisBasedRemovalSilenceTab>:
+<PyAudioAnalysisBasedSilenceRemovalTab>:
     title: '無音区間除去(pyAudioAnalysis based)'
 
     BoxLayout:
@@ -222,14 +222,14 @@
                                         freq_high.disabled = not self.active
                                         freq_low.disabled = not self.active
 
-                            RemovalSilenceOptionTextField:
+                            SilenceRemovalOptionTextField:
                                 id: freq_high
                                 disabled: True
                                 text: '4096'
                                 hint_text: 'highest frequency that can be used (Hz).'
                                 helper_text: 'default: 4,096 (Hz)'
 
-                            RemovalSilenceOptionTextField:
+                            SilenceRemovalOptionTextField:
                                 id: freq_low
                                 disabled: True
                                 text: '1024'
@@ -249,31 +249,31 @@
                                     font_style: 'H6'
                                     text: 'Others'
 
-                            RemovalSilenceOptionTextField:
+                            SilenceRemovalOptionTextField:
                                 id: win_msec
                                 text: '1000'
                                 hint_text: 'short-term window size.'
                                 helper_text: 'default: 1000 (ms)'
 
-                            RemovalSilenceOptionTextField:
+                            SilenceRemovalOptionTextField:
                                 id: seek_msec
                                 text: '500'
                                 hint_text: 'short-term window step.'
                                 helper_text: 'default: 500 (ms)'
 
-                            RemovalSilenceOptionTextField:
+                            SilenceRemovalOptionTextField:
                                 id: weight
                                 text: '0.5'
                                 hint_text: 'weight factor(0 < weight < 1). the higher, the more strict.'
                                 helper_text: 'default: 0.5'
 
-                            RemovalSilenceOptionTextField:
+                            SilenceRemovalOptionTextField:
                                 id: smooth_window_msec
                                 text: '500'
                                 hint_text: 'smoothing parameter using the SVM probabilistic sequence.'
                                 helper_text: 'default: 500 (ms)'
 
-                            RemovalSilenceOptionTextField:
+                            SilenceRemovalOptionTextField:
                                 id: min_duration_msec
                                 text: '200'
                                 hint_text: 'minimum duration of nonsilence.'

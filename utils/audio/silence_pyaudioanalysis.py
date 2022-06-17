@@ -4,10 +4,9 @@
 """
 import torch
 from torchaudio.functional import create_dct
+from sklearn.svm import SVC
 
 from typing import Union
-
-from sklearn.svm import SVC
 
 EPS = 1e-15
 
@@ -15,13 +14,46 @@ EPS = 1e-15
 def silence_removal(
     signal,
     sample_rate: int, win_msec: int, seek_msec: int,
-    freq_low: Union[float, int]=0, freq_high: Union[float, int]=float('inf'),
-    smooth_window_msec: int=500, min_duration_msec: Union[None, int]=200,
-    weight: float=.5
+    freq_low: Union[float, int]=0., freq_high: Union[float, int]=float('inf'),
+    smooth_window_msec: int=500, broaden_section_msec: int=0,
+    min_duration_msec: Union[int, None]=200,
+    weight: float=.5, return_prob: bool=False
 ):
+    """
+    Getting non-silent sections for audio signal.
+
+    Parameters
+    ----------
+    signal : torch.Tensor
+        Audio signal (ch, t) or (t,)
+    win_msec : int
+        Window length in ms.
+    seek_msec : int
+        Seek length for window in ms.
+    freq_low : float or int, default 0.
+        Lowest frequency of MFCC feature.
+    freq_high : float or int, default float('inf')
+        Highest frequency of MFCC feature.
+    smooth_window_msec : int, default 500
+        Using to smooth trained classifier probability.
+    broaden_section_msec : int, default 0
+        Broaden range of non-silent sections in ms.
+    min_duration_msec : int or None, default 200
+        Minimum duration of non-silent sections.
+    weight : float, default .5
+        The higher, the more strict to classify.
+    return_prob : bool, default False
+        Return trained classifier probabilities and threshold.
+
+    Returns
+    -------
+    nonsilent_sections : list
+        List of Non-silent sections.
+    prob_dict : dict
+        Dictionary of trained classifier Probabilities and threshold
+    """
     weight = max(0, min(1, weight))
 
-    # signal: torch.tensor (channel, t) -> (t,)
     if signal.ndim == 2:
         signal = signal.mean(0)
 
@@ -71,7 +103,7 @@ def silence_removal(
             # current feature + delta feature
             features.append(torch.cat([feature, feature-feature_prev]))
 
-            # not required to copy tensor
+            # NOT required to copy tensor
             fft_mag_prev = fft_mag
             feature_prev = feature
 
@@ -102,70 +134,129 @@ def silence_removal(
     model.fit(datas.numpy(), labels.numpy())
 
     # method: 1
-    # prob = smooth_moving_avg(
+    # pr_org = smooth_moving_avg(
     #     torch.from_numpy(model.predict_proba(features)).T,
     #     smooth_window_msec // seek_msec
     # ).T
-    # prob = torch.where(prob.softmax(-1)[:, 0]>.5, 0, 1)
+    # pr = torch.where(pr_org.softmax(-1)[:, 0]>.5, 0, 1)
 
     # method: 2 (based on pyAudioAnalysis)
-    prob = smooth_moving_avg(
+    pr_org = smooth_moving_avg(
         torch.from_numpy(model.predict_proba(features))[:, 0],
         smooth_window_msec // seek_msec
     )
-    prob_sort = prob.sort().values
-    nt = prob.size(0) // 10
-    prob_thr = (1-weight)*prob_sort[:nt].mean() + weight*prob_sort[-nt:].mean()
-    prob = torch.where(prob > prob_thr, 0, 1)
+    pr_sort = pr_org.sort().values
+    nt = pr_org.size(0) // 10
+    pr_thr = (1-weight)*pr_sort[:nt].mean() + weight*pr_sort[-nt:].mean()
+
+    nonsilent_sections = segmentation(
+        pr_org, pr_thr, seek_msec,
+        clustering=True,
+        broaden_section_num=broaden_section_msec, enable_merge=True,
+        min_duration_num=min_duration_msec
+    )
+
+    if return_prob:
+        # probability (window, ) -> (msec, )
+        prob_dict = {
+            'probability': pr_org,
+            'threshold': pr_thr.item()
+        }
+        return nonsilent_sections, prob_dict
+    else:
+        return nonsilent_sections
+
+
+"""
+    Segmentation funcrion
+        1. original probability to binary using threshold
+        2. clustering
+        3. make non-silent sections from binary probability
+        4. broaden range of sections
+        5. remove section less than minimum duration
+"""
+def segmentation(
+    pr, threshold, seek_num,
+    clustering=False, broaden_section_num=0, enable_merge=True,
+    min_duration_num=None,
+):
+    pr = torch.where(pr > threshold, 0, 1)
 
     # clustering
-    start_t = prob == 0
-    if start_t.any():
-        idx = torch.where(start_t)[0][0]
-        while 1:
-            high_t = prob[idx:] == 1
-            if not high_t.any():
-                break
+    if clustering:
+        start_t = (pr == 0)
+        if start_t.any():
+            idx = torch.where(start_t)[0][0]
+            while 1:
+                high_t = (pr[idx:] == 1)
+                if not high_t.any():
+                    break
 
-            next_idx = idx + torch.where(high_t)[0][0].item()
-            if next_idx - idx <= 3:
-                prob[list(range(idx, next_idx))] = 1
+                next_idx = idx + torch.where(high_t)[0][0].item()
+                if next_idx - idx <= 3:
+                    pr[list(range(idx, next_idx))] = 1
 
-            low_t = prob[next_idx:] == 0
-            if not low_t.any():
-                break
+                low_t = (pr[next_idx:] == 0)
+                if not low_t.any():
+                    break
 
-            idx = next_idx + torch.where(low_t)[0][0].item()
+                idx = next_idx + torch.where(low_t)[0][0].item()
 
     idx = 0
     nonsilent_sections = []
     while 1:
-        start_t = prob[idx:] == 1
+        start_t = (pr[idx:] == 1)
         if not start_t.any():
             break
         else:
             start_idx = idx + torch.where(start_t)[0][0].item()
 
-            end_t = prob[start_idx:] == 0
+            end_t = (pr[start_idx:] == 0)
             if not end_t.any():
-                end_idx = prob.size(0)
+                end_idx = pr.size(0)
             else:
                 end_idx = start_idx + torch.where(end_t)[0][0].item() - 1
 
-            nonsilent_sections.append([start_idx*seek_msec, end_idx*seek_msec])
+            nonsilent_sections.append([start_idx*seek_num, end_idx*seek_num])
 
         idx = end_idx + 1
 
-    if min_duration_msec:
+    if broaden_section_num:
+        broaden_sections = [
+            [max(0, sec[0]-broaden_section_num), sec[1]+broaden_section_num]
+            for sec in nonsilent_sections
+        ]
+        tmp = []
+        if enable_merge:
+            p = broaden_sections.pop(0)
+            while 1:
+                if broaden_sections:
+                    q = broaden_sections.pop(0)
+                    if p[1]>=q[0]:
+                        p = [p[0], q[1]]
+                    else:
+                        tmp.append(p)
+                        p = q
+                else:
+                    if tmp[-1][1]>=q[0]:
+                        tmp[-1] = [tmp[-1][0], q[1]]
+                    else:
+                        tmp.append(q)
+                    break
+
+        nonsilent_sections = tmp
+
+    if min_duration_num:
         nonsilent_sections = [
-            sec for sec in nonsilent_sections if sec[1]-sec[0] > min_duration_msec
+            sec for sec in nonsilent_sections if sec[1]-sec[0] > min_duration_num
         ]
 
     return nonsilent_sections
 
 
 """
-    General utility functions
+    General utility function
+        - https://github.com/tyiannak/pyAudioAnalysis/blob/master/pyAudioAnalysis/audioSegmentation.py
 """
 def smooth_moving_avg(x, n_win=11):
     if n_win < 3:
@@ -177,11 +268,11 @@ def smooth_moving_avg(x, n_win=11):
         raise ValueError('')
 
     s = torch.hstack([
-        2*x[..., 0][:, None] - x.flip(-1)[..., -n_win:],
+        2*x[:, 0, None] - x.flip(-1)[:, -n_win:],
         x,
-        2*x[..., -1][:, None] - x.flip(-1)[..., :n_win-1]
+        2*x[:, -1, None] - x.flip(-1)[:, :n_win-1]
     ])[:, None]
-    w = torch.ones((1, 1, n_win), dtype=s.dtype)/n_win
+    w = torch.ones((1, 1, n_win), dtype=s.dtype) / n_win
 
     y = torch.conv1d(s, w, bias=None, padding='same').squeeze()
     return y[..., n_win-1:-n_win]
@@ -209,7 +300,6 @@ def energy_entropy(frame, n_short_blocks=10):
     sub_wins = frame.reshape(n_short_blocks, sub_win_len).T
     s = sub_wins.square().sum(0) / (frame_energy + EPS)
     return -(s * (s + EPS).log2()).sum()
-
 
 def spectral_centroid_spread(fft_magnitude, sample_rate):
     n_fft = fft_magnitude.size(0)
@@ -266,7 +356,8 @@ def mfcc_filter_banks(
 
     freq = torch.zeros(num_filt_total+2)
     freq[:num_lin_filt] = freq_low + torch.arange(num_lin_filt) * linc
-    freq[num_lin_filt:] = freq[num_lin_filt-1] * logsc ** torch.arange(1, num_log_filt+3)
+    freq[num_lin_filt:] = \
+        freq[num_lin_filt-1] * logsc ** torch.arange(1, num_log_filt+3)
     heights = 2. / (freq[2:] - freq[:-2])
 
     fbank = torch.zeros((num_filt_total, n_fft))

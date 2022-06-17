@@ -14,6 +14,7 @@ class ConfigContainer(Container):
     def on_kv_post(self, *arg, **kwargs):
         self.ids.nav_drawer.set_state('open')
 
+        stft_windows = ['bartlett', 'blackman', 'hamming', 'hann', 'kaiser']
         self.stft_window_menu = MDDropdownMenu(
             caller=self.ids.stft_window,
             hor_growth='right',
@@ -21,11 +22,11 @@ class ConfigContainer(Container):
             items=[
                 dict(
                     viewclass='OneLineListItem',
-                    text=k,
+                    text=window,
                     height=dp(54),
-                    on_release=lambda x=k: self.set_stft_window(x)
+                    on_release=lambda x=window: self.set_stft_window(x)
                 )
-                for k in ['bartlett', 'blackman', 'hamming', 'hann', 'kaiser']
+                for window in stft_windows
             ]
         )
 

@@ -5,15 +5,16 @@ from kivymd.uix.floatlayout import MDFloatLayout
 from kivymd.uix.tab import MDTabsBase
 
 from utils.audio import silence_pydub, silence_pyaudioanalysis
+from utils.audio.transform import freq_mask
 
-Builder.load_file('/'.join(__file__.split('/')[:-1])+'/removal_silence.kv')
+Builder.load_file('/'.join(__file__.split('/')[:-1])+'/silence_removal.kv')
 
 
 class Tab(MDFloatLayout, MDTabsBase):
     pass
 
 
-class RemovalSilenceTab(Tab):
+class SilenceRemovalTab(Tab):
     def get_freq_args(self):
         args = dict(
             freq_high=int(self.ids.freq_high.text),
@@ -43,10 +44,12 @@ class RemovalSilenceTab(Tab):
 
         if self.ids.limit_freq.active:
             Xnkl = torch.stft(xnt, return_complex=True, **stft_args)
-            k = torch.fft.rfftfreq(stft_args['n_fft']) * audio_fs
-            hk = torch.logical_or(k<freq_args['freq_low'], k>freq_args['freq_high'])
-            Xnkl[:, hk] = 0
-            ynt = torch.istft(Xnkl, length=audio_data.size(-1), **stft_args)
+            mk = freq_mask(
+                audio_fs, stft_args['n_fft'],
+                freq_low=freq_args['freq_low'], freq_high=freq_args['freq_high']
+            )
+            Xnkl[:, mk] = 0
+            ynt = torch.istft(Xnkl, length=xnt.size(-1), **stft_args)
         else:
             ynt = xnt
 
@@ -89,7 +92,7 @@ class RemovalSilenceTab(Tab):
         fig_wave.canvas.draw()
 
 
-class PydubBasedRemovalSilenceTab(RemovalSilenceTab):
+class PydubBasedSilenceRemovalTab(SilenceRemovalTab):
     def on_kv_post(self, *arg, **kwargs):
         self.rmsilence_func = silence_pydub.detect_nonsilent
 
@@ -102,7 +105,7 @@ class PydubBasedRemovalSilenceTab(RemovalSilenceTab):
         return args
 
 
-class PyAudioAnalysisBasedRemovalSilenceTab(RemovalSilenceTab):
+class PyAudioAnalysisBasedSilenceRemovalTab(SilenceRemovalTab):
     def on_kv_post(self, *arg, **kwargs):
         self.rmsilence_func = silence_pyaudioanalysis.silence_removal
 

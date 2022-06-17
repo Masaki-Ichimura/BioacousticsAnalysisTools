@@ -24,6 +24,11 @@ class LGM(tf_bss_model_base):
         raise NotImplementedError
 
 
+"""
+    S. Arberet et al., "Nonnegative matrix factorization and spatial covariance model for under-determined reverberant audio source separation,"
+    10th International Conference on Information Science,
+    ISSPA, 2010, pp. 1-4
+"""
 class NMFLGM(LGM):
     def __init__(self, **stft_args):
         super().__init__(**stft_args)
