@@ -3,7 +3,33 @@ import torchaudio
 
 
 class tf_bss_model_base(torch.nn.Module):
+    """
+    Base class of BSS model in time-frequency domain.
+    """
     def __init__(self, **stft_args):
+        """
+        Parameters
+        ----------
+        n_fft : int, default 400
+        win_length : int or None, default n_fft
+        hop_length : int or None, default n_fft//2
+        pad : int, default 0
+        window_fn : Callable[.., Tensor], default torch.hann_window
+        normalized : bool, default False
+        wkwargs : dict or None, default None
+        center : bool, default True
+        pad_mode : str, default 'reflect'
+        onesided : bool, default True
+
+        See Also
+        --------
+        torchaudio.transforms.Spectrogram : Create a spectrogram from a audio signal.
+        torchaudio.transforms.InverseSpectrogram : Create an inverse spectrogram to recover an audio signal from a spectrogram.
+
+        Notes
+        -----
+        These parameters are used for STFT and iSTFT separating signal.
+        """
         super(tf_bss_model_base, self).__init__()
 
         spec_fn = torchaudio.transforms.Spectrogram

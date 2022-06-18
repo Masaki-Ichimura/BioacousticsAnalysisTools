@@ -12,8 +12,7 @@ EPS = 1e-15
 
 
 def silence_removal(
-    signal,
-    sample_rate: int, win_msec: int, seek_msec: int,
+    signal: torch.Tensor, sample_rate: int, win_msec: int, seek_msec: int,
     freq_low: Union[float, int]=0., freq_high: Union[float, int]=float('inf'),
     smooth_window_msec: int=500, broaden_section_msec: int=0,
     min_duration_msec: Union[int, None]=200,
@@ -41,7 +40,7 @@ def silence_removal(
     min_duration_msec : int or None, default 200
         Minimum duration of non-silent sections.
     weight : float, default .5
-        The higher, the more strict to classify.
+        The higher, the more strict to classify silence.
     return_prob : bool, default False
         Return trained classifier probabilities and threshold.
 

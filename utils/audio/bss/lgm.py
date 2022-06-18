@@ -3,6 +3,7 @@
 """
 import torch
 from torchnmf.nmf import NMF
+from tqdm import trange
 
 from .base import tf_bss_model_base
 from .fastmnmf import FastMNMF
@@ -36,7 +37,7 @@ class NMFLGM(LGM):
     def separate(
         self,
         Xnkl,
-        n_src=None, n_iter=10, n_components=4, sigma2=1e-2, eps = 1e-10,
+        n_src=None, n_iter=10, n_components=4, sigma2=1e-2, eps=1e-10,
         return_losses=False
     ):
 
@@ -102,7 +103,7 @@ class NMFLGM(LGM):
         R_nfcc = normalize_RV(R_nfcc)
 
         loss_list = []
-        for epoch in range(n_iter):
+        for epoch in trange(n_iter):
             # E-step
             V_nft = V_nft if epoch == 0 else torch.bmm(W_nfk, H_nkt)
             V_nft = V_nft.clip(0)
