@@ -1,7 +1,8 @@
 PYTHON_VERSION='3.8.13'
 
 # pyenv setup
-pyenv --local $PYTHON_VERSION
+# PLEASE run `pyenv install 3.8.13` in advance
+pyenv local $PYTHON_VERSION
 
 # venv
 python -m venv env
