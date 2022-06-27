@@ -57,15 +57,15 @@ class NMFLGM(LGM):
             else:
                 Pnorm = (P**2).sum((-2, -1), keepdim=True)
 
-            return P / Pnorm.clip(eps)
+            return P / Pnorm.clip(min=eps)
 
         def normalize_W(W):
             Wnorm = W.sum(1, keepdim=True)
-            return W / Wnorm.clip(eps)
+            return W / Wnorm.clip(min=eps)
 
         def normalize_H(H):
             Hnorm = H.sum(2, keepdim=True)
-            return H / Hnorm.clip(eps)
+            return H / Hnorm.clip(min=eps)
 
         def trace(A):
             tr = lambda x: torch.diagonal(x, offset=0, dim1=-1, dim2=-2).sum(-1)
@@ -80,7 +80,7 @@ class NMFLGM(LGM):
         # init parameters using MNMF
         mnmf = FastMNMF(**self.stft_args)
         V_nft = mnmf.separate(
-            Xnkl, n_src=n_src, n_iter=30, n_components=2
+            Xnkl.cpu(), n_src=n_src, n_iter=30, n_components=2
         ).abs()
         V_nft /= V_nft.max()
 
@@ -106,11 +106,11 @@ class NMFLGM(LGM):
         for epoch in trange(n_iter):
             # E-step
             V_nft = V_nft if epoch == 0 else torch.bmm(W_nfk, H_nkt)
-            V_nft = V_nft.clip(0)
+            V_nft = V_nft.clip(min=0)
 
             R_nftcc = torch.einsum('nft,nfcd->nftcd', V_nft, R_nfcc)
             Rx_ftcc = R_nftcc.sum(0) + Rb_fcc[:, None]
-            Rx_inv = (Rx_ftcc+I_eps).pinverse()
+            Rx_inv = torch.linalg.pinv(Rx_ftcc + I_eps)
             R_nkftcc = torch.einsum('nfk,nkt,nfcd->nkftcd', W_nfk, H_nkt, R_nfcc)
 
             G = R_nftcc @ Rx_inv
@@ -132,15 +132,15 @@ class NMFLGM(LGM):
                 + (I - G) @ Rb_fcc[:, None]
 
             # M-step
-            R_nfcc = (Rh_nftcc / V_nft.clip(eps)[..., None, None]).mean(2)
-            R_inv = (R_nfcc + I_eps).pinverse()
+            R_nfcc = (Rh_nftcc / V_nft.clip(min=eps)[..., None, None]).mean(2)
+            R_inv = torch.linalg.pinv(R_nfcc + I_eps)
 
             Vh_nkft = trace(
                 torch.einsum('nfcd,nkftde->nkftce', R_inv, Rh_nkftcc)
-            ).real.clip(0) / n_chan
+            ).real.clip(min=0) / n_chan
             W_nfk, H_nkt = (
-                normalize_W((Vh_nkft/H_nkt.clip(eps)[..., None, :]).mean(3).mT),
-                normalize_H((Vh_nkft/W_nfk.clip(eps).mT[..., None]).mean(2))
+                normalize_W((Vh_nkft/H_nkt.clip(min=eps)[..., None, :]).mean(3).mT),
+                normalize_H((Vh_nkft/W_nfk.clip(min=eps).mT[..., None]).mean(2))
             )
 
             Rb_fcc = Rbh_ftcc.mean(1)*I
@@ -155,10 +155,10 @@ class NMFLGM(LGM):
                 ).sum()
                 loss_list.append(loss.item())
 
-        V_nft = torch.bmm(W_nfk, H_nkt).clip(0)
+        V_nft = torch.bmm(W_nfk, H_nkt).clip(min=0)
         R_nftcc = torch.einsum('nft,nfcd->nftcd', V_nft, R_nfcc)
         Rx_ftcc = R_nftcc.sum(0) + Rb_fcc[:, None]
-        Rx_inv = (Rx_ftcc+I_eps).pinverse()
+        Rx_inv = torch.linalg.pinv(Rx_ftcc + I_eps)
         Y = torch.einsum('nftcd,ftd->nftc', R_nftcc@Rx_inv, X_ftc)
 
         Ymnkl = Y.permute(0, 3, 1, 2)

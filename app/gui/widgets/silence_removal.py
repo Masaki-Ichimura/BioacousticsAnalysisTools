@@ -22,6 +22,35 @@ class SilenceRemovalTab(Tab):
         )
         return args
 
+    def plot_nonsilent_sections(
+        self, signal, sample_rate, nonsilent_sections, ax,
+        probability=None, threshold=None
+    ):
+        d_min, d_max = signal.mean(0).min().item(), signal.mean(0).max().item()
+        d_min, d_max = min(d_min, -abs(d_max)), max(d_max, abs(d_min))
+
+        nonsilence = d_min*torch.ones(signal.shape[-1]*1000//sample_rate)
+        for sec in nonsilent_sections:
+            nonsilence[sec[0]:sec[1]] = d_max
+
+        x_ms = torch.linspace(0, signal.size(-1)/sample_rate, steps=nonsilence.size(0))
+        ax.fill_between(x_ms, nonsilence, d_min, facecolor='r', alpha=.5)
+
+        if probability is not None:
+            rmsilence_args = self.get_rmsilence_args()
+            pr_ms = probability[:, None].tile((1, rmsilence_args['seek_ms'])).view(-1)
+            pr_ms = torch.nn.functional.pad(
+                pr_ms[:x_ms.size(0)],
+                [0, x_ms.size(0)-min(pr_ms.size(0), x_ms.size(0))],
+                'constant', torch.nan
+            )
+
+            ax.plot(x_ms, d_min+(d_max-d_min)*pr_ms, color='yellowgreen')
+
+        if threshold is not None:
+            ax.axhline(y=d_min+(d_max-d_min)*threshold, color='yellow')
+
+
     def ok_button_clicked(self):
         audio_detail = self.parent.parent.parent.parent.parent.parent
         working_container = audio_detail.parent.parent
@@ -53,26 +82,15 @@ class SilenceRemovalTab(Tab):
         else:
             ynt = xnt
 
-        nonsilent_sections = self.rmsilence_func(ynt, audio_fs, **rmsilence_args)
-
+        nonsilent_sections, prob_dict = self.rmsilence_func(ynt, audio_fs, **rmsilence_args)
         print(nonsilent_sections)
-
-        d_min, d_max = xnt.mean(0).min().item(), xnt.mean(0).max().item()
-        d_min, d_max = min(d_min, -abs(d_max)), max(d_max, abs(d_min))
-        nonsilence = d_min*torch.ones(audio_data.size(-1)*1000//audio_fs)
-        for sec in nonsilent_sections:
-            nonsilence[sec[0]:sec[1]] = d_max
 
         ax_wave = audio_timeline.fig_wave.axes[0]
 
-        if len(ax_wave.collections) > 1:
-            ax_wave.collections[-1].remove()
+        self.reset_button_clicked()
 
-        ax_wave.fill_between(
-            torch.linspace(0, audio_data.size(-1)/audio_fs, steps=nonsilence.size(0)),
-            nonsilence, d_min,
-            facecolor='r', alpha=.5
-        )
+        self.plot_nonsilent_sections(ynt, audio_fs, nonsilent_sections, ax_wave, **prob_dict)
+
         audio_timeline.fig_wave.canvas.draw()
 
     def reset_button_clicked(self):
@@ -86,21 +104,25 @@ class SilenceRemovalTab(Tab):
 
         ax_wave = fig_wave.axes[0]
 
-        if len(ax_wave.collections)>1:
-            ax_wave.collections[-1].remove()
+        if len(ax_wave.collections) > 1:
+            _ = [collection.remove() for collection in ax_wave.collections[1:]]
+
+        if len(ax_wave.lines) > 1:
+            _ = [line.remove() for line in ax_wave.lines[1:]]
 
         fig_wave.canvas.draw()
 
 
 class PydubBasedSilenceRemovalTab(SilenceRemovalTab):
     def on_kv_post(self, *arg, **kwargs):
-        self.rmsilence_func = silence_pydub.detect_nonsilent
+        self.rmsilence_func = silence_pydub.silence_removal
 
     def get_rmsilence_args(self):
         args = dict(
-            min_silence_len=int(self.ids.min_silence_len.text),
-            silence_thresh=float(self.ids.silence_thresh.text),
-            seek_step=int(self.ids.seek_step.text)
+            min_silence_ms=int(self.ids.min_silence_ms.text),
+            seek_ms=int(self.ids.seek_ms.text),
+            threshold=float(self.ids.threshold.text),
+            return_prob=True
         )
         return args
 
@@ -111,13 +133,14 @@ class PyAudioAnalysisBasedSilenceRemovalTab(SilenceRemovalTab):
 
     def get_rmsilence_args(self):
         args = dict(
-            win_msec=int(self.ids.win_msec.text),
-            seek_msec=int(self.ids.seek_msec.text),
+            win_ms=int(self.ids.win_ms.text),
+            seek_ms=int(self.ids.seek_ms.text),
             freq_low=int(self.ids.freq_low.text),
             freq_high=int(self.ids.freq_high.text),
-            smooth_window_msec=int(self.ids.smooth_window_msec.text),
-            min_duration_msec=int(self.ids.min_duration_msec.text),
-            weight=float(self.ids.weight.text)
+            smooth_window_ms=int(self.ids.smooth_window_ms.text),
+            min_nonsilence_ms=int(self.ids.min_nonsilence_ms.text),
+            weight=float(self.ids.weight.text),
+            return_prob=True
         )
         if not self.ids.limit_freq.active:
             _ = [args.pop(k) for k in ['freq_low', 'freq_high']]

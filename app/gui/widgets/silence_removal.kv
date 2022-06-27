@@ -107,21 +107,21 @@
                                     text: 'Others'
 
                             SilenceRemovalOptionTextField:
-                                id: min_silence_len
+                                id: min_silence_ms
                                 text: '1000'
-                                hint_text: 'minimum length for silent sections in msec.'
+                                hint_text: 'minimum length for silent sections in ms.'
                                 helper_text: 'default: 1,000 (ms)'
 
                             SilenceRemovalOptionTextField:
-                                id: silence_thresh
+                                id: threshold
                                 text: '-16'
                                 hint_text: 'the upper bound for how quiet is silent in dBFS.'
                                 helper_text: 'default: -16 (dB)'
 
                             SilenceRemovalOptionTextField:
-                                id: seek_step
+                                id: seek_ms
                                 text: '100'
-                                hint_text: '1 Size of the step for checking for silence in msec.'
+                                hint_text: '1 Size of the step for checking for silence in ms.'
                                 helper_text: 'default: 100 (ms)'
 
         VSeparator:
@@ -250,13 +250,13 @@
                                     text: 'Others'
 
                             SilenceRemovalOptionTextField:
-                                id: win_msec
+                                id: win_ms
                                 text: '1000'
                                 hint_text: 'short-term window size.'
                                 helper_text: 'default: 1000 (ms)'
 
                             SilenceRemovalOptionTextField:
-                                id: seek_msec
+                                id: seek_ms
                                 text: '500'
                                 hint_text: 'short-term window step.'
                                 helper_text: 'default: 500 (ms)'
@@ -268,13 +268,13 @@
                                 helper_text: 'default: 0.5'
 
                             SilenceRemovalOptionTextField:
-                                id: smooth_window_msec
+                                id: smooth_window_ms
                                 text: '500'
                                 hint_text: 'smoothing parameter using the SVM probabilistic sequence.'
                                 helper_text: 'default: 500 (ms)'
 
                             SilenceRemovalOptionTextField:
-                                id: min_duration_msec
+                                id: min_nonsilence_ms
                                 text: '200'
                                 hint_text: 'minimum duration of nonsilence.'
                                 helper_text: 'default: 200 (ms)'

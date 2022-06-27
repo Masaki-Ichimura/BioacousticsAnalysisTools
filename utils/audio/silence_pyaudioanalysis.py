@@ -12,10 +12,11 @@ EPS = 1e-15
 
 
 def silence_removal(
-    signal: torch.Tensor, sample_rate: int, win_msec: int, seek_msec: int,
+    signal: torch.Tensor, sample_rate: int, win_ms: int, seek_ms: int,
     freq_low: Union[float, int]=0., freq_high: Union[float, int]=float('inf'),
-    smooth_window_msec: int=500, broaden_section_msec: int=0,
-    min_duration_msec: Union[int, None]=200,
+    mask_ms_sections: list=None,
+    smooth_window_ms: int=500, broaden_section_ms: int=0,
+    min_nonsilence_ms: Union[int, None]=200,
     weight: float=.5, return_prob: bool=False
 ):
     """
@@ -25,19 +26,21 @@ def silence_removal(
     ----------
     signal : torch.Tensor
         Audio signal (ch, t) or (t,)
-    win_msec : int
+    win_ms : int
         Window length in ms.
-    seek_msec : int
+    seek_ms : int
         Seek length for window in ms.
     freq_low : float or int, default 0.
         Lowest frequency of MFCC feature.
     freq_high : float or int, default float('inf')
         Highest frequency of MFCC feature.
-    smooth_window_msec : int, default 500
+    mask_ms_sections : list or None, default None
+        Mask sections for classification of silent or nonsilent section of signal.
+    smooth_window_ms : int, default 500
         Using to smooth trained classifier probability.
-    broaden_section_msec : int, default 0
+    broaden_section_ms : int, default 0
         Broaden range of non-silent sections in ms.
-    min_duration_msec : int or None, default 200
+    min_nonsilence_ms : int or None, default 200
         Minimum duration of non-silent sections.
     weight : float, default .5
         The higher, the more strict to classify silence.
@@ -56,8 +59,8 @@ def silence_removal(
     if signal.ndim == 2:
         signal = signal.mean(0)
 
-    window = win_msec * sample_rate // 1000
-    seek = seek_msec * sample_rate // 1000
+    window = win_ms * sample_rate // 1000
+    seek = seek_ms * sample_rate // 1000
     n_fft = window // 2
 
     fbank, freq = mfcc_filter_banks(sample_rate, n_fft)
@@ -111,6 +114,17 @@ def silence_removal(
     features = torch.stack(features)
     features_norm = (features - features.mean(0)) / features.std(0)
     energies = features[:, 1]
+    if mask_ms_sections:
+        mask_indices = [
+            set(range(sec[0]//seek_ms, sec[1]//seek_ms+1))
+            for sec in mask_ms_sections
+        ]
+        tmp = mask_indices[0]
+        _ = [[tmp.add(idx) for idx in indices] for indices in mask_indices[1:]]
+        mask_indices = tmp
+        energies = energies[
+            [idx for idx in range(energies.size(0)) if idx not in mask_indices]
+        ]
     energies_sort = energies.sort().values
 
     n_split = features.size(0)
@@ -135,28 +149,27 @@ def silence_removal(
     # method: 1
     # pr_org = smooth_moving_avg(
     #     torch.from_numpy(model.predict_proba(features)).T,
-    #     smooth_window_msec // seek_msec
+    #     smooth_window_ms // seek_ms
     # ).T
     # pr = torch.where(pr_org.softmax(-1)[:, 0]>.5, 0, 1)
 
     # method: 2 (based on pyAudioAnalysis)
     pr_org = smooth_moving_avg(
         torch.from_numpy(model.predict_proba(features))[:, 0],
-        smooth_window_msec // seek_msec
+        smooth_window_ms // seek_ms
     )
     pr_sort = pr_org.sort().values
     nt = pr_org.size(0) // 10
     pr_thr = (1-weight)*pr_sort[:nt].mean() + weight*pr_sort[-nt:].mean()
 
     nonsilent_sections = segmentation(
-        pr_org, pr_thr, seek_msec,
+        pr_org, pr_thr, seek_ms,
         clustering=True,
-        broaden_section_num=broaden_section_msec, enable_merge=True,
-        min_duration_num=min_duration_msec
+        broaden_section_num=broaden_section_ms, enable_merge=True,
+        min_duration_num=min_nonsilence_ms
     )
 
     if return_prob:
-        # probability (window, ) -> (msec, )
         prob_dict = {
             'probability': pr_org,
             'threshold': pr_thr.item()

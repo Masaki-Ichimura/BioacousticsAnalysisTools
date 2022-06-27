@@ -8,6 +8,8 @@
 """
 
 import torch
+from tqdm import trange
+
 from .base import tf_bss_model_base
 from .common import projection_back
 
@@ -30,7 +32,7 @@ class OverIVA(tf_bss_model_base):
     ):
 
         n_chan, n_freq, n_frames = Xnkl.shape
-        dtype, device = Xnkl.dtype, Xnkl.device
+        device = Xnkl.device
 
         X = Xnkl.permute(2, 1, 0)
 
@@ -42,9 +44,9 @@ class OverIVA(tf_bss_model_base):
             raise ValueError("Model should be either " "laplace" " or " "gauss" ".")
 
         # covariance matrix of input signal (n_freq, n_chan, n_chan)
-        Cx = (X[:, :, :, None] * X[:, :, None, :].conj()).mean(0)
+        Cx = torch.einsum('lkn,lkm->knm', X, X.conj()) / n_frames
 
-        W_hat = torch.zeros((n_freq, n_chan, n_chan), dtype=dtype, device=device)
+        W_hat = torch.zeros((n_freq, n_chan, n_chan), dtype=X.dtype, device=device)
         W = W_hat[:, :, :n_src]
         J = W_hat[:, :n_src, n_src:]
 
@@ -80,8 +82,8 @@ class OverIVA(tf_bss_model_base):
             for f in range(n_freq):
                 W_hat[f, n_src:, n_src:] = -torch.eye(n_chan - n_src)
 
-        eyes = torch.eye(n_chan, dtype=dtype, device=device).tile(n_freq, 1, 1)
-        V = torch.zeros((n_freq, n_chan, n_chan), dtype=dtype, device=device)
+        eyes = torch.eye(n_chan, dtype=X.dtype, device=device).tile(n_freq, 1, 1)
+        V = torch.zeros((n_freq, n_chan, n_chan), dtype=X.dtype, device=device)
         r_inv = torch.zeros((n_frames, n_src), device=device)
         r = torch.zeros((n_frames, n_src), device=device)
 
@@ -93,7 +95,7 @@ class OverIVA(tf_bss_model_base):
         def demix(Y, X, W):
             Y[:, :, :] = X @ W.conj()
 
-        for epoch in range(n_iter):
+        for epoch in trange(n_iter):
 
             demix(Y, X, W)
 
@@ -120,13 +122,13 @@ class OverIVA(tf_bss_model_base):
                 Y /= gamma[None, None, :]
                 W /= gamma[None, None, :]
             elif model == 'gauss':
-                g_sq = np.sqrt(gamma[None, None, :])
+                g_sq = gamma[None, None, :].sqrt()
                 Y /= g_sq
                 W /= g_sq
 
             # ensure some numerical stability
             eps = 1e-15
-            r[r < eps] = eps
+            r.clip_(min=eps)
 
             r_inv[:, :] = 1. / r
 

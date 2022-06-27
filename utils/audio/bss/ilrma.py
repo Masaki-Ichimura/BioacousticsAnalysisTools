@@ -3,6 +3,8 @@
         - https://pyroomacoustics.readthedocs.io/en/pypi-release/pyroomacoustics.bss.html
 """
 import torch
+from tqdm import trange
+
 from .base import tf_bss_model_base
 from .common import projection_back
 
@@ -77,7 +79,7 @@ class ILRMA(tf_bss_model_base):
         if T.dtype!=P.dtype or V.dtype!=P.dtype:
             T, V = T.type(P.dtype), V.type(P.dtype)
 
-        for epoch in range(n_iter):
+        for epoch in trange(n_iter):
             if callback is not None and epoch % 10 == 0:
                 Y_t = Y.permute(2, 0, 1)
                 if proj_back:

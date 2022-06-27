@@ -52,8 +52,8 @@ class SRP(DOA):
         mrkmn = torch.einsum('rkm,rkn->rkmn', mrkn.conj(), mrkn)
         m_flat = mrkmn[..., mask_triu]
 
-        Rbrkn = torch.einsum('bkn,rkn->brkn', C_flat.real, m_flat.real) - \
-                torch.einsum('bkn,rkn->brkn', C_flat.imag, m_flat.imag)
+        Rbrkn = torch.einsum('bkn,rkn->brkn', C_flat.real, m_flat.real) \
+            - torch.einsum('bkn,rkn->brkn', C_flat.imag, m_flat.imag)
 
         offset = xblkn.shape[1] * M * len(self.freq_bins)
 

@@ -42,9 +42,9 @@ class MUSIC(DOA):
 
         Pbrk = self.compute_spatial_spectrumvec(Fbkmn)
         if self.frequency_normalization:
-            Pbrk = Pbrk / Pbrk.max(1)[0][:, None, :]
+            Pbrk = Pbrk / Pbrk.max(1, keepdim=True).values
 
-        Pbr = Pbrk.sum(-1)/self.num_freq
+        Pbr = Pbrk.mean(-1)
         return Pbr
 
     def compute_correlation_matricesvec(self, xblkn):

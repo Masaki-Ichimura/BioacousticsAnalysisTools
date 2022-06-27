@@ -7,8 +7,10 @@ NOTE:
         - if you want to use NOT normalized signal,
             1. in code -> max_possible_amplitude value
 """
+import torch
 import itertools
 from math import log
+from typing import Union
 
 
 def db_to_float(db, using_amplitude=True):
@@ -45,10 +47,46 @@ def dBFS(xnt):
     return ratio_to_db(rms_ / 1.)
 
 
+# 仮置き
+def silence_removal(
+    signal: torch.Tensor, sample_rate: int,
+    min_silence_ms: int=1000, seek_ms: int=1, threshold: Union[float, int]=-16, return_prob: bool=False
+):
+    silent_sections, prob_dict = detect_silence(
+        signal, sample_rate, min_silence_ms, threshold, seek_ms, return_prob=True
+    )
+    sig_len = 1000*round(signal.shape[-1]/sample_rate)
+
+    if not silent_sections:
+        return [[0, sig_len]]
+
+    if silent_sections[0][0] == 0 and silent_sections[0][1] == sig_len:
+        if return_prob:
+            return [], prob_dict
+        else:
+            return []
+
+    prev_end_i = 0
+    nonsilent_sections = []
+    for start_i, end_i in silent_sections:
+        nonsilent_sections.append([prev_end_i, start_i])
+        prev_end_i = end_i
+
+    if end_i != sig_len:
+        nonsilent_sections.append([prev_end_i, sig_len])
+
+    if nonsilent_sections[0] == [0, 0]:
+        nonsilent_sections.pop(0)
+
+    if return_prob:
+        return nonsilent_sections, prob_dict
+    else:
+        return nonsilent_sections
+
 def detect_silence(
     xnt,
     sample_rate,
-    min_silence_len=1000, silence_thresh=-16, seek_step=1
+    min_silence_len=1000, silence_thresh=-16, seek_step=1, return_prob=False
 ):
 
     sig_len = 1000*round(xnt.shape[-1]/sample_rate)
@@ -66,18 +104,24 @@ def detect_silence(
     if last_slice_start % seek_step:
         slice_starts = itertools.chain(slice_starts, [last_slice_start])
 
-    _ = [
-        silence_starts.append(msec)
-        for msec in slice_starts
-        if rms(xnt[
-            :,
+    rms_list = [
+        rms(xnt[
+            ...,
             msec_to_index(msec, sample_rate): \
             min(
-                msec_to_index(msec, sample_rate) \
-                + msec_to_index(min_silence_len, sample_rate),
+                msec_to_index(msec, sample_rate)+msec_to_index(min_silence_len, sample_rate),
                 xnt.shape[-1]
             )
-        ]) <= silence_thresh
+        ])
+        for msec in slice_starts
+    ]
+
+    probability = torch.stack(rms_list)
+
+    _ = [
+        silence_starts.append(msec)
+        for msec, rms in zip(slice_starts, rms_list)
+        if rms <= silence_thresh
     ]
 
     if not silence_starts:
@@ -101,8 +145,14 @@ def detect_silence(
 
     silent_ranges.append([current_range_start, prev_i+min_silence_len])
 
-    return silent_ranges
-
+    if return_prob:
+        prob_dict = {
+            'probability': probability,
+            'threshold': silence_thresh
+        }
+        return silent_ranges, prob_dict
+    else:
+        return silent_ranges
 
 def detect_nonsilent(
     xnt,

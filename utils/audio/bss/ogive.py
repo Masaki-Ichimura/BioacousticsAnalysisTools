@@ -34,20 +34,20 @@ class OGIVE(tf_bss_model_base):
     ):
 
         n_chan, n_freq, n_frames = Xnkl.shape
-        dtype, device = Xnkl.dtype, Xnkl.device
+        device = Xnkl.device
 
         X = Xnkl.permute(2, 1, 0)
 
         n_src = 1
 
         # covariance matrix of input signal (n_freq, n_chan, n_chan)
-        Cx = (X[:, :, :, None] * X[:, :, None, :].conj()).mean(0)
+        Cx = torch.einsum('lkn,lkm->knm', X, X.conj()) / n_frames
         Cx_inv = torch.linalg.inv(Cx)
         Cx_norm = torch.linalg.norm(Cx, dim=(1, 2))
 
-        w = torch.zeros((n_freq, n_chan, 1), dtype=dtype)
-        a = torch.zeros((n_freq, n_chan, 1), dtype=dtype)
-        delta = torch.zeros((n_freq, n_chan, 1), dtype=dtype)
+        w = torch.zeros((n_freq, n_chan, 1), dtype=X.dtype)
+        a = torch.zeros((n_freq, n_chan, 1), dtype=X.dtype)
+        delta = torch.zeros((n_freq, n_chan, 1), dtype=X.dtype)
         lambda_a = torch.zeros((n_freq, 1, 1), dtype=torch.float64)
 
         def tensor_H(T):

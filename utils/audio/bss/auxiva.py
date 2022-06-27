@@ -7,6 +7,7 @@
         その辺り適用したらエラー出るかも
 """
 import torch
+from tqdm import trange
 
 from .base import tf_bss_model_base
 from .common import projection_back
@@ -99,7 +100,7 @@ class AuxIVA(tf_bss_model_base):
         def demix(Y, X, W):
             Y[:, :, :] = torch.matmul(W, X)
 
-        for epoch in range(n_iter):
+        for epoch in trange(n_iter):
 
             demix(Y, X, W)
 

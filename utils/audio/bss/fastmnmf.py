@@ -3,6 +3,8 @@
         - https://pyroomacoustics.readthedocs.io/en/pypi-release/pyroomacoustics.bss.html
 """
 import torch
+from tqdm import trange
+
 from .base import tf_bss_model_base
 
 
@@ -93,7 +95,7 @@ class FastMNMF(tf_bss_model_base):
             return separated_spec
 
         # update parameters
-        for epoch in range(n_iter):
+        for epoch in trange(n_iter):
             if callback is not None and epoch % 10 == 0:
                 callback(separate())
 
