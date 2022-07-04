@@ -1,22 +1,44 @@
 import torch
-import torchaudio
+from torchaudio.sox_effects import apply_effects_tensor
 
-from typing import Union
+from typing import Union, List
 
 
-def freq_mask(
-    sample_rate: int, n_fft: int,
-    freq_low: Union[float, int]=0, freq_high: Union[float, int]=float('inf')
+def apply_freq_mask(
+    signal: torch.Tensor, sample_rate: int,
+    freq_low: Union[int, None]=None, freq_high: Union[int, None]=None
 ):
-    k = torch.fft.rfftfreq(n_fft) * sample_rate
-    mask = torch.logical_or(k < freq_low, k > freq_high)
-    return mask
+    freq_min, freq_max = 0, sample_rate//2
 
-def extract_from_sections(
-    signal: torch.Tensor, sample_rate: int, extract_ms_sections: list
+    freq_low = max(freq_min, freq_low) if freq_low else freq_min
+    if freq_low is None or freq_low == 0:
+        freq_low = ''
+    else:
+        freq_low = str(int(freq_low))
+
+    freq_high = min(freq_max, freq_high) if freq_high else freq_max
+    if freq_high is None or freq_high == freq_max:
+        freq_high = ''
+    else:
+        freq_high = str(int(freq_high))
+
+    if freq_high:
+        effect = ['sinc', f'{freq_low}-{freq_high}']
+    elif freq_low:
+        effect = ['sinc', f'{freq_low}']
+    else:
+        effect = None
+
+    if effect:
+        if signal.ndim == 1:
+            signal = signal[None]
+        signal, _ = apply_effects_tensor(signal, sample_rate, [effect])
+
+    return signal
+
+def extract_from_section(
+    signal: torch.Tensor, sample_rate: int, section_ms: List[int]
 ):
-    extracted = [
-        signal[..., int(sec[0]/1000*sample_rate):int(sec[1]/1000*sample_rate)]
-        for sec in extract_ms_sections
-    ]
+    start_idx, end_idx = [int(t_ms/1000*sample_rate) for t_ms in section_ms]
+    extracted = signal[..., start_idx:end_idx]
     return extracted

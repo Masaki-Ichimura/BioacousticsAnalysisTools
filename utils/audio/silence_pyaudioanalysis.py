@@ -13,7 +13,7 @@ EPS = 1e-15
 
 def silence_removal(
     signal: torch.Tensor, sample_rate: int, win_ms: int, seek_ms: int,
-    freq_low: Union[float, int]=0., freq_high: Union[float, int]=float('inf'),
+    freq_low: Union[int, None]=None, freq_high: Union[int, None]=None,
     mask_ms_sections: list=None,
     smooth_window_ms: int=500, broaden_section_ms: int=0,
     min_nonsilence_ms: Union[int, None]=200,
@@ -65,6 +65,10 @@ def silence_removal(
 
     fbank, freq = mfcc_filter_banks(sample_rate, n_fft)
     freq = freq[1:-1]
+    if not freq_low:
+        freq_low = 0
+    if not freq_high:
+        freq_high = float('inf')
     fbank = fbank[torch.logical_and(freq>=freq_low, freq<=freq_high)]
 
     num_chroma, num_freq_per_chroma = chroma_features_init(sample_rate, n_fft)
@@ -356,7 +360,9 @@ def spectral_rolloff(fft_magnitude, c):
     threshold = c * total_energy
     cumulative_sum = energy.cumsum(0) + EPS
     a = torch.nonzero(cumulative_sum > threshold).squeeze()
-    sp_rolloff = a[0] / n_fft if a.size(0) > 0 else 0.
+    if len(a.size()) == 0:
+        a = torch.zeros(1, dtype=a.dtype, device=a.device)
+    sp_rolloff = a[0] / n_fft
     return sp_rolloff
 
 def mfcc_filter_banks(
