@@ -1,4 +1,4 @@
-#:import expanduser os.path.expanduser
+#:import getcwd os.getcwd
 
 
 <FilechooserPopup>:
@@ -10,7 +10,7 @@
         orientation: 'vertical'
         FileChooser:
             id: filechooser
-            rootpath: expanduser('~/Documents/github/BioacousticsAnalysisTools')
+            rootpath: getcwd()
             multiselect: True
             FileChooserIconLayout:
 

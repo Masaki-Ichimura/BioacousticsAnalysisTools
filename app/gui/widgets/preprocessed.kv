@@ -1,0 +1,18 @@
+<PreprocessedTab>:
+    title: ''
+    icon: 'format-list-bulleted'
+
+    BoxLayout:
+        orientation: 'horizontal'
+        pos: root.pos
+        size: root.size
+
+        ScrollView:
+            size_hint_x: 35
+            do_scroll_x: False
+            size_hint_y: None
+            height: root.height
+
+            FileTreeView:
+                id: treeview
+                root_options: {'text': 'preprocessed audio data', 'font_size': 25}

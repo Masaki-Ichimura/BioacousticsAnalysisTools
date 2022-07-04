@@ -1,303 +1,259 @@
+#:import NoTransition kivy.uix.screenmanager.NoTransition
+
+
 <SilenceRemovalOptionTextField@MDTextField>
     font_size: '15sp'
+    mode: 'rectangle'
+    multiline: False
+    helper_text_mode: 'persistent'
     text_color_normal: app.theme_cls.text_color
     disabled_foreground_color: app.theme_cls.secondary_text_color
-    helper_text_mode: 'persistent'
 
-<PydubBasedSilenceRemovalTab>:
-    title: '無音区間除去(pydub based)'
+<Mode@MDCheckbox>:
+    group: 'silence_removal_mode'
+    size_hint: None, None
+    size: dp(48), dp(48)
 
-    BoxLayout:
+
+<SilenceRemovalTab>:
+    title: '無音区間除去'
+
+    MDBoxLayout:
         orientation: 'horizontal'
         pos: root.pos
         size: root.size
 
-        ScrollView:
-            size_hint_x: 35
-            do_scroll_x: False
-            size_hint_y: None
-            height: root.height
-
-            FileTreeView:
-                id: treeview
-                root_options: {'text': 'splited audio data', 'font_size': 25}
-
-        VSeparator:
-
-        Container:
+        StackLayout:
             id: options
-            size_hint_x: 45
+            orientation: 'lr-tb'
+            padding: 30
+            size_hint_x: 75
 
-            BoxLayout:
-                orientation: 'vertical'
-                pos: options.pos
-                size: options.size
-                padding: 30
+            MDBoxLayout:
+                orientation: 'horizontal'
+                spacing: 20
+                padding: [0, 0, 0, 30]
+                size_hint_x: None
+                width: options.width
+                adaptive_height: True
+
+                MDIcon:
+                    icon: 'cog-outline'
+                    font_size: '20sp'
+
+                MDLabel:
+                    font_style: 'H5'
+                    text: 'Settings'
+
+            ScrollView:
+                id: scrollview
+                do_scroll_x: False
+                padding: [30, 0, 30, 0]
 
                 MDBoxLayout:
-                    id: options_label
-                    orientation: 'horizontal'
-                    spacing: 10
+                    id: scrollview_items
+                    orientation: 'vertical'
+                    padding: [30, 0, 30, 0]
                     adaptive_height: True
-
-                    MDIcon:
-                        icon: 'cog-outline'
-                        font_size: '20sp'
-                        size_hint_x: None
-
-                    MDLabel:
-                        font_style: 'H5'
-                        text: 'Settings'
-
-                ScrollView:
-                    do_scroll_x: False
-                    size_hint_y: 1
 
                     MDBoxLayout:
                         orientation: 'vertical'
-                        padding: 10
-                        spacing: 20
                         adaptive_height: True
 
                         MDBoxLayout:
-                            orientation: 'vertical'
-                            padding: 10
+                            orientation: 'horizontal'
                             adaptive_height: True
+                            # size_hint_x: None
+                            # width: scrollview_items.width
 
-                            MDBoxLayout:
-                                orientation: 'horizontal'
-                                padding: 20
-                                adaptive_height: True
+                            MDLabel:
+                                font_style: 'H6'
+                                text: 'Frequency Filter'
 
-                                MDLabel:
-                                    font_style: 'H6'
-                                    text: 'Limit frequency'
+                            MDSwitch:
+                                id: limit_freq
+                                on_active:
+                                    freq_high.disabled = not self.active
+                                    freq_low.disabled = not self.active
 
-                                MDSwitch:
-                                    id: limit_freq
-                                    on_active:
-                                        freq_high.disabled = not self.active
-                                        freq_low.disabled = not self.active
+                        StackLayout:
+                            orientation: 'lr-tb'
+                            padding: [30, 0, 30, 0]
+                            spacing: 40
+                            size_hint_y: None
+                            height: 350
 
                             SilenceRemovalOptionTextField:
                                 id: freq_high
-                                disabled: True
+                                disabled: not limit_freq.active
                                 text: '4096'
                                 hint_text: 'highest frequency that can be used (Hz).'
                                 helper_text: 'default: 4,096 (Hz)'
 
                             SilenceRemovalOptionTextField:
                                 id: freq_low
-                                disabled: True
+                                disabled: not limit_freq.active
                                 text: '1024'
                                 hint_text: 'lowest frequency that can be used (Hz).'
                                 helper_text: 'default: 1,024 (Hz)'
-
-                        MDBoxLayout:
-                            orientation: 'vertical'
-                            padding: 10
-                            adaptive_height: True
-
-                            MDBoxLayout:
-                                padding: 20
-                                adaptive_height: True
-
-                                MDLabel:
-                                    font_style: 'H6'
-                                    text: 'Others'
-
-                            SilenceRemovalOptionTextField:
-                                id: min_silence_ms
-                                text: '1000'
-                                hint_text: 'minimum length for silent sections in ms.'
-                                helper_text: 'default: 1,000 (ms)'
-
-                            SilenceRemovalOptionTextField:
-                                id: threshold
-                                text: '-16'
-                                hint_text: 'the upper bound for how quiet is silent in dBFS.'
-                                helper_text: 'default: -16 (dB)'
-
-                            SilenceRemovalOptionTextField:
-                                id: seek_ms
-                                text: '100'
-                                hint_text: '1 Size of the step for checking for silence in ms.'
-                                helper_text: 'default: 100 (ms)'
-
-        VSeparator:
-
-        BoxLayout:
-            id: buttons
-            size_hint_x: 20
-            orientation: 'vertical'
-            pos: buttons.pos
-            size: buttons.size
-
-            Button:
-                text: 'OK'
-                on_press: root.ok_button_clicked()
-
-            Button:
-                text: 'reset'
-                on_press: root.reset_button_clicked()
-
-            Button:
-                text: 'split(仮)'
-
-            Button:
-                text: 'dump(仮)'
-
-<PyAudioAnalysisBasedSilenceRemovalTab>:
-    title: '無音区間除去(pyAudioAnalysis based)'
-
-    BoxLayout:
-        orientation: 'horizontal'
-        pos: root.pos
-        size: root.size
-
-        ScrollView:
-            size_hint_x: 35
-            do_scroll_x: False
-            size_hint_y: None
-            height: root.height
-
-            FileTreeView:
-                id: treeview
-                root_options: {'text': 'splited audio data', 'font_size': 25}
-
-        VSeparator:
-
-        Container:
-            id: options
-            size_hint_x: 45
-
-            BoxLayout:
-                orientation: 'vertical'
-                pos: options.pos
-                size: options.size
-                padding: 30
-
-                MDBoxLayout:
-                    id: options_label
-                    orientation: 'horizontal'
-                    spacing: 20
-                    adaptive_height: True
-
-                    MDIcon:
-                        icon: 'cog-outline'
-                        font_size: '20sp'
-                        size_hint_x: None
-
-                    MDLabel:
-                        font_style: 'H5'
-                        text: 'Settings'
-
-                ScrollView:
-                    do_scroll_x: False
-                    size_hint_y: 1
 
                     MDBoxLayout:
                         orientation: 'vertical'
-                        padding: 10
-                        spacing: 10
                         adaptive_height: True
 
-                        MDBoxLayout:
-                            orientation: 'vertical'
-                            padding: 10
-                            adaptive_height: True
-
-                            MDBoxLayout:
-                                orientation: 'horizontal'
-                                padding: 20
-                                adaptive_height: True
-
-                                MDLabel:
-                                    font_style: 'H6'
-                                    text: 'Limit frequency'
-
-                                MDSwitch:
-                                    id: limit_freq
-                                    on_active:
-                                        freq_high.disabled = not self.active
-                                        freq_low.disabled = not self.active
-
-                            SilenceRemovalOptionTextField:
-                                id: freq_high
-                                disabled: True
-                                text: '4096'
-                                hint_text: 'highest frequency that can be used (Hz).'
-                                helper_text: 'default: 4,096 (Hz)'
-
-                            SilenceRemovalOptionTextField:
-                                id: freq_low
-                                disabled: True
-                                text: '1024'
-                                hint_text: 'lowest frequency that can be used (Hz).'
-                                helper_text: 'default: 1,024 (Hz)'
+                        MDLabel:
+                            font_style: 'H6'
+                            text: 'Mode'
 
                         MDBoxLayout:
-                            orientation: 'vertical'
-                            padding: 10
+                            orientation: 'horizontal'
+                            #padding: [30, 0, 30, 0]
                             adaptive_height: True
 
-                            MDBoxLayout:
-                                padding: 20
-                                adaptive_height: True
+                            MDLabel:
+                                font_style: 'Subtitle1'
+                                text: '[ref=btn]SVM threshold'
+                                markup: True
+                                on_ref_press:
+                                    svm_checkbox.active = True
 
-                                MDLabel:
-                                    font_style: 'H6'
-                                    text: 'Others'
+                            Mode:
+                                id: svm_checkbox
+                                active: True
+                                on_active:
+                                    screen_manager.current = 'svm_thr'
 
-                            SilenceRemovalOptionTextField:
-                                id: win_ms
-                                text: '1000'
-                                hint_text: 'short-term window size.'
-                                helper_text: 'default: 1000 (ms)'
+                            MDLabel:
+                                font_style: 'Subtitle1'
+                                text: '[ref=btn]RMS threshold'
+                                markup: True
+                                on_ref_press:
+                                    rms_checkbox.active = True
 
-                            SilenceRemovalOptionTextField:
-                                id: seek_ms
-                                text: '500'
-                                hint_text: 'short-term window step.'
-                                helper_text: 'default: 500 (ms)'
+                            Mode:
+                                id: rms_checkbox
+                                on_active:
+                                    screen_manager.current = 'rms_thr'
 
-                            SilenceRemovalOptionTextField:
-                                id: weight
-                                text: '0.5'
-                                hint_text: 'weight factor(0 < weight < 1). the higher, the more strict.'
-                                helper_text: 'default: 0.5'
+                    BoxLayout:
+                        id: mode
+                        orientation: 'vertical'
+                        size_hint_y: None
+                        height: 1000
 
-                            SilenceRemovalOptionTextField:
-                                id: smooth_window_ms
-                                text: '500'
-                                hint_text: 'smoothing parameter using the SVM probabilistic sequence.'
-                                helper_text: 'default: 500 (ms)'
+                        ScreenManager:
+                            id: screen_manager
+                            transition: NoTransition()
 
-                            SilenceRemovalOptionTextField:
-                                id: min_nonsilence_ms
-                                text: '200'
-                                hint_text: 'minimum duration of nonsilence.'
-                                helper_text: 'default: 200 (ms)'
+                            MDScreen:
+                                name: 'rms_thr'
+
+                                StackLayout:
+                                    orientation: 'lr-tb'
+                                    padding: [30, 0, 30, 0]
+                                    spacing: 40
+
+                                    SilenceRemovalOptionTextField:
+                                        id: rms_min_silence
+                                        text: '1000'
+                                        hint_text: 'minimum length for silent sections in ms.'
+                                        helper_text: 'default: 1,000 (ms)'
+
+                                    SilenceRemovalOptionTextField:
+                                        id: rms_threshold
+                                        text: '-16'
+                                        hint_text: 'the upper bound for how quiet is silent in dBFS.'
+                                        helper_text: 'default: -16 (dB)'
+
+                                    SilenceRemovalOptionTextField:
+                                        id: rms_seek
+                                        text: '100'
+                                        hint_text: '1 Size of the step for checking for silence in ms.'
+                                        helper_text: 'default: 100 (ms)'
+
+                            MDScreen:
+                                name: 'svm_thr'
+
+                                StackLayout:
+                                    orientation: 'lr-tb'
+                                    padding: [30, 0, 30, 0]
+                                    spacing: 40
+
+                                    SilenceRemovalOptionTextField:
+                                        id: svm_win
+                                        text: '1000'
+                                        hint_text: 'short-term window size.'
+                                        helper_text: 'default: 1000 (ms)'
+
+                                    SilenceRemovalOptionTextField:
+                                        id: svm_seek
+                                        text: '500'
+                                        hint_text: 'short-term window step.'
+                                        helper_text: 'default: 500 (ms)'
+
+                                    SilenceRemovalOptionTextField:
+                                        id: svm_weight
+                                        text: '0.5'
+                                        hint_text: 'weight factor(0 < weight < 1). the higher, the more strict.'
+                                        helper_text: 'default: 0.5'
+
+                                    SilenceRemovalOptionTextField:
+                                        id: svm_broaden
+                                        text: '0'
+                                        hint_text: 'broaden range of non-silent sections in ms.'
+                                        helper_text: 'default: 0'
+
+                                    SilenceRemovalOptionTextField:
+                                        id: svm_smooth_window
+                                        text: '500'
+                                        hint_text: 'smoothing parameter using the SVM probabilistic sequence.'
+                                        helper_text: 'default: 500 (ms)'
+
+                                    SilenceRemovalOptionTextField:
+                                        id: svm_min_nonsilence
+                                        text: '200'
+                                        hint_text: 'minimum duration of nonsilence.'
+                                        helper_text: 'default: 200 (ms)'
+
 
         VSeparator:
 
         BoxLayout:
-            id: buttons
-            size_hint_x: 20
             orientation: 'vertical'
-            pos: buttons.pos
-            size: buttons.size
+            size_hint_x: 25
 
             Button:
-                text: 'OK'
-                on_press: root.ok_button_clicked()
+                text: '区間プロット'
+                on_press: root.plot_button_clicked()
+
+            BoxLayout:
+                orientation: 'horizontal'
+
+                Button:
+                    text: '-0.01'
+                    on_press: root.change_threshold_button_clicked('-0.01')
+
+                Button:
+                    text: '-0.1'
+                    on_press: root.change_threshold_button_clicked('-0.1')
+
+                Button:
+                    text: '0.5'
+                    on_press: root.change_threshold_button_clicked('0.5')
+
+                Button:
+                    text: '+0.1'
+                    on_press: root.change_threshold_button_clicked('+0.1')
+
+                Button:
+                    text: '+0.01'
+                    on_press: root.change_threshold_button_clicked('+0.01')
 
             Button:
-                text: 'reset'
-                on_press: root.reset_button_clicked()
+                text: '再プロット'
 
             Button:
-                text: 'split(仮)'
+                text: '区間抽出'
 
             Button:
-                text: 'dump(仮)'
+                text: '保存'

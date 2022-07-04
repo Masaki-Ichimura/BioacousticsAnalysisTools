@@ -192,27 +192,27 @@ def silence_removal(
         5. remove section less than minimum duration
 """
 def segmentation(
-    pr, threshold, seek_num,
+    probability, threshold, seek_num,
     clustering=False, broaden_section_num=0, enable_merge=True,
     min_duration_num=None,
 ):
-    pr = torch.where(pr > threshold, 0, 1)
+    probability = torch.where(probability > threshold, 0, 1)
 
     # clustering
     if clustering:
-        start_t = (pr == 0)
+        start_t = (probability == 0)
         if start_t.any():
             idx = torch.where(start_t)[0][0]
             while 1:
-                high_t = (pr[idx:] == 1)
+                high_t = (probability[idx:] == 1)
                 if not high_t.any():
                     break
 
                 next_idx = idx + torch.where(high_t)[0][0].item()
                 if next_idx - idx <= 3:
-                    pr[list(range(idx, next_idx))] = 1
+                    probability[list(range(idx, next_idx))] = 1
 
-                low_t = (pr[next_idx:] == 0)
+                low_t = (probability[next_idx:] == 0)
                 if not low_t.any():
                     break
 
@@ -221,15 +221,15 @@ def segmentation(
     idx = 0
     nonsilent_sections = []
     while 1:
-        start_t = (pr[idx:] == 1)
+        start_t = (probability[idx:] == 1)
         if not start_t.any():
             break
         else:
             start_idx = idx + torch.where(start_t)[0][0].item()
 
-            end_t = (pr[start_idx:] == 0)
+            end_t = (probability[start_idx:] == 0)
             if not end_t.any():
-                end_idx = pr.size(0)
+                end_idx = probability.size(0)
             else:
                 end_idx = start_idx + torch.where(end_t)[0][0].item() - 1
 
