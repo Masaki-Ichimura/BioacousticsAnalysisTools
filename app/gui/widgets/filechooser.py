@@ -2,8 +2,7 @@ from kivy.lang import Builder
 from kivy.properties import *
 from kivy.uix.popup import Popup
 
-
-Builder.load_file('/'.join(__file__.split('/')[:-1])+'/filechooser.kv')
+Builder.load_file(__file__[:-3]+'.kv')
 
 
 class FilechooserPopup(Popup):

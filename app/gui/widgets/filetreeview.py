@@ -1,7 +1,7 @@
 from kivy.lang import Builder
 from kivy.uix.treeview import TreeView
 
-Builder.load_file('/'.join(__file__.split('/')[:-1])+'/filetreeview.kv')
+Builder.load_file(__file__[:-3]+'.kv')
 
 
 class FileTreeView(TreeView):

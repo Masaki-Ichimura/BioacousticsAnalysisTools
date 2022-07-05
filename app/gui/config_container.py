@@ -7,7 +7,7 @@ from kivymd.uix.menu import MDDropdownMenu
 
 from app.gui.widgets.container import Container
 
-Builder.load_file('/'.join(__file__.split('/')[:-1])+'/config_container.kv')
+Builder.load_file(__file__[:-3]+'.kv')
 
 
 class ConfigContainer(Container):

@@ -11,13 +11,13 @@ def apply_freq_mask(
     freq_min, freq_max = 0, sample_rate//2
 
     freq_low = max(freq_min, freq_low) if freq_low else freq_min
-    if freq_low is None or freq_low == 0:
+    if freq_low == freq_min:
         freq_low = ''
     else:
         freq_low = str(int(freq_low))
 
     freq_high = min(freq_max, freq_high) if freq_high else freq_max
-    if freq_high is None or freq_high == freq_max:
+    if freq_high == freq_max:
         freq_high = ''
     else:
         freq_high = str(int(freq_high))

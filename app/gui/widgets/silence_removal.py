@@ -3,13 +3,16 @@ import torch
 from kivy.lang import Builder
 
 from utils.audio import silence_pydub, silence_pyaudioanalysis
-from utils.audio.transform import apply_freq_mask
+from utils.audio.transform import apply_freq_mask, extract_from_section
 from app.gui.widgets.tab import Tab
 
-Builder.load_file('/'.join(__file__.split('/')[:-1])+'/silence_removal.kv')
+Builder.load_file(__file__[:-3]+'.kv')
+
 
 class SilenceRemovalTab(Tab):
     prob_dict = None
+    nonsilent_sections = None
+    mode = 'svm'
 
     def on_kv_post(self, *arg, **kwargs):
         self.ids.screen_manager.current = 'svm_thr'
@@ -37,24 +40,14 @@ class SilenceRemovalTab(Tab):
         )
         return freq_args
 
-    def get_mode(self):
-        if self.ids.svm_checkbox.active:
-            return 'svm'
-        elif self.ids.rms_checkbox.active:
-            return 'rms'
-
     def get_func(self):
-        mode = self.get_mode()
-
-        if mode == 'svm':
+        if self.mode == 'svm':
             return silence_pyaudioanalysis.silence_removal
-        elif mode == 'rms':
+        elif self.mode == 'rms':
             return silence_pydub.silence_removal
 
     def get_func_args(self):
-        mode = self.get_mode()
-
-        if mode == 'svm':
+        if self.mode == 'svm':
             func_args = dict(
                 win_ms=int(self.ids.svm_win.text),
                 seek_ms=int(self.ids.svm_seek.text),
@@ -65,7 +58,7 @@ class SilenceRemovalTab(Tab):
                 return_prob=True
             )
             func_args.update(self.get_freq_args())
-        elif mode == 'rms':
+        elif self.mode == 'rms':
             func_args = dict(
                 min_silence_ms=int(self.ids.rms_min_silence.text),
                 seek_ms=int(self.ids.rms_seek.text),
@@ -144,7 +137,7 @@ class SilenceRemovalTab(Tab):
             ynt = xnt
 
         nonsilent_sections, prob_dict = func(ynt, audio_fs, **func_args)
-        self.prob_dict = prob_dict
+        self.nonsilent_sections, self.prob_dict = nonsilent_sections, prob_dict
         print(nonsilent_sections)
 
         ax_wave = audio_timeline.fig_wave.axes[0]
@@ -154,7 +147,6 @@ class SilenceRemovalTab(Tab):
         audio_timeline.fig_wave.canvas.draw()
 
     def replot_button_clicked(self):
-        mode = self.get_mode()
         audio_data, audio_fs = self.get_audio()
         prob_dict = self.prob_dict
 
@@ -162,7 +154,7 @@ class SilenceRemovalTab(Tab):
         working_container = audio_detail.parent.parent
         audio_timeline = working_container.ids.audio_display.ids.audio_timeline
 
-        if mode == 'svm':
+        if self.mode == 'svm':
             if prob_dict and audio_data is not None:
                 func_args = self.get_func_args()
                 nonsilent_sections = silence_pyaudioanalysis.segmentation(
@@ -195,3 +187,25 @@ class SilenceRemovalTab(Tab):
                 prob_dict['threshold'] = float(val)
 
         self.replot_button_clicked()
+
+    def extract_button_clicked(self):
+        nonsilent_sections = self.nonsilent_sections
+
+        audio_data, audio_fs = self.get_audio()
+        if nonsilent_sections is not None and audio_data is not None:
+            extracted = [
+                dict(
+                    data=extract_from_section(audio_data, audio_fs, section),
+                    fs=audio_fs,
+                    tag=f'{self.ids.tag.text}_{section[0]}-{section[1]}'
+                )
+                for section in nonsilent_sections
+            ]
+
+            audio_detail = self.parent.parent.parent.parent.parent.parent
+            preprocessed = audio_detail.ids.preprocessed
+
+            preprocessed.audio_files.extend(extracted)
+
+            parent_tab = self.parent.parent.parent.parent
+            parent_tab.switch_tab('format-list-bulleted', search_by='icon')

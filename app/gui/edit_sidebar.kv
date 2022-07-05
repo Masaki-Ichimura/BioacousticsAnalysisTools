@@ -1,3 +1,7 @@
+<SidebarIconButton@MDIconButton>:
+    user_font_size: '20sp'
+
+
 <EditSidebar>:
     BoxLayout:
         orientation: 'horizontal'
@@ -9,23 +13,20 @@
 
             MDBoxLayout:
                 id: choosed_bar
-                size_hint_y: None
                 orientation: 'horizontal'
+                padding: 10
                 adaptive_height: True
 
-                MDIconButton:
+                SidebarIconButton:
                     icon: 'file-plus-outline'
-                    user_font_size: '16sp'
                     on_press: root.choose_button_clicked()
 
-                MDIconButton:
+                SidebarIconButton:
                     icon: 'file-remove-outline'
-                    user_font_size: '16sp'
                     on_press: root.remove_button_clicked(mode='choosed')
 
-                MDIconButton:
+                SidebarIconButton:
                     icon: 'delete-forever-outline'
-                    user_font_size: '16sp'
                     on_press: root.reset_button_clicked(mode='choosed')
 
             HSeparator:
@@ -38,29 +39,26 @@
 
                 FileTreeView:
                     id: choosed_audio_treeview
-                    root_options: {'text': 'choosed audio data', 'font_size': 25}
+                    root_options: {'text': 'choosed audio data', 'font_size': '15sp'}
 
             HSeparator:
                 height: dp(2)
 
             MDBoxLayout:
-                size_hint_y: None
                 orientation: 'horizontal'
+                padding: 10
                 adaptive_height: True
 
-                MDIconButton:
+                SidebarIconButton:
                     icon: 'arrow-down-thick'
-                    user_font_size: '16sp'
                     on_press: root.move_button_clicked()
 
-                MDIconButton:
+                SidebarIconButton:
                     icon: 'file-remove-outline'
-                    user_font_size: '16sp'
                     on_press: root.remove_button_clicked(mode='target')
 
-                MDIconButton:
+                SidebarIconButton:
                     icon: 'delete-forever-outline'
-                    user_font_size: '16sp'
                     on_press: root.reset_button_clicked(mode='target')
 
             HSeparator:
@@ -71,7 +69,7 @@
 
                 FileTreeView:
                     id: target_audio_treeview
-                    root_options: {'text': 'target audio data', 'font_size': 25}
+                    root_options: {'text': 'target audio data', 'font_size': '15sp'}
 
         BoxLayout:
             orientation: 'vertical'
@@ -81,11 +79,12 @@
                 id: select
                 size_hint_y: 40
                 text: '▷'
-                font_size: 20
+                font_size: '15sp'
                 on_press: root.select_button_clicked()
 
             Button:
                 id: fetch
                 size_hint_y: 60
                 text: '◁'
-                font_size: 20
+                font_size: '15sp'
+                on_press: root.back_button_clicked()

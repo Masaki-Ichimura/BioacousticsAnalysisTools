@@ -8,11 +8,10 @@
         size: root.size
 
         ScrollView:
-            size_hint_x: 35
             do_scroll_x: False
             size_hint_y: None
             height: root.height
 
             FileTreeView:
-                id: treeview
-                root_options: {'text': 'preprocessed audio data', 'font_size': 25}
+                id: audio_treeview
+                root_options: {'text': 'preprocessed audio data', 'font_size': '15sp'}

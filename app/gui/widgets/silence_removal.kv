@@ -51,10 +51,32 @@
                 padding: [30, 0, 30, 0]
 
                 MDBoxLayout:
-                    id: scrollview_items
                     orientation: 'vertical'
                     padding: [30, 0, 30, 0]
                     adaptive_height: True
+
+                    MDBoxLayout:
+                        orientation: 'vertical'
+                        spacing: 40
+                        padding: [0, 30, 0, 30]
+                        adaptive_height: True
+
+                        MDLabel:
+                            font_style: 'H6'
+                            text: 'Tag name'
+
+                        StackLayout:
+                            orientation: 'lr-tb'
+                            padding: [30, 0, 30, 0]
+                            size_hint_y: None
+                            height: 120
+
+                            SilenceRemovalOptionTextField:
+                                id: tag
+                                text: ''
+                                hint_text: 'tag to identify each extracted signals.'
+                                helper_text: 'default: original wav file name'
+
 
                     MDBoxLayout:
                         orientation: 'vertical'
@@ -63,8 +85,6 @@
                         MDBoxLayout:
                             orientation: 'horizontal'
                             adaptive_height: True
-                            # size_hint_x: None
-                            # width: scrollview_items.width
 
                             MDLabel:
                                 font_style: 'H6'
@@ -75,6 +95,11 @@
                                 on_active:
                                     freq_high.disabled = not self.active
                                     freq_low.disabled = not self.active
+
+                            # spacer widget
+                            Widget:
+                                width: 20
+                                size_hint_x: None
 
                         StackLayout:
                             orientation: 'lr-tb'
@@ -107,7 +132,6 @@
 
                         MDBoxLayout:
                             orientation: 'horizontal'
-                            #padding: [30, 0, 30, 0]
                             adaptive_height: True
 
                             MDLabel:
@@ -122,6 +146,7 @@
                                 active: True
                                 on_active:
                                     screen_manager.current = 'svm_thr'
+                                    root.mode = 'svm'
 
                             MDLabel:
                                 font_style: 'Subtitle1'
@@ -134,6 +159,7 @@
                                 id: rms_checkbox
                                 on_active:
                                     screen_manager.current = 'rms_thr'
+                                    root.mode = 'rms'
 
                     BoxLayout:
                         id: mode
@@ -251,9 +277,11 @@
 
             Button:
                 text: '再プロット'
+                on_press: root.replot_button_clicked()
 
             Button:
                 text: '区間抽出'
+                on_press: root.extract_button_clicked()
 
             Button:
                 text: '保存'

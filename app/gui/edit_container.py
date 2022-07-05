@@ -5,7 +5,7 @@ from kivy.uix.widget import Widget
 from app.gui.widgets.container import Container
 from utils.audio.wave import load_wave
 
-Builder.load_file('/'.join(__file__.split('/')[:-1])+'/edit_container.kv')
+Builder.load_file(__file__[:-3]+'.kv')
 
 
 class EditContainer(Container):
@@ -24,11 +24,18 @@ class EditWorkingContainer(Container):
         audio_toolbar = self.ids.audio_display.ids.audio_toolbar
         audio_timeline = self.ids.audio_display.ids.audio_timeline
 
-        audio_data, audio_fs = load_wave(self.audio_file)
+        audio_detail = self.ids.audio_detail
+        silence_removal = audio_detail.ids.silence_removal
+
+        file_dir = self.audio_file
+        file_name = file_dir.split('/')[-1]
+        audio_data, audio_fs = load_wave(file_dir)
 
         self.audio_data, self.audio_fs = audio_data, audio_fs
 
         audio_timeline.audio_file = value
+        silence_removal.ids.tag.text = file_name[:-file_name[::-1].index('.')-1]
+
 
 class EditAudioDisplay(Container):
     pass

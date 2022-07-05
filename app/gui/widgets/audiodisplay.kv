@@ -14,8 +14,8 @@
 
         BoxLayout:
             id: box_yaxis
-            size_hint_x: 1
             orientation: 'vertical'
+            size_hint_x: 1
 
         ScrollView:
             id: scroll_tl
@@ -41,10 +41,9 @@
                             size: (5, scroll_tl.height)
 
 <AudioToolbarIconButton@MDIconButton>
-    user_font_size: '16sp'
+    user_font_size: '20sp'
 
 <AudioToolbar>:
-    # わざわざ書かなくてもいいじゃん…でも要るんだよねぇこれ…
     height: box.minimum_height
 
     MDBoxLayout:
@@ -52,6 +51,7 @@
         orientation: 'horizontal'
         width: root.width
         pos: root.pos
+        padding: 10
         spacing: 20
         adaptive_size: True
 
