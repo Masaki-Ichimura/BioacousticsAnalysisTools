@@ -87,14 +87,19 @@ class EditSidebar(Sidebar):
 
             working_container.audio_file = audio_file
 
-    def back_button_clicked(self):
+    def fetch_button_clicked(self):
         edit_container = self.parent.parent
         working_container = edit_container.ids.working_container
         audio_detail = working_container.ids.audio_detail
         preprocessed = audio_detail.ids.preprocessed
         preprocessed_files = preprocessed.audio_files
 
-        self.target_audio_files.extend(preprocessed_files)
+        target_tags = [
+            af['tag'] if type(af) is dict else af
+            for af in self.target_audio_files
+        ]
+        add_files = [af for af in preprocessed_files if af['tag'] not in target_tags]
+        self.target_audio_files.extend(add_files)
 
     def clear_treeview(self, mode):
         if mode == 'choosed':

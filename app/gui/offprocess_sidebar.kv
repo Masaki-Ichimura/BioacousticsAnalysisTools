@@ -8,17 +8,19 @@
             size_hint_x: 95
 
             MDBoxLayout:
+                id: bar
                 orientation: 'horizontal'
+                padding: 10
                 adaptive_height: True
 
                 MDIconButton:
                     icon: 'file-remove-outline'
-                    user_font_size: '16sp'
+                    user_font_size: '20sp'
                     # on_press: root.remove_button_clicked()
 
                 MDIconButton:
                     icon: 'delete-forever-outline'
-                    user_font_size: '16sp'
+                    user_font_size: '20sp'
                     # on_press: root.reset_button_clicked()
 
             HSeparator:

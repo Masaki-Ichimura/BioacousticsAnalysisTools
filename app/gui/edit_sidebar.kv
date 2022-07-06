@@ -35,7 +35,7 @@
             ScrollView:
                 do_scroll_x: False
                 size_hint_y: None
-                height: select.height-choosed_bar.height-3
+                height: select.height-choosed_bar.height-5
 
                 FileTreeView:
                     id: choosed_audio_treeview
@@ -87,4 +87,4 @@
                 size_hint_y: 60
                 text: '◁'
                 font_size: '15sp'
-                on_press: root.back_button_clicked()
+                on_press: root.fetch_button_clicked()

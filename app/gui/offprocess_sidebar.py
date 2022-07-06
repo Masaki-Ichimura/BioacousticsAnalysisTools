@@ -7,7 +7,6 @@ from kivy.uix.widget import Widget
 from kivy.garden.matplotlib import FigureCanvasKivyAgg
 
 from app.gui.widgets.sidebar import Sidebar, AudioTreeViewLabel
-# from app.gui.widgets.filetreevew import AudioTreeViewLabel
 from app.gui.widgets.filechooser import FilechooserPopup
 
 Builder.load_file(__file__[:-3]+'.kv')

@@ -7,6 +7,7 @@
     multiline: False
     helper_text_mode: 'persistent'
     text_color_normal: app.theme_cls.text_color
+    line_color_normal: app.theme_cls.text_color
     disabled_foreground_color: app.theme_cls.secondary_text_color
 
 <Mode@MDCheckbox>:
@@ -27,7 +28,7 @@
             id: options
             orientation: 'lr-tb'
             padding: 30
-            size_hint_x: 75
+            size_hint_x: 70
 
             MDBoxLayout:
                 orientation: 'horizontal'
@@ -246,7 +247,7 @@
 
         BoxLayout:
             orientation: 'vertical'
-            size_hint_x: 25
+            size_hint_x: 30
 
             Button:
                 text: '区間プロット'
@@ -282,6 +283,3 @@
             Button:
                 text: '区間抽出'
                 on_press: root.extract_button_clicked()
-
-            Button:
-                text: '保存'

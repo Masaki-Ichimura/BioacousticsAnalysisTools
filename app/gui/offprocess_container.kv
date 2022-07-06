@@ -17,5 +17,12 @@
         size: root.size
         pos: root.pos
 
-        Button:
-            text: 'Working space'
+        MDTabs:
+            background_color: (1, 1, 1, .2)
+            tab_bar_height: 1.04*root.parent.parent.ids.sidebar.ids.bar.height
+
+            GeneralTab:
+                id: general
+
+            FrogTab:
+                id: frog

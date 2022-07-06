@@ -13,7 +13,8 @@ class PreprocessedTab(Tab):
     audio_files = ListProperty([])
 
     def on_audio_files(self, instance, value):
-        audio_treeview = self.ids.audio_treeview
+        audio_detail = self.parent.parent.parent.parent.parent.parent
+        audio_treeview = audio_detail.ids.audio_treeview
         for audio_file in self.audio_files:
             audio_data = audio_file['data']
             audio_fs = audio_file['fs']
