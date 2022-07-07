@@ -1,4 +1,5 @@
 import torch
+import torchaudio
 import matplotlib.pyplot as plt
 
 from kivy.lang import Builder
@@ -9,6 +10,7 @@ from kivy.clock import Clock
 from kivy.core.audio import SoundLoader
 
 from app.gui.widgets.container import Container
+from app.kivy_utils import TorchTensorProperty
 from utils.audio.plot import show_spec, show_wave
 
 Builder.load_file(__file__[:-3]+'.kv')
@@ -17,8 +19,8 @@ Builder.load_file(__file__[:-3]+'.kv')
 class AudioTimeline(Container):
     audio_file = StringProperty('')
 
-    audio_data = None
-    Audio_fs = None
+    audio_data = TorchTensorProperty(torch.zeros(1))
+    audio_fs = None
 
     fig_wave = ObjectProperty(None)
     fig_spec = ObjectProperty(None)
@@ -54,18 +56,30 @@ class AudioTimeline(Container):
             self.ids.box_yaxis.clear_widgets()
             self.ids.box_tl.add_widget(seekbar)
             return None
+        elif value == '-':
+            return None
 
-        working_container = self.parent.parent.parent.parent
-        audio_data = working_container.audio_data
-        audio_fs = working_container.audio_fs
+        # ここの実装はイマイチ，設計がよくない
+        try:
+            working_container = self.parent.parent.parent.parent
 
-        self.audio_data, self.audio_fs = audio_data, audio_fs
+            audio_data = working_container.audio_data
+            audio_fs = working_container.audio_fs
+
+            # audio_fsから代入すること
+            # on_audio_data が実行される前に代入する必要がある
+            self.audio_fs, self.audio_data = audio_fs, audio_data
+        except AttributeError:
+            pass
+
+    def on_audio_data(self, instance, value):
+        audio_data, audio_fs = self.audio_data, self.audio_fs
 
         self.init_timeline()
 
         t_unit = self.timeline_t_unit
         t_start = 0
-        t_end = int((audio_data.shape[-1]/audio_fs)/t_unit)*t_unit
+        t_end = int((audio_data.size(-1)/audio_fs)/t_unit)*t_unit
         t_ticks = torch.arange(t_start, t_end+t_unit*.1, t_unit)
 
         fig_wave, ax_wave = plt.subplots()
@@ -116,7 +130,18 @@ class AudioTimeline(Container):
 
         audio_toolbar = self.parent.parent.ids.audio_toolbar
 
+        if self.audio_file == '-':
+            tmp_dir = self.get_root_window().children[0].tmp_dir
+            audio_file = f'{tmp_dir.name}/tmp.wav'
+            torchaudio.save(
+                filepath=audio_file,
+                src=self.audio_data,
+                sample_rate=self.audio_fs
+            )
+            self.audio_file = audio_file
+
         self.sound = SoundLoader.load(self.audio_file)
+
         self.sound.volume = audio_toolbar.ids.volume.value
 
         def on_value(instance, value):
@@ -228,7 +253,7 @@ class AudioTimeline(Container):
 
     def init_timeline(self):
         scrollview_width = self.ids.box_yaxis.parent.width
-        audio_s = self.audio_data.shape[-1]/self.audio_fs
+        audio_s = self.audio_data.size(-1)/self.audio_fs
 
         width_per_unit = 200
 

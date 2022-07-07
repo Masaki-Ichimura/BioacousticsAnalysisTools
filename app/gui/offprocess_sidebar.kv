@@ -14,14 +14,9 @@
                 adaptive_height: True
 
                 MDIconButton:
-                    icon: 'file-remove-outline'
+                    icon: 'circle-outline'
                     user_font_size: '20sp'
                     # on_press: root.remove_button_clicked()
-
-                MDIconButton:
-                    icon: 'delete-forever-outline'
-                    user_font_size: '20sp'
-                    # on_press: root.reset_button_clicked()
 
             HSeparator:
                 rgba: 0.5, 0.5, 0.5, 1
@@ -37,4 +32,4 @@
             size_hint_x: 5
             text: '▷'
             font_size: '15sp'
-            # on_press: root.select_button_clicked()
+            on_press: root.select_button_clicked()
