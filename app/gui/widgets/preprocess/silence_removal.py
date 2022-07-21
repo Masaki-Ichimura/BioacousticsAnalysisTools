@@ -1,15 +1,19 @@
 import torch
 
 from kivy.lang import Builder
+from kivy.properties import *
 
 from utils.audio import silence_pydub, silence_pyaudioanalysis
 from utils.audio.transform import apply_freq_mask, extract_from_section
+from app.kivy_utils import TorchTensorProperty
 from app.gui.widgets.tab import Tab
 
 Builder.load_file(__file__[:-3]+'.kv')
 
 
 class SilenceRemovalTab(Tab):
+    audio_dict = DictProperty({})
+
     prob_dict = None
     nonsilent_sections = None
     mode = 'svm'
@@ -17,28 +21,16 @@ class SilenceRemovalTab(Tab):
     def on_kv_post(self, *arg, **kwargs):
         self.ids.screen_manager.current = 'svm_thr'
 
-    def get_audio(self):
-        audio_detail = self.parent.parent.parent.parent.parent.parent
-        working_container = audio_detail.parent.parent
-
-        if not working_container.audio_file:
-            return None, None
-        else:
-            return working_container.audio_data, working_container.audio_fs
+    def on_audio_dict(self, instance, value):
+        self.nonsilent_sections = self.prob_dict = None
 
     def get_freq_args(self):
         if self.ids.limit_freq.active:
-            freq_high = self.ids.freq_high.text
-            freq_low = self.ids.freq_low.text
+            freq_high, freq_low = int(self.ids.freq_high.text), int(self.ids.freq_low.text)
         else:
-            freq_high = None
-            freq_low = None
+            freq_high, freq_low = None, None
 
-        freq_args = dict(
-            freq_high=int(freq_high) if freq_high else None,
-            freq_low=int(freq_low) if freq_low else None
-        )
-        return freq_args
+        return dict(freq_high=freq_high, freq_low=freq_low)
 
     def get_func(self):
         if self.mode == 'svm':
@@ -87,18 +79,18 @@ class SilenceRemovalTab(Tab):
 
         fig_wave.canvas.draw()
 
-    def plot(
-        self, signal, sample_rate, nonsilent_sections, ax,
-        probability=None, threshold=None
-    ):
-        d_min, d_max = signal.mean(0).min().item(), signal.mean(0).max().item()
+    def plot(self, ax, probability=None, threshold=None):
+        audio_data, audio_fs = self.audio_dict['data'], self.audio_dict['fs']
+        nonsilent_sections = self.nonsilent_sections
+
+        d_min, d_max = audio_data.mean(0).min().item(), audio_data.mean(0).max().item()
         d_min, d_max = min(d_min, -abs(d_max)), max(d_max, abs(d_min))
 
-        nonsilence = d_min*torch.ones(signal.shape[-1]*1000//sample_rate)
-        for sec in nonsilent_sections:
-            nonsilence[sec[0]:sec[1]] = d_max
+        nonsilence = d_min*torch.ones(audio_data.size(-1)*1000//audio_fs)
+        for section in nonsilent_sections:
+            nonsilence[section[0]:section[1]] = d_max
 
-        x_ms = torch.linspace(0, signal.size(-1)/sample_rate, steps=nonsilence.size(0))
+        x_ms = torch.linspace(0, audio_data.size(-1)/audio_fs, steps=nonsilence.size(0))
         ax.fill_between(x_ms, nonsilence, d_min, facecolor='r', alpha=.5)
 
         if probability is not None:
@@ -116,38 +108,36 @@ class SilenceRemovalTab(Tab):
             ax.axhline(y=d_min+(d_max-d_min)*threshold, linewidth=2., color='yellow')
 
     def plot_button_clicked(self):
-        audio_data, audio_fs = self.get_audio()
+        audio_data, audio_fs = self.audio_dict['data'], self.audio_dict['fs']
 
-        if audio_data is None:
-            return None
+        if audio_data is not None:
+            audio_detail = self.parent.parent.parent.parent.parent.parent
+            working_container = audio_detail.parent.parent
+            audio_timeline = working_container.ids.audio_display.ids.audio_timeline
 
-        audio_detail = self.parent.parent.parent.parent.parent.parent
-        working_container = audio_detail.parent.parent
-        audio_timeline = working_container.ids.audio_display.ids.audio_timeline
+            func = self.get_func()
+            func_args = self.get_func_args()
+            freq_args = self.get_freq_args()
 
-        func = self.get_func()
-        func_args = self.get_func_args()
-        freq_args = self.get_freq_args()
+            xnt = audio_data
 
-        xnt = audio_data
+            if self.ids.limit_freq.active:
+                ynt = apply_freq_mask(xnt, audio_fs, **freq_args)
+            else:
+                ynt = xnt
 
-        if self.ids.limit_freq.active:
-            ynt = apply_freq_mask(xnt, audio_fs, **freq_args)
-        else:
-            ynt = xnt
+            nonsilent_sections, prob_dict = func(ynt, audio_fs, **func_args)
+            self.nonsilent_sections, self.prob_dict = nonsilent_sections, prob_dict
+            print(nonsilent_sections)
 
-        nonsilent_sections, prob_dict = func(ynt, audio_fs, **func_args)
-        self.nonsilent_sections, self.prob_dict = nonsilent_sections, prob_dict
-        print(nonsilent_sections)
+            ax_wave = audio_timeline.fig_wave.axes[0]
 
-        ax_wave = audio_timeline.fig_wave.axes[0]
-
-        self.clear()
-        self.plot(xnt, audio_fs, nonsilent_sections, ax_wave, **prob_dict)
-        audio_timeline.fig_wave.canvas.draw()
+            self.clear()
+            self.plot(ax_wave, **prob_dict)
+            audio_timeline.fig_wave.canvas.draw()
 
     def replot_button_clicked(self):
-        audio_data, audio_fs = self.get_audio()
+        audio_data, audio_fs = self.audio_dict['data'], self.audio_dict['fs']
         prob_dict = self.prob_dict
 
         audio_detail = self.parent.parent.parent.parent.parent.parent
@@ -155,7 +145,7 @@ class SilenceRemovalTab(Tab):
         audio_timeline = working_container.ids.audio_display.ids.audio_timeline
 
         if self.mode == 'svm':
-            if prob_dict and audio_data is not None:
+            if audio_data is not None and prob_dict:
                 func_args = self.get_func_args()
                 nonsilent_sections = silence_pyaudioanalysis.segmentation(
                     probability=prob_dict['probability'],
@@ -190,22 +180,25 @@ class SilenceRemovalTab(Tab):
 
     def extract_button_clicked(self):
         nonsilent_sections = self.nonsilent_sections
+        audio_data, audio_fs = self.audio_dict['data'], self.audio_dict['fs']
 
-        audio_data, audio_fs = self.get_audio()
-        if nonsilent_sections is not None and audio_data is not None:
-            extracted = [
-                dict(
+        if audio_data is not None and nonsilent_sections is not None:
+            cache_dir = self.get_root_window().children[0].tmp_dir
+            extracted_dicts = []
+            for section in nonsilent_sections:
+                audio_tag = f'{self.ids.tag.text}_{section[0]}-{section[1]}'
+                audio_cache = f'{cache_dir.name}/tmp_{audio_tag}.wav'
+
+                extracted_dicts.append(dict(
+                    tag=audio_tag, path='', cache=audio_cache,
                     data=extract_from_section(audio_data, audio_fs, section),
-                    fs=audio_fs,
-                    tag=f'{self.ids.tag.text}_{section[0]}-{section[1]}'
-                )
-                for section in nonsilent_sections
-            ]
+                    fs=audio_fs, ch=-1
+                ))
 
             audio_detail = self.parent.parent.parent.parent.parent.parent
             preprocessed = audio_detail.ids.preprocessed
 
-            preprocessed.audio_files.extend(extracted)
+            preprocessed.audio_dicts.extend(extracted_dicts)
 
             parent_tab = self.parent.parent.parent.parent
             parent_tab.switch_tab('format-list-bulleted', search_by='icon')

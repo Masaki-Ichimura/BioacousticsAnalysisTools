@@ -46,7 +46,7 @@ class FastMNMF(tf_bss_model_base):
             ilrma = ILRMA(**self.stft_args).to(device)
 
             Y_TFM, W = ilrma.separate(
-                X, n_iter=10, n_components=2, proj_back=False, return_filters=True
+                Xnkl, n_iter=10, n_components=2, proj_back=False, return_filters=True
             )
             Q_FMM = W
             sep_power_M = Y_TFM.abs().mean(dim=(0, 1))

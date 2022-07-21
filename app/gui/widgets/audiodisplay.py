@@ -17,8 +17,7 @@ Builder.load_file(__file__[:-3]+'.kv')
 
 
 class AudioTimeline(Container):
-    audio_file = StringProperty('')
-
+    audio_dict = DictProperty({})
     audio_data = TorchTensorProperty(torch.zeros(1))
     audio_fs = None
 
@@ -36,7 +35,7 @@ class AudioTimeline(Container):
     def on_kv_post(self, *args, **kwargs):
 
         def touch_up_timeline(instance, event):
-            if self.audio_file and event.button == 'left':
+            if self.audio_dict and event.button == 'left':
                 sound_length = self.sound.length
                 fig_width = instance.width
 
@@ -46,8 +45,18 @@ class AudioTimeline(Container):
 
         self.ids.box_tl.bind(on_touch_up=touch_up_timeline)
 
-    def on_audio_file(self, instance, value):
-        if not value:
+    def on_audio_dict(self, instance, value):
+        if value:
+            audio_dict = self.audio_dict
+
+            audio_ch = audio_dict['ch']
+            self.audio_fs = audio_dict['fs']
+            if audio_ch >= 0:
+                self.audio_data = audio_dict['data'][audio_ch, None]
+            else:
+                self.audio_data = audio_dict['data'].mean(0, keepdim=True)
+        else:
+            # init timeline
             seekbar = self.ids.seekbar
             self.audio_pos = 0
             if self.sound:
@@ -56,24 +65,15 @@ class AudioTimeline(Container):
             self.ids.box_yaxis.clear_widgets()
             self.ids.box_tl.add_widget(seekbar)
             return None
-        elif value == '-':
-            return None
-
-        # ここの実装はイマイチ，設計がよくない
-        try:
-            working_container = self.parent.parent.parent.parent
-
-            audio_data = working_container.audio_data
-            audio_fs = working_container.audio_fs
-
-            # audio_fsから代入すること
-            # on_audio_data が実行される前に代入する必要がある
-            self.audio_fs, self.audio_data = audio_fs, audio_data
-        except AttributeError:
-            pass
 
     def on_audio_data(self, instance, value):
         audio_data, audio_fs = self.audio_data, self.audio_fs
+        audio_path, audio_cache = self.audio_dict['path'], self.audio_dict['cache']
+        if not audio_path:
+            audio_path = audio_cache
+            torchaudio.save(
+                filepath=audio_path, src=audio_data, sample_rate=audio_fs
+            )
 
         self.init_timeline()
 
@@ -103,10 +103,10 @@ class AudioTimeline(Container):
         spec_widget = FigureCanvasKivyAgg(self.fig_spec)
         dummy_widget = Widget()
 
-        dummy_widget.height = 70
+        dummy_widget.height = '35sp'
         dummy_widget.size_hint_y = None
         t_widget = FigureCanvasKivyAgg(self.fig_t)
-        t_widget.size = (self.timeline_width, 70)
+        t_widget.size = (self.timeline_width, dummy_widget.height)
         t_widget.size_hint = (None, None)
         y_widget = FigureCanvasKivyAgg(self.fig_y)
         f_widget = FigureCanvasKivyAgg(self.fig_f)
@@ -130,18 +130,7 @@ class AudioTimeline(Container):
 
         audio_toolbar = self.parent.parent.ids.audio_toolbar
 
-        if self.audio_file == '-':
-            tmp_dir = self.get_root_window().children[0].tmp_dir
-            audio_file = f'{tmp_dir.name}/tmp.wav'
-            torchaudio.save(
-                filepath=audio_file,
-                src=self.audio_data,
-                sample_rate=self.audio_fs
-            )
-            self.audio_file = audio_file
-
-        self.sound = SoundLoader.load(self.audio_file)
-
+        self.sound = SoundLoader.load(audio_path)
         self.sound.volume = audio_toolbar.ids.volume.value
 
         def on_value(instance, value):
@@ -257,26 +246,25 @@ class AudioTimeline(Container):
 
         width_per_unit = 200
 
-        maximum_unit_num = scrollview_width//width_per_unit
+        maximum_unit_num = scrollview_width // width_per_unit
 
         t_unit = 2**int(audio_s**(1/2))
-        while t_unit/2*maximum_unit_num>audio_s:
+        while t_unit/2*maximum_unit_num > audio_s:
             t_unit *= 1/2
 
         self.timeline_t_unit = t_unit
-        self.timeline_width = int(audio_s/t_unit*width_per_unit)
+        self.timeline_width = (audio_s*width_per_unit) // t_unit
 
     def on_audio_pos(self, instance, value):
         seekbar = self.ids.seekbar
         bar = seekbar.canvas.children[-1]
         fig_width = self.ids.box_tl.width
-        bar.pos = (
-            fig_width*(self.audio_pos/self.sound.length),
-            bar.pos[1]
-        )
+        bar.pos = (fig_width*(self.audio_pos/self.sound.length), bar.pos[1])
+
 
 class AudioToolbar(Container):
     check_pos = None
+    root_audio_dict_container = None
 
     def play(self):
         audio_timeline = self.parent.parent.ids.audio_timeline
@@ -348,6 +336,5 @@ class AudioToolbar(Container):
             bar.pos = (bar_x/2, bar.pos[1])
 
     def close(self):
-        working_container = self.parent.parent.parent.parent
-        audio_timeline = self.parent.parent.ids.audio_timeline
-        audio_timeline.audio_file = working_container.audio_file =  ''
+        if self.root_audio_dict_container:
+            self.root_audio_dict_container.audio_dict = {}

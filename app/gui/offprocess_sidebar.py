@@ -16,10 +16,8 @@ Builder.load_file(__file__[:-3]+'.kv')
 
 
 class OffprocessSidebar(Sidebar):
-    target_audio_files = ListProperty([])
-    audio_data = TorchTensorProperty(torch.zeros(1))
-    audio_monodata = TorchTensorProperty(torch.zeros(1))
-    audio_fs = None
+    target_audio_dicts = ListProperty([])
+    target_audio_tags = ObjectProperty(set())
 
     def clear_treeview(self):
         audio_treeview = self.ids.target_audio_treeview
@@ -29,45 +27,41 @@ class OffprocessSidebar(Sidebar):
             for node in list(audio_treeview.iterate_all_nodes())
         ]
 
-    def on_target_audio_files(self, instance, value):
+    def on_target_audio_dicts(self, instance, value):
+        audio_tags = set([ad['tag'] for ad in self.target_audio_dicts])
+        if self.target_audio_tags != audio_tags:
+            self.target_audio_tags = audio_tags
+
+    def on_target_audio_tags(self, instance, value):
         audio_treeview = self.ids.target_audio_treeview
-        audio_files = self.target_audio_files
+        audio_dicts = self.target_audio_dicts
 
-        if audio_files:
-            self.clear_treeview()
+        self.clear_treeview()
 
+        for ad in audio_dicts:
+            audio_tag, audio_data, audio_fs = ad['tag'], ad['data'], ad['fs']
+            metadata = {
+                '再生時間': datetime.timedelta(seconds=audio_data.size(-1)//audio_fs),
+                'オーディオチャンネル': audio_data.size(0),
+                'サンプルレート': audio_fs
+            }
+
+            audio_node = audio_treeview.add_node(AudioTreeViewLabel(text=audio_tag))
             _ = [
-                audio_treeview.add_node(AudioTreeViewLabel(text=af['tag']))
-                if type(af) is dict
-                else audio_treeview.add_node(AudioTreeViewLabel(text=af.split('/')[-1]))
-                for af in audio_files
+                audio_treeview.add_node(
+                    AudioTreeViewLabel(text=f'{k}: {v}'), parent=audio_node
+                )
+                for k, v in metadata.items()
             ]
 
     def select_button_clicked(self):
         selected_node = self.ids.target_audio_treeview.selected_node
 
         if selected_node:
-            audio_file = [
-                af for af in self.target_audio_files
-                if (type(af) is dict and af['tag'] == selected_node.text)
-                or (type(af) is str and af.split('/')[-1] == selected_node.text)
-            ]
-            if audio_file:
-                audio_file = audio_file[0]
-                if type(audio_file) is dict:
-                    audio_data, audio_fs = audio_file['data'], audio_file['fs']
-                elif type(audio_file) is str:
-                    audio_data, audio_fs = load_wave(audio_file)
+            target_tags = [ad['tag'] for ad in self.target_audio_dicts]
+            if selected_node.text in target_tags:
+                idx = target_tags.index(selected_node.text)
+                audio_dict = self.target_audio_dicts[idx]
 
-                self.audio_fs = audio_fs
-                self.audio_monodata = audio_data[0]
-
-    def on_audio_monodata(self, instance, value):
-        working_container = self.parent.parent.ids.working_container
-        target = working_container.ids.target
-
-        audio_timeline = target.ids.audio_display.ids.audio_timeline
-
-        audio_timeline.audio_file = '-'
-        audio_timeline.audio_fs = self.audio_fs
-        audio_timeline.audio_data = self.audio_monodata[None]
+                working_container = self.parent.parent.ids.working_container
+                working_container.audio_dict = audio_dict

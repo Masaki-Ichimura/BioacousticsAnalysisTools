@@ -8,98 +8,99 @@ from kivy.properties import *
 from app.gui.widgets.sidebar import Sidebar, AudioTreeViewLabel
 # from app.gui.widgets.filetreevew import AudioTreeViewLabel
 from app.gui.widgets.filechooser import FilechooserPopup
-from utils.audio.wave import metadata_wave
+from utils.audio.wave import metadata_wave, load_wave
 
 Builder.load_file(__file__[:-3]+'.kv')
 
 
 class EditSidebar(Sidebar):
-    file_path = StringProperty('')
     filechooser_popup = ObjectProperty(None)
 
-    choosed_audio_files = ListProperty([])
-    target_audio_files = ListProperty([])
+    choosed_audio_dicts = ListProperty([])
+    choosed_audio_tags = ObjectProperty(set())
+    target_audio_dicts = ListProperty([])
+    target_audio_tags = ObjectProperty(set())
 
     def choose_button_clicked(self):
+        cache_dir = self.get_root_window().children[0].tmp_dir
 
         def choose(selections):
             self.filechooser_popup.dismiss()
 
-            audio_files = [
-                selection
-                for selection in selections
-                if selection not in self.choosed_audio_files
-            ]
-            self.choosed_audio_files.extend(audio_files)
+            choosed_tags = [ad['tag'] for ad in self.choosed_audio_dicts]
+            add_dicts = []
+            for selection in selections:
+                audio_tag = selection.split('/')[-1]
+                audio_path, audio_cache = selection, f'{cache_dir.name}/tmp_{audio_tag}.wav'
+                audio_data, audio_fs, audio_ch = None, None, -1
+
+                if audio_tag not in choosed_tags:
+                    add_dicts.append(dict(
+                        tag=audio_tag,
+                        path=audio_path, cache=audio_cache,
+                        data=audio_data, fs=audio_fs, ch=audio_ch
+                    ))
+
+            self.choosed_audio_dicts.extend(add_dicts)
 
         self.filechooser_popup = FilechooserPopup(load=choose)
         self.filechooser_popup.open()
 
     def move_button_clicked(self):
-        add_audio_files = [
-            af for af in self.choosed_audio_files
-            if af not in self.target_audio_files
+        target_tags = [ad['tag'] for ad in self.target_audio_dicts]
+        add_dicts = [
+            ad for ad in self.choosed_audio_dicts if ad['tag'] not in target_tags
         ]
-        audio_treeview = self.ids.target_audio_treeview
-        self.target_audio_files.extend(add_audio_files)
+        self.target_audio_dicts.extend(add_dicts)
 
-    def remove_button_clicked(self, mode='choosed'):
+    def remove_button_clicked(self, mode):
         if mode == 'choosed':
             audio_treeview = self.ids.choosed_audio_treeview
-            audio_files = self.choosed_audio_files
+            audio_dicts = self.choosed_audio_dicts
         elif mode == 'target':
             audio_treeview = self.ids.target_audio_treeview
-            audio_files = self.target_audio_files
+            audio_dicts = self.target_audio_dicts
 
         selected_node = audio_treeview.selected_node
 
         if selected_node:
-            audio_files = [
-                af
-                for af in audio_files
-                if (type(af) is dict and af['tag'] != selected_node.text)
-                or (type(af) is str and af.split('/')[-1] != selected_node.text)
-            ]
-
-            if mode == 'choosed':
-                self.choosed_audio_files = audio_files
-            elif mode == 'target':
-                self.target_audio_files = audio_files
+            audio_tags = [ad['tag'] for ad in audio_dicts]
+            if selected_node.text in audio_tags:
+                idx = audio_tags.index(selected_node.text)
+                audio_dicts.pop(idx)
 
     def reset_button_clicked(self, mode):
         if mode == 'choosed':
-            audio_files = self.choosed_audio_files
+            audio_dicts = self.choosed_audio_dicts
         elif mode == 'target':
-            audio_files = self.target_audio_files
+            audio_dicts = self.target_audio_dicts
 
-        audio_files.clear()
+        audio_dicts.clear()
         self.clear_treeview(mode)
 
     def select_button_clicked(self):
         selected_node = self.ids.choosed_audio_treeview.selected_node
-        if selected_node and '.' in selected_node.text:
-            audio_file = [
-                fn for fn in self.choosed_audio_files
-                if selected_node.text == fn.split('/')[-1]
-            ][0]
+        if selected_node:
+            choosed_tags = [ad['tag'] for ad in self.choosed_audio_dicts]
+            if selected_node.text in choosed_tags:
+                idx = choosed_tags.index(selected_node.text)
+                audio_dict = self.choosed_audio_dicts[idx]
 
-            working_container = self.parent.parent.ids.working_container
-
-            working_container.audio_file = audio_file
+                working_container = self.parent.parent.ids.working_container
+                working_container.audio_dict = audio_dict
 
     def fetch_button_clicked(self):
         edit_container = self.parent.parent
         working_container = edit_container.ids.working_container
         audio_detail = working_container.ids.audio_detail
         preprocessed = audio_detail.ids.preprocessed
-        preprocessed_files = preprocessed.audio_files
+        preprocessed_dicts = preprocessed.audio_dicts
 
-        target_tags = [
-            af['tag'] if type(af) is dict else af
-            for af in self.target_audio_files
+        target_tags = [ad['tag'] for ad in self.target_audio_dicts]
+        add_dicts = [
+            ad for ad in preprocessed_dicts if ad['tag'] not in target_tags
         ]
-        add_files = [af for af in preprocessed_files if af['tag'] not in target_tags]
-        self.target_audio_files.extend(add_files)
+        self.target_audio_dicts.extend(add_dicts)
 
     def clear_treeview(self, mode):
         if mode == 'choosed':
@@ -112,67 +113,68 @@ class EditSidebar(Sidebar):
             for node in list(audio_treeview.iterate_all_nodes())
         ]
 
-    def on_target_audio_files(self, instance, value):
-        audio_treeview = self.ids.target_audio_treeview
-        audio_files = self.target_audio_files
+    def on_target_audio_dicts(self, instance, value):
+        audio_tags = set([ad['tag'] for ad in self.target_audio_dicts])
+        if audio_tags != self.target_audio_tags:
+            self.target_audio_tags = audio_tags
 
-        main_menu = self.get_root_window().children[0].ids.main_menu
-        offprocess_sidebar = main_menu.ids.offprocess_container.ids.sidebar
-        offprocess_sidebar.target_audio_files = audio_files
+    def on_target_audio_tags(self, instance, value):
+        audio_dicts = self.target_audio_dicts
+        audio_treeview = self.ids.target_audio_treeview
 
         self.clear_treeview(mode='target')
 
-        for af in audio_files:
-            if type(af) is str:
-                metadata = metadata_wave(af)
-                metadata = {
-                    '再生時間': datetime.timedelta(
-                        seconds=metadata['num_frames']//metadata['sample_rate']
-                    ),
-                    'オーディオチャンネル': metadata['num_channels'],
-                    'サンプルレート': metadata['sample_rate'],
-                    'ビット/サンプル': metadata['bits_per_sample'],
-                }
-                tag = af.split('/')[-1]
-            elif type(af) is dict:
-                data, fs, tag = af['data'], af['fs'], af['tag']
-                metadata = {
-                    '再生時間': datetime.timedelta(seconds=data.size(-1)//fs),
-                    'オーディオチャンネル': data.size(0),
-                    'サンプルレート': fs
-                }
+        for ad in audio_dicts:
+            if ad['data'] is None:
+                ad['data'], ad['fs'] = load_wave(ad['path'])
 
-            audio_node = audio_treeview.add_node(AudioTreeViewLabel(text=tag))
+            audio_tag, audio_data, audio_fs = ad['tag'], ad['data'], ad['fs']
+
+            metadata = {
+                '再生時間': datetime.timedelta(seconds=audio_data.size(-1)//audio_fs),
+                'オーディオチャンネル': audio_data.size(0),
+                'サンプルレート': audio_fs
+            }
+
+            audio_node = audio_treeview.add_node(AudioTreeViewLabel(text=audio_tag))
             _ = [
-                audio_treeview.add_node(
-                    AudioTreeViewLabel(text=f'{k}: {v}'), parent=audio_node
-                )
+                audio_treeview.add_node(AudioTreeViewLabel(text=f'{k}: {v}'), parent=audio_node)
                 for k, v in metadata.items()
             ]
 
-    def on_choosed_audio_files(self, instance, value):
+        main_menu = self.get_root_window().children[0].ids.main_menu
+        offprocess_sidebar = main_menu.ids.offprocess_container.ids.sidebar
+        offprocess_sidebar.target_audio_dicts = audio_dicts
+
+
+    def on_choosed_audio_dicts(self, instance, value):
+        audio_tags = set([ad['tag'] for ad in self.choosed_audio_dicts])
+        if self.choosed_audio_tags != audio_tags:
+            self.choosed_audio_tags = audio_tags
+
+    def on_choosed_audio_tags(self, instance, value):
+        audio_dicts = self.choosed_audio_dicts
         audio_treeview = self.ids.choosed_audio_treeview
-        audio_files = self.choosed_audio_files
 
         self.clear_treeview(mode='choosed')
 
-        for af in audio_files:
-            if type(af) is str:
-                metadata = metadata_wave(af)
-                metadata = {
-                    '再生時間': datetime.timedelta(
-                        seconds=metadata['num_frames']//metadata['sample_rate']
-                    ),
-                    'オーディオチャンネル': metadata['num_channels'],
-                    'サンプルレート': metadata['sample_rate'],
-                    'ビット/サンプル': metadata['bits_per_sample'],
-                }
-                tag = af.split('/')[-1]
+        for ad in audio_dicts:
+            metadata = metadata_wave(ad['path'])
 
-            audio_node = audio_treeview.add_node(AudioTreeViewLabel(text=tag))
+            if ad['fs'] is None:
+                ad['fs'] = metadata['sample_rate']
+
+            metadata = {
+                '再生時間': datetime.timedelta(
+                    seconds=metadata['num_frames']//metadata['sample_rate']
+                ),
+                'オーディオチャンネル': metadata['num_channels'],
+                'サンプルレート': metadata['sample_rate'],
+                'ビット/サンプル': metadata['bits_per_sample'],
+            }
+
+            audio_node = audio_treeview.add_node(AudioTreeViewLabel(text=ad['tag']))
             _ = [
-                audio_treeview.add_node(
-                    AudioTreeViewLabel(text=f'{k}: {v}'), parent=audio_node
-                )
+                audio_treeview.add_node(AudioTreeViewLabel(text=f'{k}: {v}'), parent=audio_node)
                 for k, v in metadata.items()
             ]
