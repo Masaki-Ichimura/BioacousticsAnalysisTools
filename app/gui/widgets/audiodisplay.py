@@ -3,11 +3,13 @@ import torchaudio
 import matplotlib.pyplot as plt
 
 from kivy.lang import Builder
+from kivy.metrics import dp
 from kivy.properties import *
 from kivy.uix.widget import Widget
 from kivy.garden.matplotlib import FigureCanvasKivyAgg
 from kivy.clock import Clock
 from kivy.core.audio import SoundLoader
+from kivymd.uix.menu import MDDropdownMenu
 
 from app.gui.widgets.container import Container
 from app.kivy_utils import TorchTensorProperty
@@ -18,6 +20,7 @@ Builder.load_file(__file__[:-3]+'.kv')
 
 class AudioTimeline(Container):
     audio_dict = DictProperty({})
+    audio_data_org = TorchTensorProperty(torch.zeros(1))
     audio_data = TorchTensorProperty(torch.zeros(1))
     audio_fs = None
 
@@ -48,6 +51,7 @@ class AudioTimeline(Container):
     def on_audio_dict(self, instance, value):
         if value:
             audio_dict = self.audio_dict
+            self.audio_data_org = audio_dict['data']
 
             audio_ch = audio_dict['ch']
             self.audio_fs = audio_dict['fs']
@@ -65,6 +69,41 @@ class AudioTimeline(Container):
             self.ids.box_yaxis.clear_widgets()
             self.ids.box_tl.add_widget(seekbar)
             return None
+
+    def on_audio_data_org(self, instance, value):
+        audio_dict = self.audio_dict
+        if audio_dict:
+            chs = list(range(-1, value.size(0))) if value.size(0) > 1 else [0]
+
+            audio_toolbar = self.parent.parent.ids.audio_toolbar
+
+            items = [
+                dict(
+                    viewclass='OneLineListItem',
+                    text=f'{ch:02d}ch' if ch >= 0 else 'mean',
+                    height=dp(54),
+                    on_release=lambda x=ch: audio_toolbar.set_ch(x)
+                )
+                for ch in chs
+            ]
+            audio_toolbar.ch_window_menu = MDDropdownMenu(
+                caller=audio_toolbar.ids.ch,
+                width_mult=4,
+                items=items
+            )
+            def on_text(instance, value):
+                if audio_dict:
+                    if value[:2].isdigit():
+                        audio_dict['ch'] = int(value[:2])
+                    else:
+                        audio_dict['ch'] = -1
+
+            audio_toolbar.ids.ch.bind(text=on_text)
+            if audio_dict['ch'] == -1:
+                audio_toolbar.ids.ch.text = items[0]['text']
+            else:
+                audio_toolbar.ids.ch.text = f'{audio_dict["ch"]:02d}ch'
+
 
     def on_audio_data(self, instance, value):
         audio_data, audio_fs = self.audio_data, self.audio_fs
@@ -221,8 +260,7 @@ class AudioTimeline(Container):
             return None
 
         t_unit = self.timeline_t_unit
-        t_start = 0
-        t_end = int((self.audio_data.shape[-1]/self.audio_fs)/t_unit)*t_unit
+        t_start, t_end = 0, int((self.audio_data.shape[-1]/self.audio_fs)/t_unit)*t_unit
         t_ticks = torch.arange(t_start, t_end+t_unit*.1, t_unit)
 
         ax_t.set_xticks(t_ticks)
@@ -265,6 +303,27 @@ class AudioTimeline(Container):
 class AudioToolbar(Container):
     check_pos = None
     root_audio_dict_container = None
+
+    def on_kv_post(self, *arg, **kwargs):
+        self.ch_window_menu = MDDropdownMenu(
+            caller=self.ids.ch,
+            width_mult=4,
+            items=[dict(
+                viewclass='OneLineListItem',
+                text=f'{0:02d}ch',
+                height=dp(54),
+                on_release=lambda x=0: self.set_ch(x)
+            )]
+        )
+
+    def set_ch(self, ch: int):
+        audio_timeline = self.parent.parent.ids.audio_timeline
+        if audio_timeline.audio_dict:
+            if ch >= 0:
+                self.ids.ch.text = f'{ch:02d}ch'
+            else:
+                self.ids.ch.text = 'mean'
+        self.ch_window_menu.dismiss()
 
     def play(self):
         audio_timeline = self.parent.parent.ids.audio_timeline

@@ -13,6 +13,7 @@ Builder.load_file(__file__[:-3]+'.kv')
 
 class SilenceRemovalTab(Tab):
     audio_dict = DictProperty({})
+    audio_data_org = TorchTensorProperty(torch.zeros(1))
 
     prob_dict = None
     nonsilent_sections = None
@@ -22,7 +23,15 @@ class SilenceRemovalTab(Tab):
         self.ids.screen_manager.current = 'svm_thr'
 
     def on_audio_dict(self, instance, value):
+        self.audio_data_org = value['data']
         self.nonsilent_sections = self.prob_dict = None
+
+    def on_audio_data_org(self, instance, value):
+        tag = self.audio_dict['tag']
+        if '.' in tag:
+            tag = tag[:-tag[::-1].index('.')-1]
+
+        self.ids.tag.text = tag
 
     def get_freq_args(self):
         if self.ids.limit_freq.active:
@@ -159,10 +168,7 @@ class SilenceRemovalTab(Tab):
                 ax_wave = audio_timeline.fig_wave.axes[0]
 
                 self.clear()
-                self.plot(
-                    audio_data, audio_fs, nonsilent_sections, ax_wave,
-                    **prob_dict
-                )
+                self.plot(ax_wave, **prob_dict)
                 audio_timeline.fig_wave.canvas.draw()
 
     def change_threshold_button_clicked(self, val: str):

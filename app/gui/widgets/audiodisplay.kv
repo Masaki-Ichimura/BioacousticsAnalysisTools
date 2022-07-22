@@ -84,6 +84,12 @@
                 icon: 'magnify-minus-outline'
                 on_press: root.magnify(mode='minus')
 
+            MDDropDownItem:
+                id: ch
+                pos_hint: {'center_x': .5, 'center_y': .5}
+                text: '00ch'
+                on_press: root.ch_window_menu.open()
+
         MDBoxLayout:
             orientation: 'horizontal'
             width: 400
