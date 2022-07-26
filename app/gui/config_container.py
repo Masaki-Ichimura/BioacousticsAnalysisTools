@@ -1,5 +1,6 @@
 import torch
 
+from kivy.app import App
 from kivy.lang import Builder
 from kivy.metrics import dp
 from kivy.uix.widget import Widget
@@ -12,6 +13,9 @@ Builder.load_file(__file__[:-3]+'.kv')
 
 class ConfigContainer(Container):
     def on_kv_post(self, *arg, **kwargs):
+        app = App.get_running_app()
+        self.app = app
+
         self.ids.nav_drawer.set_state('open')
 
         stft_windows = ['bartlett', 'blackman', 'hamming', 'hann', 'kaiser']

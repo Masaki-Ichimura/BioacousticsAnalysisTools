@@ -2,6 +2,7 @@ import torch
 import datetime
 import matplotlib.pyplot as plt
 
+from kivy.app import App
 from kivy.lang import Builder
 from kivy.properties import *
 from kivy.uix.widget import Widget
@@ -18,6 +19,9 @@ Builder.load_file(__file__[:-3]+'.kv')
 class OffprocessSidebar(Sidebar):
     target_audio_dicts = ListProperty([])
     target_audio_tags = ObjectProperty(set())
+
+    def on_kv_post(self, *args, **kwargs):
+        self.offprocess_container = self.parent.parent
 
     def clear_treeview(self):
         audio_treeview = self.ids.target_audio_treeview
@@ -63,5 +67,5 @@ class OffprocessSidebar(Sidebar):
                 idx = target_tags.index(selected_node.text)
                 audio_dict = self.target_audio_dicts[idx]
 
-                working_container = self.parent.parent.ids.working_container
+                working_container = self.offprocess_container.ids.working_container
                 working_container.audio_dict = audio_dict

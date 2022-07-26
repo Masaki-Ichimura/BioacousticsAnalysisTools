@@ -1,2 +1,104 @@
+<FrogDrawerItem@MDNavigationDrawerItem>
+    icon_color: app.theme_cls.text_color
+    theme_text_color: 'Custom'
+    text_color: app.theme_cls.text_color
+    selected_color: app.theme_cls.secondary_text_color
+
 <FrogTab>:
     title: 'カエル'
+
+    BoxLayout:
+        orientation: 'vertical'
+        size: root.size
+        pos: root.pos
+
+        # MDTopAppBar:
+        #     id: appbar
+        #     title: 'コーラス解析'
+        #     elevation: dp(10)
+        #     type_hight: 'small'
+            #left_action_items: [['menu', lambda x: nav_drawer.set_state('open')]]
+
+        MDNavigationLayout:
+
+            ScreenManager:
+                id: screen_manager
+
+                FrogSeparate:
+                    id: separate
+                    name: 'separate'
+
+                FrogSelect:
+                    id: select
+                    name: 'select'
+
+                FrogAnalysis:
+                    id: analysis
+                    name: 'analysis'
+
+            MDNavigationDrawer:
+                id: nav_drawer
+                type: 'standard'
+                pos: root.pos
+                width: root.width*.25
+
+                MDNavigationDrawerMenu:
+
+                    FrogDrawerItem:
+                        icon: 'call-split'
+                        text: '音源分離'
+                        on_press:
+                            screen_manager.current = 'separate'
+                            #nav_drawer.set_state('close')
+
+                    MDNavigationDrawerLabel:
+                        text: '▽'
+                        padding: [dp(40), dp(5), 0, dp(5)]
+
+                    FrogDrawerItem:
+                        icon: 'check-bold'
+                        text: 'カエル信号の選択'
+                        on_press:
+                            screen_manager.current = 'select'
+                            #nav_drawer.set_state('close')
+
+                    MDNavigationDrawerLabel:
+                        text: '▽'
+                        padding: [dp(40), dp(5), 0, dp(5)]
+
+                    FrogDrawerItem:
+                        icon: 'poll'
+                        text: '同期解析'
+                        on_press:
+                            screen_manager.current = 'analysis'
+                            #nav_drawer.set_state('close')
+
+<FrogSeparate>:
+    BoxLayout:
+        orientation: 'horizontal'
+        size: root.size
+
+        Button:
+            size_hint_x: 2
+
+        Button:
+            size_hint_x: 1
+            text: 'separate'
+
+
+<FrogSelect>:
+    BoxLayout:
+        orientation: 'vertical'
+        size: root.size
+
+        Button:
+            text: 'select'
+
+
+<FrogAnalysis>:
+    BoxLayout:
+        orientation: 'vertical'
+        size: root.size
+
+        Button:
+            text: 'analysis'

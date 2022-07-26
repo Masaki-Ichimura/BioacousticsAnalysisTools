@@ -117,8 +117,7 @@ class AudioTimeline(Container):
         self.init_timeline()
 
         t_unit = self.timeline_t_unit
-        t_start = 0
-        t_end = int((audio_data.size(-1)/audio_fs)/t_unit)*t_unit
+        t_start, t_end = 0, int((audio_data.size(-1)/audio_fs)/t_unit)*t_unit
         t_ticks = torch.arange(t_start, t_end+t_unit*.1, t_unit)
 
         fig_wave, ax_wave = plt.subplots()
@@ -279,6 +278,11 @@ class AudioTimeline(Container):
             child.width = self.timeline_width
 
     def init_timeline(self):
+        if self.fig_wave is not None:
+            plt.close(self.fig_wave)
+        if self.fig_spec is not None:
+            plt.close(self.fig_spec)
+
         scrollview_width = self.ids.box_yaxis.parent.width
         audio_s = self.audio_data.size(-1)/self.audio_fs
 
@@ -377,7 +381,7 @@ class AudioToolbar(Container):
         bar = seekbar.canvas.children[-1]
         bar_x = [bar.pos[0]][0]
 
-        if not audio_timeline.audio_file:
+        if not audio_timeline.audio_dict:
             return None
 
         # グラフの width の変化から拾ってほしいが，そっちだと上手く反映されないため，

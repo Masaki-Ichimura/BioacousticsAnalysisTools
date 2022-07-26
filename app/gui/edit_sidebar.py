@@ -1,5 +1,6 @@
 import datetime
 
+from kivy.app import App
 from kivy.lang import Builder
 from kivy.uix.widget import Widget
 from kivy.uix.treeview import TreeViewLabel
@@ -21,8 +22,11 @@ class EditSidebar(Sidebar):
     target_audio_dicts = ListProperty([])
     target_audio_tags = ObjectProperty(set())
 
+    def on_kv_post(self, *args, **kwargs):
+        self.edit_container = self.parent.parent
+
     def choose_button_clicked(self):
-        cache_dir = self.get_root_window().children[0].tmp_dir
+        cache_dir = self.edit_container.app.tmp_dir
 
         def choose(selections):
             self.filechooser_popup.dismiss()
@@ -86,12 +90,11 @@ class EditSidebar(Sidebar):
                 idx = choosed_tags.index(selected_node.text)
                 audio_dict = self.choosed_audio_dicts[idx]
 
-                working_container = self.parent.parent.ids.working_container
+                working_container = self.edit_container.ids.working_container
                 working_container.audio_dict = audio_dict
 
     def fetch_button_clicked(self):
-        edit_container = self.parent.parent
-        working_container = edit_container.ids.working_container
+        working_container = self.edit_container.ids.working_container
         audio_detail = working_container.ids.audio_detail
         preprocessed = audio_detail.ids.preprocessed
         preprocessed_dicts = preprocessed.audio_dicts
@@ -145,7 +148,6 @@ class EditSidebar(Sidebar):
         main_menu = self.get_root_window().children[0].ids.main_menu
         offprocess_sidebar = main_menu.ids.offprocess_container.ids.sidebar
         offprocess_sidebar.target_audio_dicts = audio_dicts
-
 
     def on_choosed_audio_dicts(self, instance, value):
         audio_tags = set([ad['tag'] for ad in self.choosed_audio_dicts])

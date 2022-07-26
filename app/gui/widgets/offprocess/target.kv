@@ -7,28 +7,5 @@
         size: root.size
         pos: root.pos
 
-        TargetAudioDisplay:
-            id: audio_display
-            size_hint_y: 40
-
         Button:
-            size_hint_y: 60
-
-<TargetAudioDisplay>:
-    BoxLayout:
-        orientation: 'vertical'
-        size: root.size
-        pos: root.pos
-
-        AudioToolbar:
-            id: audio_toolbar
-            size_hint_y: None
-
-        HSeparator:
-            rgba: 0.5, 0.5, 0.5, 1
-
-        AudioTimeline:
-            id: audio_timeline
-
-        HSeparator:
-            height: dp(2)
+            on_press: print()

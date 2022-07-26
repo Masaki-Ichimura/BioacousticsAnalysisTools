@@ -17,9 +17,42 @@
         size: root.size
         pos: root.pos
 
+        OffprocessAudioDisplay:
+            id: audio_display
+            size_hint_y: 40
+
+        OffprocessAudioDetail:
+            id: audio_detail
+            size_hint_y: 60
+
+<OffprocessAudioDisplay>:
+    BoxLayout:
+        orientation: 'vertical'
+        size: root.size
+        pos: root.pos
+
+        AudioToolbar:
+            id: audio_toolbar
+            size_hint_y: None
+
+        HSeparator:
+            rgba: 0.5, 0.5, 0.5, 1
+
+        AudioTimeline:
+            id: audio_timeline
+
+        HSeparator:
+            height: dp(2)
+
+<OffprocessAudioDetail>:
+    BoxLayout:
+        orientation: 'horizontal'
+        size: root.size
+        pos: root.pos
+
         MDTabs:
             background_color: (1, 1, 1, .2)
-            tab_bar_height: 1.04*root.parent.parent.ids.sidebar.ids.bar.height
+            tab_bar_height: 1.04*root.parent.parent.parent.parent.ids.sidebar.ids.bar.height
 
             TargetTab:
                 id: target
