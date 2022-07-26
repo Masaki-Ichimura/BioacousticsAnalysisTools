@@ -1,5 +1,6 @@
 import torch
 
+from kivy.app import App
 from kivy.lang import Builder
 from kivy.properties import *
 
@@ -189,7 +190,8 @@ class SilenceRemovalTab(Tab):
         audio_data, audio_fs = self.audio_dict['data'], self.audio_dict['fs']
 
         if audio_data is not None and nonsilent_sections is not None:
-            cache_dir = self.get_root_window().children[0].tmp_dir
+            app = App.get_running_app()
+            cache_dir = app.tmp_dir
             extracted_dicts = []
             for section in nonsilent_sections:
                 audio_tag = f'{self.ids.tag.text}_{section[0]}-{section[1]}'

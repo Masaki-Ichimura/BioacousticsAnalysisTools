@@ -80,18 +80,26 @@
 
         Button:
             size_hint_x: 2
+            text: '- 分離手法の選択やその手法におけるオプションを指定'
 
         Button:
             size_hint_x: 1
             text: 'separate'
+            on_press:
+                root.separate()
+                root.root_tab.ids.screen_manager.current = 'select'
 
 
 <FrogSelect>:
     BoxLayout:
-        orientation: 'vertical'
+        orientation: 'horizontal'
         size: root.size
 
         Button:
+            size_hint_x: 2
+
+        Button:
+            size_hint_x: 1
             text: 'select'
 
 
