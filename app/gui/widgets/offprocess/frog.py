@@ -1,3 +1,5 @@
+import torchaudio
+
 from kivy.app import App
 from kivy.lang import Builder
 from kivy.properties import *
@@ -5,12 +7,14 @@ from kivymd.uix.screen import MDScreen
 
 from app.gui.widgets.container import Container
 from app.gui.widgets.tab import Tab
+from app.gui.widgets.audiodisplay import AudioMiniplot
 from utils.audio.bss.auxiva import AuxIVA
 from utils.audio.bss.fastmnmf import FastMNMF
 from utils.audio.bss.ilrma import ILRMA
 
 Builder.load_file(__file__[:-3]+'.kv')
 
+from kivy.uix.button import Button
 
 class FrogTab(Tab):
     audio_dict = DictProperty({})
@@ -73,6 +77,27 @@ class FrogSeparate(MDScreen):
 class FrogSelect(MDScreen):
     audio_dict = DictProperty({})
     root_tab = None
+
+    def on_audio_dict(self, instance, value):
+        audio_dict = self.audio_dict
+
+        if audio_dict:
+            sep_data, sep_fs = audio_dict['data'], audio_dict['fs']
+            sep_path = audio_dict['cache']
+            dot_idx = -sep_path[::-1].index('.')-1
+            ch_path = sep_path[:dot_idx]+'_ch{:02d}'+sep_path[dot_idx:]
+
+            self.ids.grid_seps.clear_widgets()
+
+            for ch, ch_data in enumerate(sep_data):
+                torchaudio.save(
+                    filepath=ch_path.format(ch), src=ch_data[None], sample_rate=sep_fs
+                )
+                audio_miniplot = AudioMiniplot(
+                    data=ch_data, fs=sep_fs, path=ch_path.format(ch),
+                    size=(self.width/3, self.height/3)
+                )
+                self.ids.grid_seps.add_widget(audio_miniplot)
 
 class FrogAnalysis(MDScreen):
     root_tab = None

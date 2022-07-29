@@ -6,10 +6,13 @@ from kivy.lang import Builder
 from kivy.metrics import dp
 from kivy.properties import *
 from kivy.uix.widget import Widget
+from kivy.uix.button import Button
+from kivy.uix.floatlayout import FloatLayout
 from kivy.garden.matplotlib import FigureCanvasKivyAgg
 from kivy.clock import Clock
 from kivy.core.audio import SoundLoader
 from kivymd.uix.menu import MDDropdownMenu
+from kivymd.uix.button.button import MDIconButton
 
 from app.gui.widgets.container import Container
 from app.kivy_utils import TorchTensorProperty
@@ -211,7 +214,7 @@ class AudioTimeline(Container):
         ax_y.tick_params(which='both', axis='both', reset=True)
         ax_y.tick_params(
             which='both', axis='x',
-            top=False, labeltop=False, bottom=False, labelbottom=False,
+            top=False, labeltop=False, bottom=False, labelbottom=False
         )
         ax_y.tick_params(
             which='major', axis='y', labelsize=12, length=5,
@@ -302,7 +305,6 @@ class AudioTimeline(Container):
         bar = seekbar.canvas.children[-1]
         fig_width = self.ids.box_tl.width
         bar.pos = (fig_width*(self.audio_pos/self.sound.length), bar.pos[1])
-
 
 class AudioToolbar(Container):
     check_pos = None
@@ -401,3 +403,76 @@ class AudioToolbar(Container):
     def close(self):
         if self.root_audio_dict_container:
             self.root_audio_dict_container.audio_dict = {}
+
+class AudioMiniplot(FloatLayout):
+    def __init__(self, *args, **kwargs):
+        self.audio_data = kwargs.pop('data')
+        self.audio_fs = kwargs.pop('fs')
+        self.audio_path = kwargs.pop('path')
+
+        super().__init__(*args, **kwargs)
+
+        self.sound = ObjectProperty(None)
+
+        self.set_audio()
+
+    def set_audio(self):
+        self.set_plot()
+        self.set_sound()
+
+    def set_plot(self):
+        fig, axes = plt.subplots(2, 1)
+
+        ax_wave, ax_spec = axes
+
+        show_wave(self.audio_data, self.audio_fs, ax=ax_wave, color='b')
+        show_spec(self.audio_data, self.audio_fs, n_fft=2048, ax=ax_spec)
+
+        fig.patch.set_alpha(0)
+        _ = [ax.patch.set_alpha(0) for ax in axes]
+
+        ax_wave.set_xlim(0, self.audio_data.size(-1)/self.audio_fs)
+        ax_wave.tick_params(
+            which='both', axis='both',
+            top=True, labeltop=True, bottom=False, labelbottom=False,
+            left=False, labelleft=False, right=False, labelright=False,
+        )
+        ax_wave.set_xlabel(''); ax_wave.set_ylabel('')
+
+        ax_spec.tick_params(
+            which='both', axis='both',
+            top=False, labeltop=False, bottom=False, labelbottom=False,
+            left=False, labelleft=False, right=False, labelright=False,
+        )
+        ax_spec.set_xlabel(''); ax_spec.set_ylabel('')
+
+        plt.subplots_adjust(hspace=0.)
+
+        wave_widget = FigureCanvasKivyAgg(fig)
+        # wave_widget = Button()
+
+        #wave_widget.size = (self.width*.95, self.height*.95)
+        wave_widget.size_hint = (.95, .95)
+        wave_widget.pos_hint = {'x': .025, 'y': .025}
+
+        self.add_widget(wave_widget)
+        self.fig = fig
+
+    def set_sound(self):
+        self.sound = SoundLoader.load(self.audio_path)
+
+        def button_clicked(x):
+            if self.sound.state == 'stop':
+                self.sound.play()
+            elif self.sound.state == 'play':
+                self.sound.stop()
+
+        play_widget = MDIconButton(
+            icon='play',
+            user_font_size='20sp',
+            theme_text_color='Custom',
+            text_color=(0, 0, 0, 1),
+            pos_hint={'x': .68, 'y': .6},
+            on_press=button_clicked
+        )
+        self.add_widget(play_widget)

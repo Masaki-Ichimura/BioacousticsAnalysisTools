@@ -95,12 +95,17 @@
         orientation: 'horizontal'
         size: root.size
 
-        Button:
+        MDGridLayout:
+            id: grid_seps
             size_hint_x: 2
+            rows: 3
+            cols: 3
+            md_bg_color: 1, 1, 1, .8
 
         Button:
             size_hint_x: 1
             text: 'select'
+            on_press: print(grid_seps.children)
 
 
 <FrogAnalysis>:
