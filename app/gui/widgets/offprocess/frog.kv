@@ -27,14 +27,17 @@
                 FrogSeparate:
                     id: separate
                     name: 'separate'
+                    root_tab: root
 
                 FrogSelect:
                     id: select
                     name: 'select'
+                    root_tab: root
 
                 FrogAnalysis:
                     id: analysis
                     name: 'analysis'
+                    root_tab: root
 
             MDNavigationDrawer:
                 id: nav_drawer
@@ -105,8 +108,9 @@
         Button:
             size_hint_x: 1
             text: 'select'
-            on_press: print(grid_seps.children)
-
+            on_press:
+                root.select()
+                root.root_tab.ids.screen_manager.current = 'analysis'
 
 <FrogAnalysis>:
     BoxLayout:

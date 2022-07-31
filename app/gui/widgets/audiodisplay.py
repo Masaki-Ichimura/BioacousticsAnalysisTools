@@ -6,13 +6,16 @@ from kivy.lang import Builder
 from kivy.metrics import dp
 from kivy.properties import *
 from kivy.uix.widget import Widget
-from kivy.uix.button import Button
 from kivy.uix.floatlayout import FloatLayout
 from kivy.garden.matplotlib import FigureCanvasKivyAgg
 from kivy.clock import Clock
 from kivy.core.audio import SoundLoader
+from kivymd.color_definitions import colors
+from kivymd.uix.widget import MDWidget
 from kivymd.uix.menu import MDDropdownMenu
-from kivymd.uix.button.button import MDIconButton
+from kivymd.uix.progressbar.progressbar import MDProgressBar
+from kivymd.uix.button.button import MDFloatingActionButton
+from kivymd.uix.selectioncontrol.selectioncontrol import MDCheckbox
 
 from app.gui.widgets.container import Container
 from app.kivy_utils import TorchTensorProperty
@@ -90,9 +93,7 @@ class AudioTimeline(Container):
                 for ch in chs
             ]
             audio_toolbar.ch_window_menu = MDDropdownMenu(
-                caller=audio_toolbar.ids.ch,
-                width_mult=4,
-                items=items
+                caller=audio_toolbar.ids.ch, width_mult=4, items=items
             )
             def on_text(instance, value):
                 if audio_dict:
@@ -412,13 +413,30 @@ class AudioMiniplot(FloatLayout):
 
         super().__init__(*args, **kwargs)
 
-        self.sound = ObjectProperty(None)
+        self.sound = None
+        self.dt_sum = 0
 
         self.set_audio()
 
+    # def on_selected(self, instacnce, value):
+    #     if value:
+    #         self.background.md_bg_color = (1, 1, 0, .2)
+    #     else:
+    #         self.background.md_bg_color = (0, 0, 0, 0)
+
     def set_audio(self):
+        # self.set_background()
         self.set_plot()
-        self.set_sound()
+        self.set_others()
+
+    # def set_background(self):
+    #     bg_widget = MDWidget()
+    #
+    #     bg_widget.size_hint = (.95, .95)
+    #     bg_widget.pos_hint = {'x': .025, 'y': .025}
+    #
+    #     self.add_widget(bg_widget)
+    #     self.background = bg_widget
 
     def set_plot(self):
         fig, axes = plt.subplots(2, 1)
@@ -426,10 +444,7 @@ class AudioMiniplot(FloatLayout):
         ax_wave, ax_spec = axes
 
         show_wave(self.audio_data, self.audio_fs, ax=ax_wave, color='b')
-        show_spec(self.audio_data, self.audio_fs, n_fft=2048, ax=ax_spec)
-
-        fig.patch.set_alpha(0)
-        _ = [ax.patch.set_alpha(0) for ax in axes]
+        show_spec(self.audio_data, self.audio_fs, ax=ax_spec, n_fft=2048)
 
         ax_wave.set_xlim(0, self.audio_data.size(-1)/self.audio_fs)
         ax_wave.tick_params(
@@ -446,33 +461,61 @@ class AudioMiniplot(FloatLayout):
         )
         ax_spec.set_xlabel(''); ax_spec.set_ylabel('')
 
-        plt.subplots_adjust(hspace=0.)
+        fig.patch.set_alpha(0)
+        _ = [ax.patch.set_alpha(0) for ax in axes]
+        fig.subplots_adjust(left=0, right=1, bottom=0.1, top=0.9, wspace=0, hspace=0)
 
-        wave_widget = FigureCanvasKivyAgg(fig)
-        # wave_widget = Button()
+        plot_widget = FigureCanvasKivyAgg(fig)
+        plot_widget.size_hint = (.9, 1.)
+        plot_widget.pos_hint = {'x': .05, 'y': 0.}
 
-        #wave_widget.size = (self.width*.95, self.height*.95)
-        wave_widget.size_hint = (.95, .95)
-        wave_widget.pos_hint = {'x': .025, 'y': .025}
+        self.add_widget(plot_widget)
+        self.figure = fig
 
-        self.add_widget(wave_widget)
-        self.fig = fig
-
-    def set_sound(self):
+    def set_others(self):
         self.sound = SoundLoader.load(self.audio_path)
 
-        def button_clicked(x):
+        def play_button_clicked(x):
+
+            def change_progressbar_value(dt):
+                self.dt_sum += dt
+                self.progressbar.value = min(self.dt_sum/self.sound.length*100, 100)
+
+                if self.progressbar.value == 100:
+                    self.progressbar.value, self.dt_sum = 0, 0
+                    return False
+
             if self.sound.state == 'stop':
                 self.sound.play()
+                self.clock = Clock.schedule_interval(lambda dt: change_progressbar_value(dt), .5)
             elif self.sound.state == 'play':
                 self.sound.stop()
+                Clock.unschedule(self.clock)
+                self.progressbar.value, self.dt_sum = 0, 0
 
-        play_widget = MDIconButton(
+        play_widget = MDFloatingActionButton(
             icon='play',
-            user_font_size='20sp',
-            theme_text_color='Custom',
-            text_color=(0, 0, 0, 1),
-            pos_hint={'x': .68, 'y': .6},
-            on_press=button_clicked
+            type='small',
+            theme_icon_color='Custom',
+            md_bg_color=(1, 1, 1, .8),
+            icon_color=(0, 0, 0, 1),
+            pos_hint={'right': .95, 'y': .1},
+            size_hint=(.2, .2),
+            on_press=play_button_clicked
         )
+
+        checkbox_widget = MDCheckbox()
+        checkbox_widget.selected_color = checkbox_widget.unselected_color = colors['Orange']['200']
+        checkbox_widget.pos_hint = {'x': .0, 'y': .6}
+        checkbox_widget.size_hint = (.25, None)
+
+        progressbar_widget = MDProgressBar(value=0)
+        progressbar_widget.pos_hint = {'x': .05, 'y': .05}
+        progressbar_widget.size_hint = (.9, .01)
+
         self.add_widget(play_widget)
+        self.add_widget(checkbox_widget)
+        self.add_widget(progressbar_widget)
+
+        self.checkbox = checkbox_widget
+        self.progressbar = progressbar_widget
