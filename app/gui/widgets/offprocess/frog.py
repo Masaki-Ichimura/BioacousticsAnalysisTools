@@ -5,7 +5,10 @@ from itertools import combinations
 from kivy.app import App
 from kivy.lang import Builder
 from kivy.properties import *
+from kivymd.color_definitions import colors
 from kivymd.uix.screen import MDScreen
+from kivymd.uix.label.label import MDIcon
+from kivymd.uix.selectioncontrol.selectioncontrol import MDCheckbox
 
 from app.gui.widgets.container import Container
 from app.gui.widgets.tab import Tab
@@ -69,6 +72,7 @@ class FrogSeparate(MDScreen):
 class FrogSelect(MDScreen):
     audio_dict = DictProperty({})
     root_tab = None
+    checkboxes = []
 
     def on_audio_dict(self, instance, value):
         if self.audio_dict:
@@ -77,20 +81,33 @@ class FrogSelect(MDScreen):
             dot_idx = -sep_path[::-1].index('.')-1
             ch_path = sep_path[:dot_idx]+'_ch{:02d}'+sep_path[dot_idx:]
 
-            self.ids.grid_seps.clear_widgets()
+            self.ids.stack_sep.clear_widgets()
 
+            checkboxes = []
             for ch, ch_data in enumerate(sep_data):
                 torchaudio.save(
                     filepath=ch_path.format(ch), src=ch_data[None], sample_rate=sep_fs
                 )
+
                 audio_miniplot = AudioMiniplot(
                     data=ch_data, fs=sep_fs, path=ch_path.format(ch),
-                    size=(self.width/3, self.height/3)
+                    size_hint=(1/3, 1/3)
                 )
-                self.ids.grid_seps.add_widget(audio_miniplot)
+
+                checkbox_widget = MDCheckbox()
+                checkbox_widget.selected_color = checkbox_widget.unselected_color = colors['Blue']['A400']
+                checkbox_widget.pos_hint = {'x': .0, 'top': .4}
+                checkbox_widget.size_hint = (.25, None)
+
+                audio_miniplot.add_widget(checkbox_widget)
+                checkboxes.append(checkbox_widget)
+
+                self.ids.stack_sep.add_widget(audio_miniplot)
+
+            self.checkboxes = checkboxes
 
     def select(self):
-        indices = [child.checkbox.active for child in self.ids.grid_seps.children]
+        indices = [checkbox.active for checkbox in self.checkboxes]
         if self.audio_dict and any(indices):
             app = App.get_running_app()
             cache_dir = app.tmp_dir
@@ -111,20 +128,59 @@ class FrogAnalysis(MDScreen):
 
     def on_audio_dict(self, instance, value):
         if self.audio_dict:
-            ana_data, ana_fs = self.audio_dict['data'], self.audio_dict['fs']
+            ana_datas, ana_fs = self.audio_dict['data'], self.audio_dict['fs']
 
-            if ana_data.size(0) > 1:
-                combs = combinations(range(ana_data.size(0)), 2)
+            if ana_datas.size(0) > 1:
+                combs = combinations(range(ana_datas.size(0)), 2)
 
+                sep_miniplots = self.root_tab.ids.select.ids.stack_sep.children
+                sep_datas = [mp.audio_data for mp in sep_miniplots]
+
+                sct_indices = [
+                    [torch.equal(ana_data, sep_data) for sep_data in sep_datas].index(True)
+                    for ana_data in ana_datas
+                ]
+                sct_miniplots = [sep_miniplots[idx] for idx in sct_indices]
+                sct_miniplots = [
+                    AudioMiniplot(
+                        data=mp.audio_data, fs=mp.audio_fs, path=mp.audio_path, figure=mp.figure,
+                        size=mp.size, size_hint=(None, None)
+                    )
+                    for mp in sct_miniplots
+                ]
+
+                self.ids.box_ana.clear_widgets()
+                for i, mp in enumerate(sct_miniplots):
+                    i_widget = MDIcon(
+                        icon=f'numeric-{i}-box',
+                        theme_text_color='Custom', text_color=colors['Blue']['A400']
+                    )
+                    i_widget.pos_hint = {'x': .05, 'y': .1}
+                    i_widget.size_hint = (.25, None)
+                    mp.add_widget(i_widget)
+                    self.ids.box_ana.add_widget(mp)
+
+                peaks_tmp = {}
                 for comb in combs:
                     A_idx, B_idx = comb
-                    At, Bt = ana_data[A_idx], ana_data[B_idx]
+                    At, Bt = ana_datas[A_idx], ana_datas[B_idx]
 
                     res = check_synchronization(At, Bt, ana_fs)
                     peaks_dict = res.pop('peaks')
-                    A_peaks, B_peaks = peaks_dict['A'], peaks_dict['B']
+
+                    if A_idx not in peaks_tmp:
+                        peaks_tmp[A_idx] = peaks_dict['A']
+                    if B_idx not in peaks_tmp:
+                        peaks_tmp[B_idx] = peaks_dict['B']
 
                     print(comb, res)
+
+                for idx, peaks in peaks_tmp.items():
+                    audio_miniplot = self.ids.box_ana.children[idx]
+                    audio_data = audio_miniplot.audio_data.squeeze()
+                    ax_wave = audio_miniplot.figure.axes[0]
+                    ax_wave.plot(peaks, audio_data[peaks], marker='x', color='g', linewidth=0)
+
 
                     # fig, ax = plt.subplots()
                     # ax.hist(phis, bins=8, range=(0, 2*torch.pi))

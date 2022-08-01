@@ -10,12 +10,9 @@ from kivy.uix.floatlayout import FloatLayout
 from kivy.garden.matplotlib import FigureCanvasKivyAgg
 from kivy.clock import Clock
 from kivy.core.audio import SoundLoader
-from kivymd.color_definitions import colors
-from kivymd.uix.widget import MDWidget
 from kivymd.uix.menu import MDDropdownMenu
 from kivymd.uix.progressbar.progressbar import MDProgressBar
 from kivymd.uix.button.button import MDFloatingActionButton
-from kivymd.uix.selectioncontrol.selectioncontrol import MDCheckbox
 
 from app.gui.widgets.container import Container
 from app.kivy_utils import TorchTensorProperty
@@ -411,6 +408,8 @@ class AudioMiniplot(FloatLayout):
         self.audio_fs = kwargs.pop('fs')
         self.audio_path = kwargs.pop('path')
 
+        self.figure = kwargs.pop('figure') if 'figure' in kwargs else None
+
         super().__init__(*args, **kwargs)
 
         self.sound = None
@@ -418,59 +417,45 @@ class AudioMiniplot(FloatLayout):
 
         self.set_audio()
 
-    # def on_selected(self, instacnce, value):
-    #     if value:
-    #         self.background.md_bg_color = (1, 1, 0, .2)
-    #     else:
-    #         self.background.md_bg_color = (0, 0, 0, 0)
-
     def set_audio(self):
-        # self.set_background()
         self.set_plot()
         self.set_others()
 
-    # def set_background(self):
-    #     bg_widget = MDWidget()
-    #
-    #     bg_widget.size_hint = (.95, .95)
-    #     bg_widget.pos_hint = {'x': .025, 'y': .025}
-    #
-    #     self.add_widget(bg_widget)
-    #     self.background = bg_widget
-
     def set_plot(self):
-        fig, axes = plt.subplots(2, 1)
+        if self.figure is None:
+            fig, axes = plt.subplots(2, 1)
 
-        ax_wave, ax_spec = axes
+            ax_wave, ax_spec = axes
 
-        show_wave(self.audio_data, self.audio_fs, ax=ax_wave, color='b')
-        show_spec(self.audio_data, self.audio_fs, ax=ax_spec, n_fft=2048)
+            show_wave(self.audio_data, self.audio_fs, ax=ax_wave, color='b')
+            show_spec(self.audio_data, self.audio_fs, ax=ax_spec, n_fft=2048)
 
-        ax_wave.set_xlim(0, self.audio_data.size(-1)/self.audio_fs)
-        ax_wave.tick_params(
-            which='both', axis='both',
-            top=True, labeltop=True, bottom=False, labelbottom=False,
-            left=False, labelleft=False, right=False, labelright=False,
-        )
-        ax_wave.set_xlabel(''); ax_wave.set_ylabel('')
+            ax_wave.set_xlim(0, self.audio_data.size(-1)/self.audio_fs)
+            ax_wave.tick_params(
+                which='both', axis='both',
+                top=True, labeltop=True, bottom=False, labelbottom=False,
+                left=False, labelleft=False, right=False, labelright=False,
+            )
+            ax_wave.set_xlabel(''); ax_wave.set_ylabel('')
 
-        ax_spec.tick_params(
-            which='both', axis='both',
-            top=False, labeltop=False, bottom=False, labelbottom=False,
-            left=False, labelleft=False, right=False, labelright=False,
-        )
-        ax_spec.set_xlabel(''); ax_spec.set_ylabel('')
+            ax_spec.tick_params(
+                which='both', axis='both',
+                top=False, labeltop=False, bottom=False, labelbottom=False,
+                left=False, labelleft=False, right=False, labelright=False,
+            )
+            ax_spec.set_xlabel(''); ax_spec.set_ylabel('')
 
-        fig.patch.set_alpha(0)
-        _ = [ax.patch.set_alpha(0) for ax in axes]
-        fig.subplots_adjust(left=0, right=1, bottom=0.1, top=0.9, wspace=0, hspace=0)
+            fig.patch.set_alpha(0)
+            _ = [ax.patch.set_alpha(0) for ax in axes]
+            fig.subplots_adjust(left=0, right=1, bottom=0.1, top=0.9, wspace=0, hspace=0)
 
-        plot_widget = FigureCanvasKivyAgg(fig)
+            self.figure = fig
+
+        plot_widget = FigureCanvasKivyAgg(self.figure)
         plot_widget.size_hint = (.9, 1.)
         plot_widget.pos_hint = {'x': .05, 'y': 0.}
 
         self.add_widget(plot_widget)
-        self.figure = fig
 
     def set_others(self):
         self.sound = SoundLoader.load(self.audio_path)
@@ -504,18 +489,11 @@ class AudioMiniplot(FloatLayout):
             on_press=play_button_clicked
         )
 
-        checkbox_widget = MDCheckbox()
-        checkbox_widget.selected_color = checkbox_widget.unselected_color = colors['Orange']['200']
-        checkbox_widget.pos_hint = {'x': .0, 'y': .6}
-        checkbox_widget.size_hint = (.25, None)
-
         progressbar_widget = MDProgressBar(value=0)
         progressbar_widget.pos_hint = {'x': .05, 'y': .05}
         progressbar_widget.size_hint = (.9, .01)
 
         self.add_widget(play_widget)
-        self.add_widget(checkbox_widget)
         self.add_widget(progressbar_widget)
 
-        self.checkbox = checkbox_widget
         self.progressbar = progressbar_widget

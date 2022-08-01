@@ -98,17 +98,17 @@
         orientation: 'horizontal'
         size: root.size
 
-        MDGridLayout:
-            id: grid_seps
+        MDStackLayout:
+            id: stack_sep
+            orientation: 'lr-tb'
             size_hint_x: 2
-            rows: 3
-            cols: 3
             md_bg_color: 1, 1, 1, .8
 
         Button:
             size_hint_x: 1
             text: 'select'
             on_press:
+                print(stack_sep.size, self.size, root.size)
                 root.select()
                 root.root_tab.ids.screen_manager.current = 'analysis'
 
@@ -117,5 +117,15 @@
         orientation: 'vertical'
         size: root.size
 
+        ScrollView:
+            do_scroll_y: False
+
+            MDBoxLayout:
+                id: box_ana
+                orientation: 'horizontal'
+                size_hint_y: 1
+                adaptive_width: True
+                md_bg_color: 1, 1, 1, .8
+
         Button:
-            text: 'analysis'
+            size_hint_y: 2
