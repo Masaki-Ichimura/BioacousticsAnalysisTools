@@ -1,7 +1,6 @@
 import torch
 import torchaudio
 from itertools import combinations
-from scipy.signal import find_peaks
 
 from kivy.app import App
 from kivy.lang import Builder
@@ -15,6 +14,7 @@ from app.kivy_utils import TorchTensorProperty
 from utils.audio.bss.auxiva import AuxIVA
 from utils.audio.bss.fastmnmf import FastMNMF
 from utils.audio.bss.ilrma import ILRMA
+from utils.audio.analysis.frog import check_synchronization
 
 Builder.load_file(__file__[:-3]+'.kv')
 
@@ -116,45 +116,17 @@ class FrogAnalysis(MDScreen):
             if ana_data.size(0) > 1:
                 combs = combinations(range(ana_data.size(0)), 2)
 
-                # 後で関数化すること
                 for comb in combs:
                     A_idx, B_idx = comb
-                    At_abs, Bt_abs = ana_data[A_idx].abs(), ana_data[B_idx].abs()
+                    At, Bt = ana_data[A_idx], ana_data[B_idx]
 
-                    A_peaks, _ = find_peaks(At_abs, distance=ana_fs*150//1000)
-                    A_peaks = torch.from_numpy(A_peaks[At_abs[A_peaks]>At_abs[A_peaks].max()*.25])
+                    res = check_synchronization(At, Bt, ana_fs)
+                    peaks_dict = res.pop('peaks')
+                    A_peaks, B_peaks = peaks_dict['A'], peaks_dict['B']
 
-                    B_peaks, _ = find_peaks(Bt_abs, distance=ana_fs*150//1000)
-                    B_peaks = torch.from_numpy(B_peaks[Bt_abs[B_peaks]>Bt_abs[B_peaks].max()*.25])
+                    print(comb, res)
 
-                    phis = []
-                    for i, A_t2 in enumerate(A_peaks[1:]):
-                        A_t1 = A_peaks[i]
-                        B_tx = B_peaks[torch.logical_and(A_t1<B_peaks, B_peaks<A_t2)]
-
-                        if B_tx.numel() == 1:
-                            B_t1 = B_tx
-                            phi = 2*torch.pi*(B_t1-A_t1)/(A_t2-A_t1)
-                            phis.append(phi)
-
-                    if phis:
-                        phis = torch.cat(phis)
-
-                        theta0 = torch.tensor(torch.pi)
-                        mean_x, mean_y = phis.cos().mean(), phis.sin().mean()
-                        r = (mean_x.square()+mean_y.square()).sqrt()
-
-                        if mean_x > 0:
-                            mean_p = (mean_y/mean_x).arctan()
-                        else:
-                            mean_p = (mean_y/mean_x).arctan() + torch.pi
-
-                        theta = r * (mean_p-theta0).cos()
-                        V = (2 * phis.size(0))**.5 * theta
-
-                        print(f'{comb}:', f'n={phis.size(0)}', f'V={V}')
-
-                        # fig, ax = plt.subplots()
-                        # ax.hist(phis, bins=8, range=(0, 2*torch.pi))
-                        # ax.set_xticks(torch.arange(0, 2*torch.pi+1e-6, torch.pi/2))
-                        # ax.set_xticklabels(['0', 'π/2', 'π', '3π/2', '2π'])
+                    # fig, ax = plt.subplots()
+                    # ax.hist(phis, bins=8, range=(0, 2*torch.pi))
+                    # ax.set_xticks(torch.arange(0, 2*torch.pi+1e-6, torch.pi/2))
+                    # ax.set_xticklabels(['0', 'π/2', 'π', '3π/2', '2π'])
