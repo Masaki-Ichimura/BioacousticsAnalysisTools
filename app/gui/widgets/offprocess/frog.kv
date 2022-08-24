@@ -121,11 +121,43 @@
             do_scroll_y: False
 
             MDBoxLayout:
-                id: box_ana
+                id: box_signals
                 orientation: 'horizontal'
                 size_hint_y: 1
                 adaptive_width: True
                 md_bg_color: 1, 1, 1, .8
 
-        Button:
+        MDBoxLayout:
             size_hint_y: 2
+            orientation: 'horizontal'
+
+            MDBoxLayout:
+                id: box_hist
+                orientation: 'vertical'
+                padding: dp(20), dp(10)
+                md_bg_color: 1, 1, 1, .8
+
+                MDBoxLayout:
+                    orientation: 'horizontal'
+                    spacing: dp(15)
+                    adaptive_height: True
+
+                    MDIcon:
+                        icon: 'poll'
+                        theme_text_color: 'ContrastParentBackground'
+                        font_size: dp(25)
+
+                    MDLabel:
+                        font_style: 'H5'
+                        theme_text_color: 'ContrastParentBackground'
+                        text: 'ヒストグラム'
+
+
+            ScrollView:
+                do_scroll_x: False
+
+                TreeView:
+                    id: result_treeview
+                    size_hint: 1, None
+                    height: self.minimum_height
+                    root_options: {'text': 'combinations', 'font_size': '15sp'}

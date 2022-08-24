@@ -1,10 +1,15 @@
 import torch
 import torchaudio
+import gc
+import pickle
+import matplotlib.pyplot as plt
 from itertools import combinations
 
 from kivy.app import App
 from kivy.lang import Builder
 from kivy.properties import *
+from kivy.uix.treeview import TreeViewLabel
+from kivy.garden.matplotlib import FigureCanvasKivyAgg
 from kivymd.color_definitions import colors
 from kivymd.uix.screen import MDScreen
 from kivymd.uix.label.label import MDIcon
@@ -14,6 +19,7 @@ from app.gui.widgets.container import Container
 from app.gui.widgets.tab import Tab
 from app.gui.widgets.audiodisplay import AudioMiniplot
 from app.kivy_utils import TorchTensorProperty
+from utils.audio.plot import show_wave
 from utils.audio.bss.auxiva import AuxIVA
 from utils.audio.bss.fastmnmf import FastMNMF
 from utils.audio.bss.ilrma import ILRMA
@@ -21,7 +27,6 @@ from utils.audio.analysis.frog import check_synchronization
 
 Builder.load_file(__file__[:-3]+'.kv')
 
-from kivy.uix.button import Button
 
 class FrogTab(Tab):
     audio_dict = DictProperty({})
@@ -81,6 +86,7 @@ class FrogSelect(MDScreen):
             dot_idx = -sep_path[::-1].index('.')-1
             ch_path = sep_path[:dot_idx]+'_ch{:02d}'+sep_path[dot_idx:]
 
+            _ = [child.reset() for child in self.ids.stack_sep.children]
             self.ids.stack_sep.clear_widgets()
 
             checkboxes = []
@@ -126,6 +132,13 @@ class FrogAnalysis(MDScreen):
     audio_dict = DictProperty({})
     root_tab = None
 
+    def on_kv_post(self, *args, **kwargs):
+        self.fig_hist = plt.figure()
+        self.treeview_callback = None
+
+        self.fig_hist.patch.set_alpha(0)
+        self.ids.box_hist.add_widget(FigureCanvasKivyAgg(self.fig_hist))
+
     def on_audio_dict(self, instance, value):
         if self.audio_dict:
             ana_datas, ana_fs = self.audio_dict['data'], self.audio_dict['fs']
@@ -136,20 +149,22 @@ class FrogAnalysis(MDScreen):
                 sep_miniplots = self.root_tab.ids.select.ids.stack_sep.children
                 sep_datas = [mp.audio_data for mp in sep_miniplots]
 
-                sct_indices = [
-                    [torch.equal(ana_data, sep_data) for sep_data in sep_datas].index(True)
+                sct_miniplots = [
+                    sep_miniplots[[ana_data.equal(sep_data) for sep_data in sep_datas].index(True)]
                     for ana_data in ana_datas
                 ]
-                sct_miniplots = [sep_miniplots[idx] for idx in sct_indices]
+
                 sct_miniplots = [
                     AudioMiniplot(
-                        data=mp.audio_data, fs=mp.audio_fs, path=mp.audio_path, figure=mp.figure,
+                        data=mp.audio_data, fs=mp.audio_fs, path=mp.audio_path, figure=plt.figure(),
                         size=mp.size, size_hint=(None, None)
                     )
                     for mp in sct_miniplots
                 ]
 
-                self.ids.box_ana.clear_widgets()
+                _ = [child.reset() for child in self.ids.box_signals.children]
+                self.ids.box_signals.clear_widgets()
+
                 for i, mp in enumerate(sct_miniplots):
                     i_widget = MDIcon(
                         icon=f'numeric-{i}-box',
@@ -158,28 +173,94 @@ class FrogAnalysis(MDScreen):
                     i_widget.pos_hint = {'x': .05, 'y': .1}
                     i_widget.size_hint = (.25, None)
                     mp.add_widget(i_widget)
-                    self.ids.box_ana.add_widget(mp)
+                    self.ids.box_signals.add_widget(mp)
 
-                peaks_tmp = {}
+                peaks_tmp, results = {}, {}
                 for comb in combs:
                     A_idx, B_idx = comb
-                    At, Bt = ana_datas[A_idx], ana_datas[B_idx]
+                    At = self.ids.box_signals.children[A_idx].audio_data
+                    Bt = self.ids.box_signals.children[B_idx].audio_data
 
-                    res = check_synchronization(At, Bt, ana_fs)
-                    peaks_dict = res.pop('peaks')
+                    result = check_synchronization(At, Bt, ana_fs)
+                    peaks_dict = result.pop('peaks')
+
+                    results[str(comb)] = result
 
                     if A_idx not in peaks_tmp:
                         peaks_tmp[A_idx] = peaks_dict['A']
                     if B_idx not in peaks_tmp:
                         peaks_tmp[B_idx] = peaks_dict['B']
 
-                    print(comb, res)
+                result_treeview = self.ids.result_treeview
+
+                _ = [
+                    result_treeview.remove_node(node)
+                    for node in list(result_treeview.iterate_all_nodes())
+                ]
+
+                for label, result in sorted(results.items(), key=lambda x: x[1]['n'], reverse=True):
+                    result_node = result_treeview.add_node(TreeViewLabel(text=label))
+                    _ = [
+                        result_treeview.add_node(
+                            TreeViewLabel(text=f'{k}: {result[k]}'), parent=result_node
+                        )
+                        for k in ['n', 'V']
+                    ]
+
+
+                def on_selected_node(instance, value):
+                    if value.text in results:
+                        result = results[value.text]
+
+                        fig_hist = self.fig_hist
+                        fig_hist.clear()
+                        ax_hist = fig_hist.add_subplot()
+
+                        ax_hist.hist(result['phis'], bins=8, range=(0, 2*torch.pi))
+                        ax_hist.set_xticks(torch.arange(0, 2*torch.pi+1e-6, torch.pi/2))
+                        ax_hist.set_xticklabels(['0', 'π/2', 'π', '3π/2', '2π'])
+
+                        ax_hist.patch.set_alpha(0)
+
+                        fig_hist.canvas.draw()
+
+                if self.treeview_callback is not None:
+                    result_treeview.unbind(selected_node=self.treeview_callback)
+
+                self.treeview_callback = on_selected_node
+                self.ids.result_treeview.bind(selected_node=self.treeview_callback)
+
+                _ = [
+                    result_treeview.select_node(node)
+                    for i, node in enumerate(self.ids.result_treeview.iterate_all_nodes())
+                    if i == 1
+                ]
 
                 for idx, peaks in peaks_tmp.items():
-                    audio_miniplot = self.ids.box_ana.children[idx]
-                    audio_data = audio_miniplot.audio_data.squeeze()
-                    ax_wave = audio_miniplot.figure.axes[0]
-                    ax_wave.plot(peaks, audio_data[peaks], marker='x', color='g', linewidth=0)
+                    audio_miniplot = self.ids.box_signals.children[idx]
+                    audio_data, audio_fs = audio_miniplot.audio_data, ana_fs
+
+                    fig_wave, ax_wave = audio_miniplot.figure, audio_miniplot.figure.add_subplot()
+
+                    show_wave(audio_data, audio_fs, ax=ax_wave, color='b')
+                    ax_wave.plot(
+                        peaks/audio_fs, audio_data[peaks], marker='x', color='yellow', linewidth=0
+                    )
+
+                    ax_wave.set_xlim(0, audio_data.size(-1)/audio_fs)
+                    ax_wave.tick_params(
+                        which='both', axis='both',
+                        top=True, labeltop=True, bottom=False, labelbottom=False,
+                        left=False, labelleft=False, right=False, labelright=False,
+                    )
+                    ax_wave.set_xlabel(''); ax_wave.set_ylabel('')
+                    ax_wave.patch.set_alpha(0)
+
+                    fig_wave.subplots_adjust(left=0, right=1, bottom=0.1, top=0.9, wspace=0, hspace=0)
+                    fig_wave.patch.set_alpha(0)
+
+                    fig_wave.canvas.draw()
+
 
 
                     # fig, ax = plt.subplots()

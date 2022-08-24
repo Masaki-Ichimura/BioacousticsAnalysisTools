@@ -1,5 +1,6 @@
 import torch
 import torchaudio
+import gc
 import matplotlib.pyplot as plt
 
 from kivy.lang import Builder
@@ -45,11 +46,14 @@ class AudioTimeline(Container):
                 sound_length = self.sound.length
                 fig_width = instance.width
 
-                self.audio_pos = max(
-                    0, min(event.pos[0], fig_width)/fig_width*sound_length
-                )
+                self.audio_pos = max(0, min(event.pos[0], fig_width)/fig_width*sound_length)
 
         self.ids.box_tl.bind(on_touch_up=touch_up_timeline)
+
+        fig_wave, ax_wave = plt.subplots()
+        fig_spec, ax_spec = plt.subplots()
+        self.fig_wave, self.fig_spec = fig_wave, fig_spec
+        self.fig_t, self.fig_y, self.fig_f = [plt.figure() for _ in range(3)]
 
     def on_audio_dict(self, instance, value):
         if value:
@@ -71,6 +75,7 @@ class AudioTimeline(Container):
             self.ids.box_tl.clear_widgets()
             self.ids.box_yaxis.clear_widgets()
             self.ids.box_tl.add_widget(seekbar)
+
             return None
 
     def on_audio_data_org(self, instance, value):
@@ -105,23 +110,20 @@ class AudioTimeline(Container):
             else:
                 audio_toolbar.ids.ch.text = f'{audio_dict["ch"]:02d}ch'
 
-
     def on_audio_data(self, instance, value):
         audio_data, audio_fs = self.audio_data, self.audio_fs
         audio_path, audio_cache = self.audio_dict['path'], self.audio_dict['cache']
         if not audio_path:
             audio_path = audio_cache
-            torchaudio.save(
-                filepath=audio_path, src=audio_data, sample_rate=audio_fs
-            )
+            torchaudio.save(filepath=audio_path, src=audio_data, sample_rate=audio_fs)
 
         self.init_timeline()
 
         t_unit = self.timeline_t_unit
-        t_start, t_end = 0, int((audio_data.size(-1)/audio_fs)/t_unit)*t_unit
+        t_start, t_end = 0, int(audio_data.size(-1)/(audio_fs*t_unit))*t_unit
         t_ticks = torch.arange(t_start, t_end+t_unit*.1, t_unit)
 
-        fig_wave, ax_wave = plt.subplots()
+        fig_wave, ax_wave = self.fig_wave, self.fig_wave.add_subplot()
         show_wave(audio_data, audio_fs, ax=ax_wave, color='b')
         ax_wave.set_xticks(t_ticks)
         ax_wave.set_xlim(0, audio_data.shape[-1]/audio_fs)
@@ -129,17 +131,18 @@ class AudioTimeline(Container):
         ax_wave.patch.set_alpha(0); fig_wave.patch.set_alpha(0)
         fig_wave.subplots_adjust(left=0, right=1, bottom=0, top=1, wspace=0, hspace=0)
 
-        fig_spec, ax_spec = plt.subplots()
+        fig_spec, ax_spec = self.fig_spec, self.fig_spec.add_subplot()
         show_spec(audio_data, audio_fs, n_fft=2048, ax=ax_spec)
-        ax_spec.axis('off')
-        # _ = [ax_wave.spines[w].set_linewidth(2) for w in ['top', 'bottom', 'left', 'right']]
+        # ax_spec.axis('off')
+        _ = [ax_wave.spines[w].set_linewidth(2) for w in ['top', 'bottom', 'left', 'right']]
         fig_spec.patch.set_alpha(fig_wave.patch.get_alpha())
         fig_spec.subplots_adjust(left=0, right=1, bottom=0, top=1, wspace=0, hspace=0)
 
-        self.fig_wave, self.fig_spec = fig_wave, fig_spec
+        self.update_wave_ticks()
+        self.update_spec_ticks()
 
-        wave_widget = FigureCanvasKivyAgg(self.fig_wave)
-        spec_widget = FigureCanvasKivyAgg(self.fig_spec)
+        wave_widget = FigureCanvasKivyAgg(fig_wave)
+        spec_widget = FigureCanvasKivyAgg(fig_spec)
         dummy_widget = Widget()
 
         dummy_widget.height = '35sp'
@@ -179,37 +182,38 @@ class AudioTimeline(Container):
         audio_toolbar.ids.volume.bind(value=on_value)
 
         self.on_audio_pos(None, None)
+        gc.collect()
 
-    def on_fig_wave(self, instance, value):
+    def update_wave_ticks(self):
         audio_data, audio_fs = self.audio_data, self.audio_fs
         ax_wave = self.fig_wave.axes[0]
 
-        fig_t, ax_t = plt.subplots()
+        fig_t = self.fig_t
+        fig_t.clear()
+        ax_t = fig_t.add_subplot(sharex=ax_wave)
         ax_t.set_yticks([])
         ax_t.set_xlim(ax_wave.get_xlim())
-        ax_t.set_xticks(ax_wave.get_xticks())
         ax_t.minorticks_on()
-        ax_t.tick_params(which='both', axis='both', reset=True)
-        ax_t.tick_params(
-            which='both', axis='y',
-            left=False, labelleft=False, right=False, labelright=False
-        )
+        #ax_t.tick_params(which='both', axis='both', reset=True)
         ax_t.tick_params(
             which='both', axis='x', labelsize=15, length=10,
             top=True, labeltop=True, bottom=False, labelbottom=False,
         )
+        ax_t.tick_params(
+            which='both', axis='y', left=False, labelleft=False, right=False, labelright=False
+        )
         ax_t.tick_params(which='minor', axis='x', length=5)
         ax_t.xaxis.set_major_formatter(ax_wave.xaxis.get_major_formatter())
         ax_t.patch.set_alpha(0)
-        ax_t.spines['bottom'].set_visible(False)
-        ax_t.spines['left'].set_visible(False)
-        ax_t.spines['right'].set_visible(False)
+        _ = [ax_t.spines[d].set_visible(False) for d in ['bottom', 'left', 'right']]
         fig_t.patch.set_alpha(self.fig_wave.patch.get_alpha())
         fig_t.subplots_adjust(left=0, right=1, bottom=0, top=.3, wspace=0, hspace=0)
 
-        fig_y = plt.figure()
+        fig_y = self.fig_y
+        fig_y.clear()
         ax_y = fig_y.add_subplot(sharey=ax_wave)
-        ax_y.tick_params(which='both', axis='both', reset=True)
+        ax_y.set_xticks([])
+        #ax_y.tick_params(which='both', axis='both', reset=True)
         ax_y.tick_params(
             which='both', axis='x',
             top=False, labeltop=False, bottom=False, labelbottom=False
@@ -219,22 +223,19 @@ class AudioTimeline(Container):
             left=True, labelleft=True, right=False, labelright=False
         )
         ax_y.tick_params(which='minor', axis='y', left=False, right=False)
-        ax_y.spines['top'].set_visible(False)
-        ax_y.spines['bottom'].set_visible(False)
-        ax_y.spines['right'].set_visible(False)
+        _ = [ax_y.spines[d].set_visible(False) for d in ['top', 'bottom', 'right']]
         ax_y.patch.set_alpha(0)
         fig_y.patch.set_alpha(self.fig_wave.patch.get_alpha())
         fig_y.subplots_adjust(left=.85, right=1, bottom=0, top=1, wspace=0, hspace=0)
 
-        self.fig_t, self.fig_y = fig_t, fig_y
-
-    def on_fig_spec(self, instance, value):
+    def update_spec_ticks(self):
         ax_spec = self.fig_spec.axes[0]
 
-        fig_f = plt.figure()
+        fig_f = self.fig_f
+        fig_f.clear()
         ax_f = fig_f.add_subplot(sharey=ax_spec)
         ax_f.set_xticks([])
-        ax_f.tick_params(which='both', axis='both', reset=True)
+        #ax_f.tick_params(which='both', axis='both', reset=True)
         ax_f.tick_params(
             which='both', axis='x',
             top=False, labeltop=False, bottom=False, labelbottom=False,
@@ -245,18 +246,14 @@ class AudioTimeline(Container):
         )
         ax_f.tick_params(which='minor', axis='y', left=False, right=False)
         ax_f.patch.set_alpha(0)
-        ax_f.spines['top'].set_visible(False)
-        ax_f.spines['bottom'].set_visible(False)
-        ax_f.spines['right'].set_visible(False)
+        _ = [ax_f.spines[d].set_visible(False) for d in ['top', 'bottom', 'right']]
         fig_f.patch.set_alpha(self.fig_spec.patch.get_alpha())
         fig_f.subplots_adjust(left=.85, right=1, bottom=0, top=1, wspace=0, hspace=0)
-
-        self.fig_f = fig_f
 
     def on_timeline_t_unit(self, instance, value):
         try:
             ax_t = self.fig_t.axes[0]
-        except AttributeError:
+        except IndexError:
             return None
 
         t_unit = self.timeline_t_unit
@@ -278,11 +275,16 @@ class AudioTimeline(Container):
         for child in self.ids.box_tl.children:
             child.width = self.timeline_width
 
+    def on_audio_pos(self, instance, value):
+        seekbar = self.ids.seekbar
+        bar = seekbar.canvas.children[-1]
+        bar.pos = (self.ids.box_tl.width*(self.audio_pos/self.sound.length), bar.pos[1])
+
     def init_timeline(self):
-        if self.fig_wave is not None:
-            plt.close(self.fig_wave)
-        if self.fig_spec is not None:
-            plt.close(self.fig_spec)
+        _ = [fig.clear() for fig in [self.fig_wave, self.fig_spec]]
+
+        if self.sound is not None:
+            self.sound.unload()
 
         scrollview_width = self.ids.box_yaxis.parent.width
         audio_s = self.audio_data.size(-1)/self.audio_fs
@@ -291,18 +293,12 @@ class AudioTimeline(Container):
 
         maximum_unit_num = scrollview_width // width_per_unit
 
-        t_unit = 2**int(audio_s**(1/2))
+        t_unit = 2**int(audio_s**.5)
         while t_unit/2*maximum_unit_num > audio_s:
             t_unit *= 1/2
 
         self.timeline_t_unit = t_unit
         self.timeline_width = (audio_s*width_per_unit) // t_unit
-
-    def on_audio_pos(self, instance, value):
-        seekbar = self.ids.seekbar
-        bar = seekbar.canvas.children[-1]
-        fig_width = self.ids.box_tl.width
-        bar.pos = (fig_width*(self.audio_pos/self.sound.length), bar.pos[1])
 
 class AudioToolbar(Container):
     check_pos = None
@@ -412,7 +408,6 @@ class AudioMiniplot(FloatLayout):
 
         super().__init__(*args, **kwargs)
 
-        self.sound = None
         self.dt_sum = 0
 
         self.set_audio()
@@ -497,3 +492,8 @@ class AudioMiniplot(FloatLayout):
         self.add_widget(progressbar_widget)
 
         self.progressbar = progressbar_widget
+
+    # メモリリーク対策に clear_widgets 等の前に実行すること
+    def reset(self):
+        self.sound.unload()
+        plt.close(self.figure)
