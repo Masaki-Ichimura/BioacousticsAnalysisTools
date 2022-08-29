@@ -18,7 +18,7 @@ Builder.load_file(__file__[:-3]+'.kv')
 
 class OffprocessSidebar(Sidebar):
     target_audio_dicts = ListProperty([])
-    target_audio_tags = ObjectProperty(set())
+    target_audio_labels = ObjectProperty(set())
 
     def on_kv_post(self, *args, **kwargs):
         self.offprocess_container = self.parent.parent
@@ -32,25 +32,25 @@ class OffprocessSidebar(Sidebar):
         ]
 
     def on_target_audio_dicts(self, instance, value):
-        audio_tags = set([ad['tag'] for ad in self.target_audio_dicts])
-        if self.target_audio_tags != audio_tags:
-            self.target_audio_tags = audio_tags
+        audio_labels = set([ad['label'] for ad in self.target_audio_dicts])
+        if self.target_audio_labels != audio_labels:
+            self.target_audio_labels = audio_labels
 
-    def on_target_audio_tags(self, instance, value):
+    def on_target_audio_labels(self, instance, value):
         audio_treeview = self.ids.target_audio_treeview
         audio_dicts = self.target_audio_dicts
 
         self.clear_treeview()
 
         for ad in audio_dicts:
-            audio_tag, audio_data, audio_fs = ad['tag'], ad['data'], ad['fs']
+            audio_label, audio_data, audio_fs = ad['label'], ad['data'], ad['fs']
             metadata = {
                 '再生時間': datetime.timedelta(seconds=audio_data.size(-1)//audio_fs),
                 'オーディオチャンネル': audio_data.size(0),
                 'サンプルレート': audio_fs
             }
 
-            audio_node = audio_treeview.add_node(AudioTreeViewLabel(text=audio_tag))
+            audio_node = audio_treeview.add_node(AudioTreeViewLabel(text=audio_label))
             _ = [
                 audio_treeview.add_node(
                     AudioTreeViewLabel(text=f'{k}: {v}'), parent=audio_node
@@ -62,9 +62,9 @@ class OffprocessSidebar(Sidebar):
         selected_node = self.ids.target_audio_treeview.selected_node
 
         if selected_node:
-            target_tags = [ad['tag'] for ad in self.target_audio_dicts]
-            if selected_node.text in target_tags:
-                idx = target_tags.index(selected_node.text)
+            target_labels = [ad['label'] for ad in self.target_audio_dicts]
+            if selected_node.text in target_labels:
+                idx = target_labels.index(selected_node.text)
                 audio_dict = self.target_audio_dicts[idx]
 
                 working_container = self.offprocess_container.ids.working_container

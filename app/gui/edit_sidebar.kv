@@ -37,7 +37,7 @@
                 size_hint_y: None
                 height: select.height-choosed_bar.height-5
 
-                FileTreeView:
+                ScrollableTreeView:
                     id: choosed_audio_treeview
                     root_options: {'text': 'choosed audio data', 'font_size': '15sp'}
 
@@ -67,7 +67,7 @@
             ScrollView:
                 do_scroll_x: False
 
-                FileTreeView:
+                ScrollableTreeView:
                     id: target_audio_treeview
                     root_options: {'text': 'target audio data', 'font_size': '15sp'}
 

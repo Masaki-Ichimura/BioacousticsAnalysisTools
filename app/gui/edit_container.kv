@@ -53,36 +53,36 @@
         size: root.size
         pos: root.pos
 
-        BoxLayout:
-            orientation: 'vertical'
-            # (25/75)*(95/100)
-            size_hint_x: 19/60
+        # BoxLayout:
+        #     orientation: 'vertical'
+        #     # (25/75)*(95/100)
+        #     size_hint_x: 19/60
+        #
+        #     MDBoxLayout:
+        #         id: choosed_bar
+        #         orientation: 'horizontal'
+        #         padding: 10
+        #         adaptive_height: True
+        #
+        #         PreprocessedIconButton:
+        #             icon: 'circle-outline'
+        #
+        #     HSeparator:
+        #         rgba: 0.5, 0.5, 0.5, 1
+        #
+        #     ScrollView:
+        #         do_scroll_x: False
+        #
+        #         ScrollableTreeView:
+        #             id: audio_treeview
+        #             root_options: {'text': 'preprocessed audio data', 'font_size': '15sp'}
 
-            MDBoxLayout:
-                id: choosed_bar
-                orientation: 'horizontal'
-                padding: 10
-                adaptive_height: True
-
-                PreprocessedIconButton:
-                    icon: 'circle-outline'
-
-            HSeparator:
-                rgba: 0.5, 0.5, 0.5, 1
-
-            ScrollView:
-                do_scroll_x: False
-
-                FileTreeView:
-                    id: audio_treeview
-                    root_options: {'text': 'preprocessed audio data', 'font_size': '15sp'}
-
-        VSeparator:
+        # VSeparator:
 
         MDTabs:
             tab_bar_height: 1.04*root.parent.parent.parent.parent.ids.sidebar.ids.choosed_bar.height
             background_color: (1, 1, 1, .2)
-            size_hint_x: 41/60
+            # size_hint_x: 41/60
 
             PreprocessedTab:
                 id: preprocessed

@@ -7,6 +7,30 @@
         pos: root.pos
         size: root.size
 
+        BoxLayout:
+            orientation: 'vertical'
+            # (25/75)*(95/100)
+            size_hint_x: 19/60
+
+            MDBoxLayout:
+                id: preprocessed_bar
+                orientation: 'horizontal'
+                padding: 10
+                adaptive_height: True
+
+                PreprocessedIconButton:
+                    icon: 'circle-outline'
+
+            HSeparator:
+                rgba: 0.5, 0.5, 0.5, 1
+
+            ScrollView:
+                do_scroll_x: False
+
+                ScrollableTreeView:
+                    id: audio_treeview
+                    root_options: {'text': 'preprocessed audio data', 'font_size': '15sp'}
+
         VSeparator:
 
         Button:

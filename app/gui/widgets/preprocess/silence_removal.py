@@ -24,15 +24,16 @@ class SilenceRemovalTab(Tab):
         self.ids.screen_manager.current = 'svm_thr'
 
     def on_audio_dict(self, instance, value):
-        self.audio_data_org = value['data']
-        self.nonsilent_sections = self.prob_dict = None
+        if value:
+            self.audio_data_org = value['data']
+            self.nonsilent_sections = self.prob_dict = None
 
     def on_audio_data_org(self, instance, value):
-        tag = self.audio_dict['tag']
-        if '.' in tag:
-            tag = tag[:-tag[::-1].index('.')-1]
+        label = self.audio_dict['label']
+        if '.' in label:
+            label = label[:-label[::-1].index('.')-1]
 
-        self.ids.tag.text = tag
+        self.ids.label.text = label
 
     def get_freq_args(self):
         if self.ids.limit_freq.active:
@@ -138,7 +139,6 @@ class SilenceRemovalTab(Tab):
 
             nonsilent_sections, prob_dict = func(ynt, audio_fs, **func_args)
             self.nonsilent_sections, self.prob_dict = nonsilent_sections, prob_dict
-            print(nonsilent_sections)
 
             ax_wave = audio_timeline.fig_wave.axes[0]
 
@@ -194,11 +194,11 @@ class SilenceRemovalTab(Tab):
             cache_dir = app.tmp_dir
             extracted_dicts = []
             for section in nonsilent_sections:
-                audio_tag = f'{self.ids.tag.text}_{section[0]}-{section[1]}'
-                audio_cache = f'{cache_dir.name}/tmp_{audio_tag}.wav'
+                audio_label = f'{self.ids.label.text}_{section[0]}-{section[1]}'
+                audio_cache = f'{cache_dir.name}/tmp_{audio_label}.wav'
 
                 extracted_dicts.append(dict(
-                    tag=audio_tag, path='', cache=audio_cache,
+                    label=audio_label, path='', cache=audio_cache,
                     data=extract_from_section(audio_data, audio_fs, section),
                     fs=audio_fs, ch=-1
                 ))

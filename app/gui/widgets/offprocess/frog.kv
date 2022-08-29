@@ -126,8 +126,8 @@
 
                     MDStackLayout:
                         orientation: 'tb-lr'
-                        padding: [30, 0, 30, 0]
-                        spacing: 40
+                        padding: [dp(15), 0, dp(15), 0]
+                        spacing: dp(20)
 
                         FrogSeparateOptionTextField:
                             id: ilrma_n_src
@@ -152,8 +152,8 @@
 
                     MDStackLayout:
                         orientation: 'tb-lr'
-                        padding: [30, 0, 30, 0]
-                        spacing: 40
+                        padding: [dp(15), 0, dp(15), 0]
+                        spacing: dp(20)
 
                         FrogSeparateOptionTextField:
                             id: auxiva_n_src
@@ -172,8 +172,8 @@
 
                     MDStackLayout:
                         orientation: 'tb-lr'
-                        padding: [30, 0, 30, 0]
-                        spacing: 40
+                        padding: [dp(15), 0, dp(15), 0]
+                        spacing: dp(20)
 
                         FrogSeparateOptionTextField:
                             id: fastmnmf_n_src
@@ -259,12 +259,9 @@
                         theme_text_color: 'ContrastParentBackground'
                         text: 'ヒストグラム'
 
-
             ScrollView:
                 do_scroll_x: False
 
-                TreeView:
+                ScrollableTreeView:
                     id: result_treeview
-                    size_hint: 1, None
-                    height: self.minimum_height
                     root_options: {'text': 'combinations', 'font_size': '15sp'}

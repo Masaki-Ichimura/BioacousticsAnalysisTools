@@ -16,15 +16,15 @@ from kivymd.uix.label.label import MDIcon
 from kivymd.uix.selectioncontrol.selectioncontrol import MDCheckbox
 from kivymd.uix.segmentedcontrol.segmentedcontrol import MDSegmentedControlItem
 
+from app.kivy_utils import TorchTensorProperty
 from app.gui.widgets.container import Container
 from app.gui.widgets.tab import Tab
 from app.gui.widgets.audiodisplay import AudioMiniplot
-from app.kivy_utils import TorchTensorProperty
-from utils.audio.plot import show_wave
+from utils.audio.analysis.frog import check_synchronization
 from utils.audio.bss.auxiva import AuxIVA
 from utils.audio.bss.fastmnmf import FastMNMF
 from utils.audio.bss.ilrma import ILRMA
-from utils.audio.analysis.frog import check_synchronization
+from utils.audio.plot import show_wave
 
 Builder.load_file(__file__[:-3]+'.kv')
 
@@ -131,10 +131,10 @@ class FrogSeparate(MDScreen):
 
             sep_data = sep_fn(self.audio_dict['data'])
             sep_fs = self.audio_dict['fs']
-            sep_tag = f'separate_{self.mode}_{self.audio_dict["tag"]}'
-            sep_cache = f'{cache_dir.name}/{sep_tag}.wav'
+            sep_label = f'separate_{self.mode}_{self.audio_dict["label"]}'
+            sep_cache = f'{cache_dir.name}/{sep_label}.wav'
             sep_dict = dict(
-                tag=sep_tag, path=None, cache=sep_cache, data=sep_data, fs=sep_fs, ch=-1
+                label=sep_label, path=None, cache=sep_cache, data=sep_data, fs=sep_fs, ch=-1
             )
 
             self.root_tab.ids.select.audio_dict = sep_dict
@@ -183,12 +183,12 @@ class FrogSelect(MDScreen):
             app = App.get_running_app()
             cache_dir = app.tmp_dir
 
-            sct_tag = f'select_{self.audio_dict["tag"]}'
+            sct_label = f'select_{self.audio_dict["label"]}'
             sct_data, sct_fs = self.audio_dict['data'][indices], self.audio_dict['fs']
-            sct_cache = f'{cache_dir.name}/{sct_tag}.wav'
+            sct_cache = f'{cache_dir.name}/{sct_label}.wav'
 
             sct_dict = dict(
-                tag=sct_tag, path=None, cache=sct_cache, data=sct_data, fs=sct_fs, ch=-1
+                label=sct_label, path=None, cache=sct_cache, data=sct_data, fs=sct_fs, ch=-1
             )
 
             self.root_tab.ids.analysis.audio_dict = sct_dict
@@ -282,7 +282,7 @@ class FrogAnalysis(MDScreen):
 
                         ax_hist.hist(result['phis'], bins=8, range=(0, 2*torch.pi))
                         ax_hist.set_xticks(torch.arange(0, 2*torch.pi+1e-6, torch.pi/2))
-                        ax_hist.set_xticklabels(['0', 'π/2', 'π', '3π/2', '2π'])
+                        ax_hist.set_xticklabels([r'$0$', r'$\pi/2$', r'$\pi$', r'$3\pi/2$', r'$2\pi$'])
 
                         ax_hist.patch.set_alpha(0)
 
