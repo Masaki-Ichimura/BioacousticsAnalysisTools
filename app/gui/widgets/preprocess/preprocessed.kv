@@ -1,3 +1,6 @@
+<PreprocessedSidebarIconButton@MDIconButton>:
+    icon_size: '20sp'
+
 <PreprocessedTab>:
     title: ''
     icon: 'format-list-bulleted'
@@ -9,16 +12,15 @@
 
         BoxLayout:
             orientation: 'vertical'
-            # (25/75)*(95/100)
             size_hint_x: 19/60
 
             MDBoxLayout:
                 id: preprocessed_bar
                 orientation: 'horizontal'
-                padding: 10
+                padding: dp(5)
                 adaptive_height: True
 
-                PreprocessedIconButton:
+                PreprocessedSidebarIconButton:
                     icon: 'circle-outline'
 
             HSeparator:

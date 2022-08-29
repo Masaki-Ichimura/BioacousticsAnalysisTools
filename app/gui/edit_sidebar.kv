@@ -1,6 +1,8 @@
-<SidebarIconButton@MDIconButton>:
-    user_font_size: '20sp'
+<EditSidebarIconButton@MDIconButton>:
+    icon_size: '20sp'
 
+<EditSidebarButton@Button>:
+    font_size: '15sp'
 
 <EditSidebar>:
     BoxLayout:
@@ -9,82 +11,96 @@
 
         BoxLayout:
             orientation: 'vertical'
-            size_hint_x: 95
+            size_hint_x: 19
 
-            MDBoxLayout:
-                id: choosed_bar
-                orientation: 'horizontal'
-                padding: 10
-                adaptive_height: True
+            BoxLayout:
+                orientation: 'vertical'
+                size_hint_y: 2
 
-                SidebarIconButton:
-                    icon: 'file-plus-outline'
-                    on_press: root.choose_button_clicked()
+                MDBoxLayout:
+                    id: choosed_bar
+                    orientation: 'horizontal'
+                    padding: dp(5)
+                    adaptive_height: True
 
-                SidebarIconButton:
-                    icon: 'file-remove-outline'
-                    on_press: root.remove_button_clicked(mode='choosed')
+                    EditSidebarIconButton:
+                        icon: 'file-plus-outline'
+                        on_press: root.choose_button_clicked()
 
-                SidebarIconButton:
-                    icon: 'delete-forever-outline'
-                    on_press: root.reset_button_clicked(mode='choosed')
+                    EditSidebarIconButton:
+                        icon: 'file-remove-outline'
+                        on_press: root.remove_button_clicked(mode='choosed')
+
+                    EditSidebarIconButton:
+                        icon: 'delete-forever-outline'
+                        on_press: root.reset_button_clicked(mode='choosed')
+
+                HSeparator:
+                    rgba: 0.5, 0.5, 0.5, 1
+
+                ScrollView:
+                    do_scroll_x: False
+
+                    ScrollableTreeView:
+                        id: choosed_audio_treeview
+                        root_options: {'text': 'choosed audio data', 'font_size': '15sp'}
 
             HSeparator:
                 rgba: 0.5, 0.5, 0.5, 1
 
-            ScrollView:
-                do_scroll_x: False
-                size_hint_y: None
-                height: select.height-choosed_bar.height-5
+            BoxLayout:
+                orientation: 'vertical'
+                size_hint_y: 3
 
-                ScrollableTreeView:
-                    id: choosed_audio_treeview
-                    root_options: {'text': 'choosed audio data', 'font_size': '15sp'}
-
-            HSeparator:
-                height: dp(2)
-
-            MDBoxLayout:
-                orientation: 'horizontal'
-                padding: 10
-                adaptive_height: True
-
-                SidebarIconButton:
-                    icon: 'arrow-down-thick'
+                EditSidebarButton:
+                    size_hint_y: None
+                    height: dp(54)
+                    text: '▽'
                     on_press: root.move_button_clicked()
 
-                SidebarIconButton:
-                    icon: 'file-remove-outline'
-                    on_press: root.remove_button_clicked(mode='target')
+                MDBoxLayout:
+                    orientation: 'horizontal'
+                    padding: dp(5)
+                    adaptive_height: True
 
-                SidebarIconButton:
-                    icon: 'delete-forever-outline'
-                    on_press: root.reset_button_clicked(mode='target')
+                    EditSidebarIconButton:
+                        icon: 'file-remove-outline'
+                        on_press: root.remove_button_clicked(mode='target')
 
-            HSeparator:
-                rgba: 0.5, 0.5, 0.5, 1
+                    EditSidebarIconButton:
+                        icon: 'delete-forever-outline'
+                        on_press: root.reset_button_clicked(mode='target')
 
-            ScrollView:
-                do_scroll_x: False
+                HSeparator:
+                    rgba: 0.5, 0.5, 0.5, 1
 
-                ScrollableTreeView:
-                    id: target_audio_treeview
-                    root_options: {'text': 'target audio data', 'font_size': '15sp'}
+                ScrollView:
+                    do_scroll_x: False
+
+                    ScrollableTreeView:
+                        id: target_audio_treeview
+                        root_options: {'text': 'target audio data', 'font_size': '15sp'}
 
         BoxLayout:
             orientation: 'vertical'
-            size_hint_x: 5
+            size_hint_x: 1
 
-            Button:
+            EditSidebarButton:
                 id: select
-                size_hint_y: 40
+                size_hint_y: 2
                 text: '▷'
-                font_size: '15sp'
                 on_press: root.select_button_clicked()
 
-            Button:
-                id: fetch
-                size_hint_y: 60
-                text: '◁'
-                font_size: '15sp'
-                on_press: root.fetch_button_clicked()
+            BoxLayout:
+                orientation: 'vertical'
+                size_hint_y: 3
+
+                Widget:
+                    height: dp(54)
+                    size_hint_y: None
+
+                EditSidebarButton:
+                    id: fetch
+                    size_hint_y: 3
+                    text: '◁'
+                    on_press: root.fetch_button_clicked()

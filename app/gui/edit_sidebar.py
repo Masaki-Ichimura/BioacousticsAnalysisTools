@@ -51,11 +51,17 @@ class EditSidebar(Sidebar):
         self.filechooser_popup.open()
 
     def move_button_clicked(self):
-        target_labels = [ad['label'] for ad in self.target_audio_dicts]
-        add_dicts = [
-            ad for ad in self.choosed_audio_dicts if ad['label'] not in target_labels
-        ]
-        self.target_audio_dicts.extend(add_dicts)
+        audio_dicts = self.choosed_audio_dicts
+        selected_node = self.ids.choosed_audio_treeview.selected_node
+
+        if selected_node:
+            selected_label = selected_node.text
+            audio_labels = [ad['label'] for ad in audio_dicts]
+
+            if selected_label in audio_labels and selected_label not in self.target_audio_labels:
+                add_dicts = [audio_dicts[audio_labels.index(selected_label)]]
+
+                self.target_audio_dicts.extend(add_dicts)
 
     def remove_button_clicked(self, mode):
         if mode == 'choosed':
@@ -68,10 +74,11 @@ class EditSidebar(Sidebar):
         selected_node = audio_treeview.selected_node
 
         if selected_node:
+            selected_label = selected_node.text
             audio_labels = [ad['label'] for ad in audio_dicts]
-            if selected_node.text in audio_labels:
-                idx = audio_labels.index(selected_node.text)
-                audio_dicts.pop(idx)
+
+            if selected_label in audio_labels:
+                audio_dicts.pop(audio_labels.index(selected_label))
 
     def reset_button_clicked(self, mode):
         if mode == 'choosed':
@@ -83,12 +90,15 @@ class EditSidebar(Sidebar):
         self.clear_treeview(mode)
 
     def select_button_clicked(self):
+        audio_dicts = self.choosed_audio_dicts
         selected_node = self.ids.choosed_audio_treeview.selected_node
+
         if selected_node:
-            choosed_labels = [ad['label'] for ad in self.choosed_audio_dicts]
-            if selected_node.text in choosed_labels:
-                idx = choosed_labels.index(selected_node.text)
-                audio_dict = self.choosed_audio_dicts[idx]
+            selected_label = selected_node.text
+            audio_labels = [ad['label'] for ad in audio_dicts]
+
+            if selected_label in audio_labels:
+                audio_dict = audio_dicts[audio_labels.index(selected_label)]
 
                 working_container = self.edit_container.ids.working_container
                 working_container.audio_dict = audio_dict
@@ -100,9 +110,7 @@ class EditSidebar(Sidebar):
         preprocessed_dicts = preprocessed.audio_dicts
 
         target_labels = [ad['label'] for ad in self.target_audio_dicts]
-        add_dicts = [
-            ad for ad in preprocessed_dicts if ad['label'] not in target_labels
-        ]
+        add_dicts = [ad for ad in preprocessed_dicts if ad['label'] not in target_labels]
         self.target_audio_dicts.extend(add_dicts)
 
     def clear_treeview(self, mode):
@@ -118,6 +126,7 @@ class EditSidebar(Sidebar):
 
     def on_target_audio_dicts(self, instance, value):
         audio_labels = set([ad['label'] for ad in self.target_audio_dicts])
+
         if audio_labels != self.target_audio_labels:
             self.target_audio_labels = audio_labels
 

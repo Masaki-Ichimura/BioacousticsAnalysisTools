@@ -41,7 +41,10 @@
                             size: (5, scroll_tl.height)
 
 <AudioToolbarIconButton@MDIconButton>
-    user_font_size: '20sp'
+    icon_size: '20sp'
+
+<AudioToolbarIcon@MDIconButton>
+    font_size: '20sp'
 
 <AudioToolbar>:
     height: box.minimum_height
@@ -92,13 +95,13 @@
 
         MDBoxLayout:
             orientation: 'horizontal'
-            width: 400
+            width: dp(250)
             size_hint_x: None
 
-            MDIcon:
+            AudioToolbarIcon:
                 icon: 'volume-low'
-                font_size: '16sp'
                 height: volume.height
+                size_hint_y: None
 
             MDSlider:
                 id: volume
@@ -109,8 +112,8 @@
 
             MDIcon:
                 icon: 'volume-high'
-                font_size: '16sp'
                 height: volume.height
+                size_hint_y: None
 
         AudioToolbarIconButton:
             id: close
