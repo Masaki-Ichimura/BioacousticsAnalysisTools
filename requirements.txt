@@ -1,5 +1,5 @@
 # GUI ライブラリ
-https://github.com/kivymd/KivyMD/archive/master.zip # latest kivyMD
+kivymd
 kivy-garden
 japanize-kivy
 

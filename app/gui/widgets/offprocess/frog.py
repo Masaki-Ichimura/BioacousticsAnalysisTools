@@ -14,6 +14,7 @@ from kivymd.color_definitions import colors
 from kivymd.uix.screen import MDScreen
 from kivymd.uix.label.label import MDIcon
 from kivymd.uix.selectioncontrol.selectioncontrol import MDCheckbox
+from kivymd.uix.segmentedcontrol.segmentedcontrol import MDSegmentedControlItem
 
 from app.gui.widgets.container import Container
 from app.gui.widgets.tab import Tab
@@ -44,28 +45,92 @@ class FrogSeparate(MDScreen):
 
     root_tab = None
 
+    def on_kv_post(self, *args, **kwargs):
+
+        def on_current_active_segment(instance, value):
+            if value:
+                self.mode = value.text.lower()
+                self.ids.screen_manager.current = self.mode
+
+        self.ids.mode_control.bind(current_active_segment=on_current_active_segment)
+
+        # これをやってもスイッチの位置が更新されないが，一応残しておく
+        default_segment = [
+            child for child in self.ids.mode_control.ids.segment_panel.children
+            if type(child) is MDSegmentedControlItem and child.text.lower() == self.mode
+        ][0]
+        self.ids.mode_control.on_press_segment(default_segment, default_segment)
+
+        # init コードブロック内のクロックにより width の値が逐次更新されるため，こちらからスイッチの幅を変えるのは不可能
+        # kivyMD側の対応を待つしかない (特に報告はしてないが，コードを見る限り既にバグとして認知されてそうな雰囲気)
+        # 最悪，kivymd.uix.segmentedcontrol.MDSegmentedControl の init を書き換えれば何とかなりそうだが
+        # self.ids.mode_control.ids.segment_switch.width = self.ids.mode_control.ids.segment_panel.children[0].width
+
+    def on_audio_dict(self, instance, value):
+        self.init_separate_args()
+
     def get_func(self):
         app = App.get_running_app()
         config_container = app.links['config_container']
         stft_args = config_container.get_stft_args()
 
-        if self.mode == 'auxiva':
+        if self.mode == 'ilrma':
+            func = ILRMA(**stft_args)
+        elif self.mode == 'auxiva':
             func = AuxIVA(**stft_args)
         elif self.mode == 'fastmnmf':
             func = FastMNMF(**stft_args)
-        elif self.mode == 'ilrma':
-            func = ILRMA(**stft_args)
 
         return func
+
+    def init_separate_args(self):
+        n_src = 1 if not self.audio_dict else self.audio_dict['data'].size(0)
+
+        # ILRMA
+        self.ids.ilrma_n_src.text = str(n_src)
+        self.ids.ilrma_n_iter.text = '30'
+        self.ids.ilrma_n_components.text = '4'
+
+        # AuxIVA
+        self.ids.auxiva_n_src.text = str(n_src)
+        self.ids.auxiva_n_iter.text = '20'
+
+        # FastMNMF
+        self.ids.fastmnmf_n_src.text = str(n_src)
+        self.ids.fastmnmf_n_iter.text = '30'
+        self.ids.fastmnmf_n_components.text = '4'
+
+
+    def get_separate_args(self):
+        if self.mode == 'ilrma':
+            args = dict(
+                n_src=int(self.ids.ilrma_n_src.text),
+                n_iter=int(self.ids.ilrma_n_iter.text),
+                n_components=int(self.ids.ilrma_n_components.text)
+            )
+        elif self.mode == 'auxiva':
+            args = dict(
+                n_src=int(self.ids.auxiva_n_src.text),
+                n_iter=int(self.ids.auxiva_n_iter.text)
+            )
+        elif self.mode == 'fastmnmf':
+            args = dict(
+                n_src=int(self.ids.fastmnmf_n_src.text),
+                n_iter=int(self.ids.fastmnmf_n_iter.text),
+                n_components=int(self.ids.fastmnmf_n_components.text)
+            )
+
+        return args
 
     def separate(self):
         if self.audio_dict:
             app = App.get_running_app()
             cache_dir = app.tmp_dir
 
-            sep_fn = self.get_func()
+            sep_fn = lambda x: self.get_func()(x, **self.get_separate_args())
 
-            sep_data, sep_fs = sep_fn(self.audio_dict['data'], n_iter=30), self.audio_dict['fs']
+            sep_data = sep_fn(self.audio_dict['data'])
+            sep_fs = self.audio_dict['fs']
             sep_tag = f'separate_{self.mode}_{self.audio_dict["tag"]}'
             sep_cache = f'{cache_dir.name}/{sep_tag}.wav'
             sep_dict = dict(
@@ -178,8 +243,8 @@ class FrogAnalysis(MDScreen):
                 peaks_tmp, results = {}, {}
                 for comb in combs:
                     A_idx, B_idx = comb
-                    At = self.ids.box_signals.children[A_idx].audio_data
-                    Bt = self.ids.box_signals.children[B_idx].audio_data
+                    At = self.ids.box_signals.children[-A_idx-1].audio_data
+                    Bt = self.ids.box_signals.children[-B_idx-1].audio_data
 
                     result = check_synchronization(At, Bt, ana_fs)
                     peaks_dict = result.pop('peaks')
@@ -207,7 +272,6 @@ class FrogAnalysis(MDScreen):
                         for k in ['n', 'V']
                     ]
 
-
                 def on_selected_node(instance, value):
                     if value.text in results:
                         result = results[value.text]
@@ -224,23 +288,28 @@ class FrogAnalysis(MDScreen):
 
                         fig_hist.canvas.draw()
 
+                        indices = eval(value.text)
+                        alpha_list = [
+                            .5 if idx in indices else .0
+                            for idx in range(len(self.ids.box_signals.children))
+                        ][::-1]
+                        _ = [
+                            [mp.figure.axes[0].patch.set_alpha(alpha), mp.figure.canvas.draw()]
+                            for alpha, mp in zip(alpha_list, self.ids.box_signals.children)
+                        ]
+
                 if self.treeview_callback is not None:
                     result_treeview.unbind(selected_node=self.treeview_callback)
 
                 self.treeview_callback = on_selected_node
                 self.ids.result_treeview.bind(selected_node=self.treeview_callback)
 
-                _ = [
-                    result_treeview.select_node(node)
-                    for i, node in enumerate(self.ids.result_treeview.iterate_all_nodes())
-                    if i == 1
-                ]
-
                 for idx, peaks in peaks_tmp.items():
-                    audio_miniplot = self.ids.box_signals.children[idx]
+                    audio_miniplot = self.ids.box_signals.children[-idx-1]
                     audio_data, audio_fs = audio_miniplot.audio_data, ana_fs
 
-                    fig_wave, ax_wave = audio_miniplot.figure, audio_miniplot.figure.add_subplot()
+                    fig_wave = audio_miniplot.figure
+                    ax_wave = fig_wave.add_subplot(facecolor='r')
 
                     show_wave(audio_data, audio_fs, ax=ax_wave, color='b')
                     ax_wave.plot(
@@ -261,9 +330,8 @@ class FrogAnalysis(MDScreen):
 
                     fig_wave.canvas.draw()
 
-
-
-                    # fig, ax = plt.subplots()
-                    # ax.hist(phis, bins=8, range=(0, 2*torch.pi))
-                    # ax.set_xticks(torch.arange(0, 2*torch.pi+1e-6, torch.pi/2))
-                    # ax.set_xticklabels(['0', 'π/2', 'π', '3π/2', '2π'])
+                _ = [
+                    result_treeview.select_node(node)
+                    for i, node in enumerate(self.ids.result_treeview.iterate_all_nodes())
+                    if i == 1
+                ]

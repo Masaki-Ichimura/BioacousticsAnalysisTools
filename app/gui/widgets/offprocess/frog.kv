@@ -4,6 +4,15 @@
     text_color: app.theme_cls.text_color
     selected_color: app.theme_cls.secondary_text_color
 
+<FrogSeparateOptionTextField@MDTextField>
+    font_size: '15sp'
+    mode: 'rectangle'
+    multiline: False
+    helper_text_mode: 'persistent'
+    text_color_normal: app.theme_cls.text_color
+    line_color_normal: app.theme_cls.text_color
+    disabled_foreground_color: app.theme_cls.secondary_text_color
+
 <FrogTab>:
     title: 'カエル'
 
@@ -11,13 +20,6 @@
         orientation: 'vertical'
         size: root.size
         pos: root.pos
-
-        # MDTopAppBar:
-        #     id: appbar
-        #     title: 'コーラス解析'
-        #     elevation: dp(10)
-        #     type_hight: 'small'
-            #left_action_items: [['menu', lambda x: nav_drawer.set_state('open')]]
 
         MDNavigationLayout:
 
@@ -81,9 +83,115 @@
         orientation: 'horizontal'
         size: root.size
 
-        Button:
+        MDBoxLayout:
+            orientation: 'vertical'
             size_hint_x: 2
-            text: '- 分離手法の選択やその手法におけるオプションを指定'
+            spacing: dp(10)
+            adaptive_width: True
+
+            # MDBoxLayout:
+            #     orientation: 'horizontal'
+            #     padding: dp(20), dp(10)
+            #     spacing: dp(15)
+            #     adaptive_height: True
+            #
+            #     MDIcon:
+            #         icon: 'cog-outline'
+            #         font_size: '20sp'
+            #
+            #     MDLabel:
+            #         font_style: 'H5'
+            #         text: 'Settings'
+
+            MDSegmentedControl:
+                id: mode_control
+                radius: 0
+                segment_color: 1, 1, 1, .4
+
+                MDSegmentedControlItem:
+                    text: 'ILRMA'
+
+                MDSegmentedControlItem:
+                    text: 'AuxIVA'
+
+                MDSegmentedControlItem:
+                    text: 'FastMNMF'
+
+            ScreenManager:
+                id: screen_manager
+                transition: NoTransition()
+
+                MDScreen:
+                    name: 'ilrma'
+
+                    MDStackLayout:
+                        orientation: 'tb-lr'
+                        padding: [30, 0, 30, 0]
+                        spacing: 40
+
+                        FrogSeparateOptionTextField:
+                            id: ilrma_n_src
+                            text: '1'
+                            hint_text: 'number of sound source.'
+                            helper_text: 'default: number of channel'
+
+                        FrogSeparateOptionTextField:
+                            id: ilrma_n_iter
+                            text: '30'
+                            hint_text: 'number of iteration.'
+                            helper_text: 'default: 30'
+
+                        FrogSeparateOptionTextField:
+                            id: ilrma_n_components
+                            text: '4'
+                            hint_text: 'number of components in the non-negative spectrum.'
+                            helper_text: 'default: 4'
+
+                MDScreen:
+                    name: 'auxiva'
+
+                    MDStackLayout:
+                        orientation: 'tb-lr'
+                        padding: [30, 0, 30, 0]
+                        spacing: 40
+
+                        FrogSeparateOptionTextField:
+                            id: auxiva_n_src
+                            text: '1'
+                            hint_text: 'number of sound source.'
+                            helper_text: 'default: number of channel'
+
+                        FrogSeparateOptionTextField:
+                            id: auxiva_n_iter
+                            text: '20'
+                            hint_text: 'number of iteration.'
+                            helper_text: 'default: 20'
+
+                MDScreen:
+                    name: 'fastmnmf'
+
+                    MDStackLayout:
+                        orientation: 'tb-lr'
+                        padding: [30, 0, 30, 0]
+                        spacing: 40
+
+                        FrogSeparateOptionTextField:
+                            id: fastmnmf_n_src
+                            text: '1'
+                            hint_text: 'number of sound source.'
+                            helper_text: 'default: number of channel'
+
+                        FrogSeparateOptionTextField:
+                            id: fastmnmf_n_iter
+                            text: '30'
+                            hint_text: 'number of iteration.'
+                            helper_text: 'default: 30'
+
+                        FrogSeparateOptionTextField:
+                            id: fastmnmf_n_components
+                            text: '4'
+                            hint_text: 'number of components in the non-negative spectrum.'
+                            helper_text: 'default: 4'
 
         Button:
             size_hint_x: 1
@@ -108,7 +216,6 @@
             size_hint_x: 1
             text: 'select'
             on_press:
-                print(stack_sep.size, self.size, root.size)
                 root.select()
                 root.root_tab.ids.screen_manager.current = 'analysis'
 
