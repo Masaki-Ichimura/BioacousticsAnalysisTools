@@ -20,7 +20,7 @@ class SilenceRemovalTab(Tab):
     nonsilent_sections = None
     mode = 'svm'
 
-    def on_kv_post(self, *arg, **kwargs):
+    def on_kv_post(self, *args, **kwargs):
         self.ids.screen_manager.current = 'svm_thr'
 
     def on_audio_dict(self, instance, value):
@@ -208,5 +208,5 @@ class SilenceRemovalTab(Tab):
 
             preprocessed.audio_dicts.extend(extracted_dicts)
 
-            parent_tab = self.parent.parent.parent.parent
-            parent_tab.switch_tab('format-list-bulleted', search_by='icon')
+            tabs = audio_detail.ids.tabs
+            tabs.switch_tab('format-list-bulleted', search_by='icon')

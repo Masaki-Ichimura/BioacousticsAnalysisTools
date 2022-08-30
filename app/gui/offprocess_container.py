@@ -13,7 +13,7 @@ class OffprocessContainer(Container):
 class OffprocessWorkingContainer(Container):
     audio_dict = DictProperty({})
 
-    def on_kv_post(self, *arg, **kwargs):
+    def on_kv_post(self, *args, **kwargs):
         audio_display = self.ids.audio_display
         audio_toolbar = audio_display.ids.audio_toolbar
 

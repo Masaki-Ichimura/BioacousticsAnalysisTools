@@ -18,7 +18,7 @@ class EditContainer(Container):
 class EditWorkingContainer(Container):
     audio_dict = DictProperty({})
 
-    def on_kv_post(self, *arg, **kwargs):
+    def on_kv_post(self, *args, **kwargs):
         self.edit_container = self.parent.parent
 
         audio_display = self.ids.audio_display

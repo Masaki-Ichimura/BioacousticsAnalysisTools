@@ -100,8 +100,7 @@
 
             AudioToolbarIcon:
                 icon: 'volume-low'
-                height: volume.height
-                size_hint_y: None
+                pos_hint: {'center_x': .5, 'center_y': .5}
 
             MDSlider:
                 id: volume
@@ -110,10 +109,9 @@
                 value: 1.
                 hint: False
 
-            MDIcon:
+            AudioToolbarIcon:
                 icon: 'volume-high'
-                height: volume.height
-                size_hint_y: None
+                pos_hint: {'center_x': .5, 'center_y': .5}
 
         AudioToolbarIconButton:
             id: close

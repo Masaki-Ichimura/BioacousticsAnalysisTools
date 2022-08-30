@@ -129,9 +129,8 @@ class FrogSeparate(MDScreen):
 
             sep_fn = lambda x: self.get_func()(x, **self.get_separate_args())
 
-            sep_data = sep_fn(self.audio_dict['data'])
-            sep_fs = self.audio_dict['fs']
-            sep_label = f'separate_{self.mode}_{self.audio_dict["label"]}'
+            sep_data, sep_fs = sep_fn(self.audio_dict['data']), self.audio_dict['fs']
+            sep_label = f'bss_{self.mode}_{self.audio_dict["label"]}'
             sep_cache = f'{cache_dir.name}/{sep_label}.wav'
             sep_dict = dict(
                 label=sep_label, path=None, cache=sep_cache, data=sep_data, fs=sep_fs, ch=-1
@@ -156,13 +155,10 @@ class FrogSelect(MDScreen):
 
             checkboxes = []
             for ch, ch_data in enumerate(sep_data):
-                torchaudio.save(
-                    filepath=ch_path.format(ch), src=ch_data[None], sample_rate=sep_fs
-                )
+                torchaudio.save(filepath=ch_path.format(ch), src=ch_data[None], sample_rate=sep_fs)
 
                 audio_miniplot = AudioMiniplot(
-                    data=ch_data, fs=sep_fs, path=ch_path.format(ch),
-                    size_hint=(1/3, 1/3)
+                    data=ch_data, fs=sep_fs, path=ch_path.format(ch), size_hint=(1/3, 1/3)
                 )
 
                 checkbox_widget = MDCheckbox()

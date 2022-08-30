@@ -1,4 +1,4 @@
-<PreprocessedSidebarIconButton@MDIconButton>:
+<PreprocessedIconButton@MDIconButton>:
     icon_size: '20sp'
 
 <PreprocessedTab>:
@@ -20,8 +20,17 @@
                 padding: dp(5)
                 adaptive_height: True
 
-                PreprocessedSidebarIconButton:
-                    icon: 'circle-outline'
+                PreprocessedIconButton:
+                    icon: 'file-remove-outline'
+                    on_press: root.remove_button_clicked()
+
+                PreprocessedIconButton:
+                    icon: 'delete-forever-outline'
+                    on_press: root.reset_button_clicked()
+
+                PreprocessedIconButton:
+                    icon: 'sort-alphabetical-ascending'
+                    on_press: root.sort_button_clicked()
 
             HSeparator:
                 rgba: 0.5, 0.5, 0.5, 1

@@ -76,8 +76,6 @@ class AudioTimeline(Container):
             self.ids.box_yaxis.clear_widgets()
             self.ids.box_tl.add_widget(seekbar)
 
-            return None
-
     def on_audio_data_org(self, instance, value):
         audio_dict = self.audio_dict
         if audio_dict:

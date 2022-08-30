@@ -35,6 +35,10 @@
                         icon: 'delete-forever-outline'
                         on_press: root.reset_button_clicked(mode='choosed')
 
+                    EditSidebarIconButton:
+                        icon: 'sort-alphabetical-ascending'
+                        on_press: root.sort_button_clicked(mode='choosed')
+
                 HSeparator:
                     rgba: 0.5, 0.5, 0.5, 1
 
@@ -52,11 +56,18 @@
                 orientation: 'vertical'
                 size_hint_y: 3
 
-                EditSidebarButton:
+                BoxLayout:
+                    orientation: 'horizontal'
                     size_hint_y: None
                     height: dp(54)
-                    text: '▽'
-                    on_press: root.move_button_clicked()
+
+                    EditSidebarButton:
+                        text: '▽'
+                        on_press: root.move_button_clicked()
+
+                    EditSidebarButton:
+                        text: '▼'
+                        on_press: root.move_full_button_clicked()
 
                 MDBoxLayout:
                     orientation: 'horizontal'
@@ -70,6 +81,10 @@
                     EditSidebarIconButton:
                         icon: 'delete-forever-outline'
                         on_press: root.reset_button_clicked(mode='target')
+
+                    EditSidebarIconButton:
+                        icon: 'sort-alphabetical-ascending'
+                        on_press: root.sort_button_clicked(mode='target')
 
                 HSeparator:
                     rgba: 0.5, 0.5, 0.5, 1
@@ -101,6 +116,10 @@
 
                 EditSidebarButton:
                     id: fetch
-                    size_hint_y: 3
                     text: '◁'
                     on_press: root.fetch_button_clicked()
+
+                EditSidebarButton:
+                    id: fetch_full
+                    text: '◀'
+                    on_press: root.fetch_full_button_clicked()
