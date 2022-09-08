@@ -1,0 +1,78 @@
+<ConfigDrawerItem@MDNavigationDrawerItem>
+    icon_color: app.theme_cls.text_color
+    theme_text_color: 'Custom'
+    text_color: app.theme_cls.text_color
+    selected_color: app.theme_cls.secondary_text_color
+
+<ConfigTextField@MDTextField>
+    font_size: '15sp'
+    mode: 'rectangle'
+    multiline: False
+    helper_text_mode: 'persistent'
+    text_color_normal: app.theme_cls.text_color
+    line_color_normal: app.theme_cls.text_color
+    disabled_foreground_color: app.theme_cls.secondary_text_color
+
+<ConfigContainer>:
+    MDNavigationLayout:
+        size: root.size
+        pos: root.pos
+
+        ScreenManager:
+            id: screen_manager
+
+            MDScreen:
+                name: 'spec'
+
+                BoxLayout:
+                    orientation: 'vertical'
+
+                    Button:
+                        text: '- スペクトログラム描画時の設定'
+
+            MDScreen:
+                name: 'stft'
+
+                MDStackLayout:
+                    orientation: 'tb-lr'
+                    padding: [dp(15), 0, dp(15), 0]
+                    spacing: dp(20)
+
+                    ConfigTextField:
+                        id: stft_n_fft
+                        text: '1024'
+                        hint_text: 'STFT window length.'
+                        helper_text: 'default: 1024 (pt)'
+
+                    ConfigTextField:
+                        id: stft_hop_length
+                        text: '256'
+                        hint_text: 'STFT hop length.'
+                        helper_text: 'default: 256 (pt)'
+
+                    ConfigTextField:
+                        id: stft_window
+                        text: 'hann'
+                        hint_text: 'STFT window function.'
+                        helper_text: 'default: hann'
+                        on_focus: if self.focus: root.stft_window_menu.open()
+
+        MDNavigationDrawer:
+            id: nav_drawer
+            type: 'standard'
+            pos: root.pos
+            width: root.width*.25
+
+            MDNavigationDrawerMenu:
+
+                ConfigDrawerItem:
+                    icon: 'cog-outline'
+                    text: 'スペクトログラム'
+                    on_press:
+                        screen_manager.current = 'spec'
+
+                ConfigDrawerItem:
+                    icon: 'cog-outline'
+                    text: 'STFT'
+                    on_press:
+                        screen_manager.current = 'stft'

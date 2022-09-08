@@ -1,5 +1,3 @@
-. env/bin/activate
+pip install -I .
 
-python -m app.run
-
-deactivate
+myapp
