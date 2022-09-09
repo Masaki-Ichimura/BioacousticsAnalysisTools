@@ -1,3 +1,7 @@
-pip install -I .
+sh install.sh
 
-myapp
+. venv/bin/activate
+
+bagui
+
+deactivate
