@@ -7,7 +7,9 @@ curl -O -L https://github.com/kivy/kivy/releases/download/2.1.0/Kivy.dmg
 hdiutil attach Kivy.dmg -mountroot .
 
 cp -R Kivy/Kivy.app $APP_NAME.app
-./fix-bundle-metadata.sh $APP_NAME.app -n MyApp -v "0.0.1" -a "Masaki-Ichimura" -o "ou.klab.myapp"
+diskutil unmount Kivy
+
+./fix-bundle-metadata.sh $APP_NAME.app -n $APP_NAME -v "0.0.1" -a "Masaki-Ichimura" -o "ou.klab.myapp"
 
 pushd $APP_NAME.app/Contents/Resources/venv/bin
 source activate
