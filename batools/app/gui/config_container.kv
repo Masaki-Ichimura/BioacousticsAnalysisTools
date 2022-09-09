@@ -27,8 +27,9 @@
             MDScreen:
                 name: 'spec'
 
-                BoxLayout:
+                MDBoxLayout:
                     orientation: 'vertical'
+                    md_bg_color: app.theme_cls.bg_light
 
                     Button:
                         text: '- スペクトログラム描画時の設定'
@@ -40,6 +41,7 @@
                     orientation: 'tb-lr'
                     padding: [dp(15), 0, dp(15), 0]
                     spacing: dp(20)
+                    md_bg_color: app.theme_cls.bg_light
 
                     ConfigTextField:
                         id: stft_n_fft
