@@ -1,17 +1,11 @@
-import torch
 import datetime
-import matplotlib.pyplot as plt
+import gc
 
-from kivy.app import App
 from kivy.lang import Builder
-from kivy.properties import *
-from kivy.uix.widget import Widget
-from kivy.garden.matplotlib import FigureCanvasKivyAgg
+from kivy.properties import ListProperty, ObjectProperty
 
-from batools.app.gui.widgets.sidebar import Sidebar, AudioTreeViewLabel
-from batools.app.gui.widgets.filechooser import FilechooserPopup
-from batools.app.kivy_utils import TorchTensorProperty
-from batools.utils.audio.wave import load_wave
+from batools.app.gui.widgets.sidebar import Sidebar
+from batools.app.gui.widgets.scrollable_treeview import AudioTreeViewLabel
 
 Builder.load_file(__file__[:-3]+'.kv')
 
@@ -22,6 +16,31 @@ class OffprocessSidebar(Sidebar):
 
     def on_kv_post(self, *args, **kwargs):
         self.offprocess_container = self.parent.parent
+
+    def remove_button_clicked(self):
+        audio_treeview, audio_dicts = self.ids.audio_treeview, self.audio_dicts
+
+        selected_node = audio_treeview.selected_node
+
+        if selected_node:
+            selected_label = selected_node.text
+            audio_labels = [ad['label'] for ad in audio_dicts]
+
+            if selected_label in audio_labels:
+                audio_dicts.pop(audio_labels.index(selected_label))
+
+    def reset_button_clicked(self):
+        audio_dicts, audio_labels = self.audio_dicts, self.audio_labels
+
+        _ = [elem.clear() for elem in [audio_dicts, audio_labels]]
+
+        self.clear_treeview()
+        gc.collect()
+
+    def sort_button_clicked(self):
+        self.audio_dicts.sort(key=lambda x: x['label'])
+
+        self.add_treeview()
 
     def clear_treeview(self):
         audio_treeview = self.ids.audio_treeview
