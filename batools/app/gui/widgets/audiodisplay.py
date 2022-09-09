@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 
 from kivy.lang import Builder
 from kivy.metrics import dp
-from kivy.properties import *
+from kivy.properties import DictProperty, NumericProperty, ObjectProperty
 from kivy.uix.widget import Widget
 from kivy.uix.floatlayout import FloatLayout
 from kivy.garden.matplotlib import FigureCanvasKivyAgg

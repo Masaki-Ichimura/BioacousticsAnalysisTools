@@ -8,11 +8,10 @@ fi
 
 . venv/bin/activate
 
-pip install -I .
+PYTHON_LIB_DIR=`python -c "import site; print(site.getsitepackages()[0])"`
 
-kivy garden install matplotlib
-# CASE: /usr/local/bin/kivy does not exist
-# PYTHON_LIB_DIR=`python -c "import site; print(site.getsitepackages()[0])"`
-# git clone https://github.com/kivy-garden/garden.matplotlib.git $PYTHON_LIB_DIR/kivy/garden/matplotlib
+pip install -U pip
+pip install -I .
+git clone https://github.com/kivy-garden/garden.matplotlib.git $PYTHON_LIB_DIR/kivy/garden/matplotlib
 
 deactivate

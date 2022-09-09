@@ -1,11 +1,10 @@
+from kivy.metrics import dp
 from kivy.core.window import Window
 from kivy.config import Config
 
 import os
 import matplotlib.style as mplstyle
 import matplotlib as mpl
-
-print(os.getcwd())
 
 from batools.app.app import MainApp
 
@@ -19,7 +18,7 @@ def main():
     mpl.rcParams['agg.path.chunksize'] = 10000
     # mpl.rcParams.update({'xtick.labelsize': 10, 'ytick.labelsize': 10})
 
-    Window.size = 1440, 810
+    Window.size = dp(720), dp(405)
     Window.top, Window.left = 100, 100
 
     # マルチタッチ無効化

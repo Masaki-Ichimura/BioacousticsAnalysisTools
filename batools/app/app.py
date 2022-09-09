@@ -6,10 +6,22 @@ from kivy.lang import Builder
 from kivy.core.text import LabelBase
 from kivy.uix.widget import Widget
 
-# Kivy を読み込んだ後に読み込むこと
 import japanize_kivy
 
-Builder.load_file('/'.join(__file__.split('/')[:-1])+'/main.kv')
+# load widgets
+# .py
+from batools.app.gui import (
+    main_menu,
+    edit_container, edit_sidebar, offprocess_container, offprocess_sidebar, config_container
+)
+from batools.app.gui.widgets import scrollable_treeview, audiodisplay
+from batools.app.gui.widgets.preprocess import preprocessed, silence_removal
+from batools.app.gui.widgets.offprocess import target, general, frog
+# .kv
+Builder.load_file(str(pathlib.Path(__file__).parent/'gui'/'widgets'/'separator.kv'))
+
+Builder.load_file(str(pathlib.Path(__file__).parent/'main.kv'))
+
 
 class Root(Widget):
     pass

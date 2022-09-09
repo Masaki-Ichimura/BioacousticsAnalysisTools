@@ -2,10 +2,10 @@ import datetime
 import gc
 
 from kivy.lang import Builder
-from kivy.properties import *
+from kivy.properties import ListProperty, ObjectProperty
 
 from batools.app.gui.widgets.tab import Tab
-from batools.app.gui.widgets.sidebar import AudioTreeViewLabel
+from batools.app.gui.widgets.scrollable_treeview import AudioTreeViewLabel
 
 Builder.load_file(__file__[:-3]+'.kv')
 

@@ -1,6 +1,5 @@
 from kivy.lang import Builder
 from kivy.uix.widget import Widget
-from kivy.uix.treeview import TreeViewLabel
 
 Builder.load_file(__file__[:-3]+'.kv')
 
@@ -8,5 +7,3 @@ Builder.load_file(__file__[:-3]+'.kv')
 class Sidebar(Widget):
     pass
 
-class AudioTreeViewLabel(TreeViewLabel):
-    pass

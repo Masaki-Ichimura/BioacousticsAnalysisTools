@@ -2,7 +2,7 @@ import torch
 
 from kivy.app import App
 from kivy.lang import Builder
-from kivy.properties import *
+from kivy.properties import DictProperty
 
 from batools.utils.audio import silence_pydub, silence_pyaudioanalysis
 from batools.utils.audio.transform import apply_freq_mask, extract_from_section

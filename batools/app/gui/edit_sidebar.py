@@ -1,14 +1,11 @@
 import datetime
 import gc
 
-from kivy.app import App
 from kivy.lang import Builder
-from kivy.uix.widget import Widget
-from kivy.uix.treeview import TreeViewLabel
-from kivy.properties import *
+from kivy.properties import ListProperty, ObjectProperty
 
-from batools.app.gui.widgets.sidebar import Sidebar, AudioTreeViewLabel
-# from app.gui.widgets.filetreevew import AudioTreeViewLabel
+from batools.app.gui.widgets.sidebar import Sidebar
+from batools.app.gui.widgets.scrollable_treeview import AudioTreeViewLabel
 from batools.app.gui.widgets.filechooser import FilechooserPopup
 from batools.utils.audio.wave import metadata_wave, load_wave
 
@@ -71,11 +68,9 @@ class EditSidebar(Sidebar):
 
     def remove_button_clicked(self, mode):
         if mode == 'choosed':
-            audio_treeview = self.ids.choosed_audio_treeview
-            audio_dicts = self.choosed_audio_dicts
+            audio_treeview, audio_dicts = self.ids.choosed_audio_treeview, self.choosed_audio_dicts
         elif mode == 'target':
-            audio_treeview = self.ids.target_audio_treeview
-            audio_dicts = self.target_audio_dicts
+            audio_treeview, audio_dicts = self.ids.target_audio_treeview, self.target_audio_dicts
 
         selected_node = audio_treeview.selected_node
 
@@ -95,7 +90,6 @@ class EditSidebar(Sidebar):
         _ = [elem.clear() for elem in [audio_dicts, audio_labels]]
 
         self.clear_treeview(mode)
-
         gc.collect()
 
     def sort_button_clicked(self, mode):

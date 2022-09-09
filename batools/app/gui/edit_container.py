@@ -1,10 +1,8 @@
 from kivy.app import App
 from kivy.lang import Builder
-from kivy.properties import *
-from kivy.uix.widget import Widget
+from kivy.properties import DictProperty
 
 from batools.app.gui.widgets.container import Container
-from batools.app.kivy_utils import TorchTensorProperty
 from batools.utils.audio.wave import load_wave
 
 Builder.load_file(__file__[:-3]+'.kv')
@@ -37,7 +35,6 @@ class EditWorkingContainer(Container):
 
         audio_display.audio_dict = audio_detail.audio_dict = value
 
-
 class EditAudioDisplay(Container):
     audio_dict = DictProperty({})
 
@@ -46,7 +43,6 @@ class EditAudioDisplay(Container):
         audio_toolbar = self.ids.audio_toolbar
 
         audio_timeline.audio_dict = audio_toolbar.audio_dict = value
-
 
 class EditAudioDetail(Container):
     audio_dict = DictProperty({})

@@ -3,7 +3,6 @@ import torch
 from kivy.app import App
 from kivy.lang import Builder
 from kivy.metrics import dp
-from kivy.uix.widget import Widget
 from kivymd.uix.menu import MDDropdownMenu
 
 from batools.app.gui.widgets.container import Container

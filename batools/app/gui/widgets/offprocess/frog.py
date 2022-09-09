@@ -7,7 +7,7 @@ from itertools import combinations
 
 from kivy.app import App
 from kivy.lang import Builder
-from kivy.properties import *
+from kivy.properties import DictProperty
 from kivy.uix.treeview import TreeViewLabel
 from kivy.garden.matplotlib import FigureCanvasKivyAgg
 from kivymd.color_definitions import colors

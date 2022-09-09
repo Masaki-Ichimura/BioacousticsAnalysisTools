@@ -1,5 +1,5 @@
 from kivy.lang import Builder
-from kivy.properties import *
+from kivy.properties import DictProperty
 
 from batools.app.gui.widgets.container import Container
 from batools.utils.audio.wave import load_wave
@@ -39,7 +39,6 @@ class OffprocessAudioDisplay(Container):
         audio_toolbar = self.ids.audio_toolbar
 
         audio_timeline.audio_dict = audio_toolbar.audio_dict = value
-
 
 class OffprocessAudioDetail(Container):
     audio_dict = DictProperty({})

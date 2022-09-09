@@ -18,6 +18,7 @@ popd
 # install requirement packages
 PYTHON_LIB_DIR=`python -c "import site; print(site.getsitepackages()[0])"`
 
+python -m pip -U pip
 python -m pip install ../../
 git clone https://github.com/kivy-garden/garden.matplotlib.git $PYTHON_LIB_DIR/kivy/garden/matplotlib
 
