@@ -7,12 +7,12 @@ from kivy.properties import DictProperty
 from batools.utils.audio import silence_pydub, silence_pyaudioanalysis
 from batools.utils.audio.transform import apply_freq_mask, extract_from_section
 from batools.app.kivy_utils import TorchTensorProperty
-from batools.app.gui.widgets.tab import Tab
+from batools.app.gui.widgets.sub_tab import SubTab
 
 Builder.load_file(__file__[:-3]+'.kv')
 
 
-class SilenceRemovalTab(Tab):
+class SilenceRemovalTab(SubTab):
     audio_dict = DictProperty({})
     audio_data_org = TorchTensorProperty(torch.zeros(1))
 

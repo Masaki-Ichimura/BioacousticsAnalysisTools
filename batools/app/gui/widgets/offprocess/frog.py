@@ -1,7 +1,5 @@
 import torch
 import torchaudio
-import gc
-import pickle
 import matplotlib.pyplot as plt
 from itertools import combinations
 
@@ -18,7 +16,7 @@ from kivymd.uix.segmentedcontrol.segmentedcontrol import MDSegmentedControlItem
 
 from batools.app.kivy_utils import TorchTensorProperty
 from batools.app.gui.widgets.container import Container
-from batools.app.gui.widgets.tab import Tab
+from batools.app.gui.widgets.sub_tab import SubTab
 from batools.app.gui.widgets.audiodisplay import AudioMiniplot
 from batools.utils.audio.analysis.frog import check_synchronization
 from batools.utils.audio.bss.auxiva import AuxIVA
@@ -29,7 +27,7 @@ from batools.utils.audio.plot import show_wave
 Builder.load_file(__file__[:-3]+'.kv')
 
 
-class FrogTab(Tab):
+class FrogTab(SubTab):
     audio_dict = DictProperty({})
 
     def on_kv_post(self, *args, **kwargs):

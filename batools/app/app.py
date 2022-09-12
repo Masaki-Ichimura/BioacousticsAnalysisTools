@@ -11,16 +11,16 @@ import japanize_kivy
 # load widgets
 # .py
 from batools.app.gui import (
-    main_menu,
-    edit_container, edit_sidebar, offprocess_container, offprocess_sidebar, config_container
+    main_container, main_tabs,
+    edit_workarea, edit_sidebar,
+    offprocess_workarea, offprocess_sidebar,
+    config_workarea
 )
-from batools.app.gui.widgets import scrollable_treeview, audiodisplay
+from batools.app.gui.widgets import audiodisplay, scrollable_treeview, statusbar
 from batools.app.gui.widgets.preprocess import preprocessed, silence_removal
 from batools.app.gui.widgets.offprocess import target, general, frog
 # .kv
 Builder.load_file(str(pathlib.Path(__file__).parent/'gui'/'widgets'/'separator.kv'))
-
-Builder.load_file(str(pathlib.Path(__file__).parent/'main.kv'))
 
 
 class Root(Widget):
@@ -33,11 +33,11 @@ class MainApp(MDApp):
 
     def on_start(self, *args, **kwargs):
         self.tmp_dir = tempfile.TemporaryDirectory()
-        main_menu = self.root_window.children[0].ids.main_menu
+        main_container = self.root_window.children[0].ids.main_container
         self.links = dict(
-            edit_container=main_menu.ids.edit_container,
-            offprocess_container=main_menu.ids.offprocess_container,
-            config_container=main_menu.ids.config_container
+            edit_tab=main_container.ids.edit_tab,
+            offprocess_tab=main_container.ids.offprocess_tab,
+            config_container=main_container.ids.config_tab
         )
 
     def build(self):

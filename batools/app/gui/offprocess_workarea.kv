@@ -1,38 +1,24 @@
 #:kivy 2.1
 
-<OffprocessContainer>:
-    MDBoxLayout:
-        orientation: 'horizontal'
-        size: root.size
-        md_bg_color: app.theme_cls.bg_light
-
-        OffprocessSidebar:
-            id: sidebar
-            size_hint_x: 25
-
-        OffprocessWorkingContainer:
-            id: working_container
-            size_hint_x: 75
-
 <OffprocessWorkingContainer>:
     BoxLayout:
         orientation: 'vertical'
-        size: root.size
         pos: root.pos
+        size: root.size
 
         OffprocessAudioDisplay:
             id: audio_display
-            size_hint_y: 40
+            size_hint_y: 2
 
         OffprocessAudioDetail:
             id: audio_detail
-            size_hint_y: 60
+            size_hint_y: 3
 
 <OffprocessAudioDisplay>:
     BoxLayout:
         orientation: 'vertical'
-        size: root.size
         pos: root.pos
+        size: root.size
 
         AudioToolbar:
             id: audio_toolbar
@@ -50,12 +36,13 @@
 <OffprocessAudioDetail>:
     BoxLayout:
         orientation: 'horizontal'
-        size: root.size
         pos: root.pos
+        size: root.size
 
         MDTabs:
-            background_color: (1, 1, 1, .2)
+            id: tabs
             tab_bar_height: dp(54)
+            background_color: (1, 1, 1, .2)
 
             TargetTab:
                 id: target

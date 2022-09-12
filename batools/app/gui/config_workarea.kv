@@ -15,11 +15,10 @@
     line_color_normal: app.theme_cls.text_color
     disabled_foreground_color: app.theme_cls.secondary_text_color
 
-<ConfigContainer>:
+<ConfigWorkingContainer>:
     MDNavigationLayout:
-        size: root.size
         pos: root.pos
-        md_bg_color: app.theme_cls.bg_light
+        size: root.size
 
         ScreenManager:
             id: screen_manager
@@ -65,7 +64,6 @@
         MDNavigationDrawer:
             id: nav_drawer
             type: 'standard'
-            pos: root.pos
             width: root.width*.25
 
             MDNavigationDrawerMenu:

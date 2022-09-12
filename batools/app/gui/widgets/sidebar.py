@@ -6,4 +6,3 @@ Builder.load_file(__file__[:-3]+'.kv')
 
 class Sidebar(Widget):
     pass
-

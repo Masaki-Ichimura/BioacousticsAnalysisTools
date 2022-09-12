@@ -1,0 +1,40 @@
+#:kivy 2.1
+
+<EditTab>:
+    MDBoxLayout:
+        orientation: 'horizontal'
+        pos: root.pos
+        size: root.size
+        md_bg_color: app.theme_cls.bg_light
+
+        EditSidebar:
+            id: sidebar
+            size_hint_x: 25
+
+        EditWorkingContainer:
+            id: working_container
+            size_hint_x: 75
+
+<OffprocessTab>:
+    MDBoxLayout:
+        orientation: 'horizontal'
+        pos: root.pos
+        size: root.size
+        md_bg_color: app.theme_cls.bg_light
+
+        OffprocessSidebar:
+            id: sidebar
+            size_hint_x: 25
+
+        OffprocessWorkingContainer:
+            id: working_container
+            size_hint_x: 75
+
+<ConfigTab>:
+    MDBoxLayout:
+        pos: root.pos
+        size: root.size
+        md_bg_color: app.theme_cls.bg_light
+
+        ConfigWorkingContainer:
+            id: working_container

@@ -1,6 +1,5 @@
 import torch
 
-from kivy.app import App
 from kivy.lang import Builder
 from kivy.metrics import dp
 from kivymd.uix.menu import MDDropdownMenu
@@ -10,11 +9,8 @@ from batools.app.gui.widgets.container import Container
 Builder.load_file(__file__[:-3]+'.kv')
 
 
-class ConfigContainer(Container):
+class ConfigWorkingContainer(Container):
     def on_kv_post(self, *arg, **kwargs):
-        app = App.get_running_app()
-        self.app = app
-
         self.ids.nav_drawer.set_state('open')
 
         stft_windows = ['bartlett', 'blackman', 'hamming', 'hann', 'kaiser']

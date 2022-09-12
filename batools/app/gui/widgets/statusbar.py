@@ -4,5 +4,6 @@ from kivy.uix.widget import Widget
 Builder.load_file(__file__[:-3]+'.kv')
 
 
-class MainMenu(Widget):
+class Statusbar(Widget):
     pass
+

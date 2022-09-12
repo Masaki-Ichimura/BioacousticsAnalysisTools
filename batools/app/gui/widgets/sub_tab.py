@@ -5,5 +5,5 @@ from kivymd.uix.tab import MDTabsBase
 Builder.load_file(__file__[:-3]+'.kv')
 
 
-class Tab(MDFloatLayout, MDTabsBase):
+class SubTab(MDFloatLayout, MDTabsBase):
     pass

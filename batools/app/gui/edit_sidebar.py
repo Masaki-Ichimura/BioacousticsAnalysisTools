@@ -21,10 +21,10 @@ class EditSidebar(Sidebar):
     target_audio_labels = ObjectProperty(set())
 
     def on_kv_post(self, *args, **kwargs):
-        self.edit_container = self.parent.parent
+        self.edit_tab = self.parent.parent
 
     def choose_button_clicked(self):
-        cache_dir = self.edit_container.app.tmp_dir
+        cache_dir = self.edit_tab.app.tmp_dir
 
         def choose(selections):
             self.filechooser_popup.dismiss()
@@ -113,11 +113,11 @@ class EditSidebar(Sidebar):
             if selected_label in audio_labels:
                 audio_dict = audio_dicts[audio_labels.index(selected_label)]
 
-                working_container = self.edit_container.ids.working_container
+                working_container = self.edit_tab.ids.working_container
                 working_container.audio_dict = audio_dict
 
     def fetch_button_clicked(self):
-        working_container = self.edit_container.ids.working_container
+        working_container = self.edit_tab.ids.working_container
         audio_detail = working_container.ids.audio_detail
         tabs = audio_detail.ids.tabs
 
@@ -135,7 +135,7 @@ class EditSidebar(Sidebar):
                     self.target_audio_dicts.extend([audio_dicts[audio_labels.index(selected_label)]])
 
     def fetch_full_button_clicked(self):
-        working_container = self.edit_container.ids.working_container
+        working_container = self.edit_tab.ids.working_container
         audio_detail = working_container.ids.audio_detail
         tabs = audio_detail.ids.tabs
 
@@ -219,8 +219,8 @@ class EditSidebar(Sidebar):
         self.add_treeview(mode='target')
         audio_dicts = self.target_audio_dicts
 
-        main_menu = self.get_root_window().children[0].ids.main_menu
-        offprocess_sidebar = main_menu.ids.offprocess_container.ids.sidebar
+        main_container = self.get_root_window().children[0].ids.main_container
+        offprocess_sidebar = main_container.ids.offprocess_tab.ids.sidebar
         offprocess_sidebar.audio_dicts = audio_dicts
 
     def on_choosed_audio_dicts(self, instance, value):

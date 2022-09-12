@@ -1,41 +1,24 @@
 #:kivy 2.1
 
-<PreprocessedIconButton@MDIconButton>:
-    user_font_size: '20sp'
-
-<EditContainer>:
-    MDBoxLayout:
-        orientation: 'horizontal'
-        size: root.size
-        md_bg_color: app.theme_cls.bg_light
-
-        EditSidebar:
-            id: sidebar
-            size_hint_x: 25
-
-        EditWorkingContainer:
-            id: working_container
-            size_hint_x: 75
-
 <EditWorkingContainer>:
     BoxLayout:
         orientation: 'vertical'
-        size: root.size
         pos: root.pos
+        size: root.size
 
         EditAudioDisplay:
             id: audio_display
-            size_hint_y: 40
+            size_hint_y: 2
 
         EditAudioDetail:
             id: audio_detail
-            size_hint_y: 60
+            size_hint_y: 3
 
 <EditAudioDisplay>:
     BoxLayout:
         orientation: 'vertical'
-        size: root.size
         pos: root.pos
+        size: root.size
 
         AudioToolbar:
             id: audio_toolbar
@@ -53,8 +36,8 @@
 <EditAudioDetail>:
     BoxLayout:
         orientation: 'horizontal'
-        size: root.size
         pos: root.pos
+        size: root.size
 
         MDTabs:
             id: tabs

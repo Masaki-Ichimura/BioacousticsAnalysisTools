@@ -1,4 +1,3 @@
-from kivy.app import App
 from kivy.lang import Builder
 from kivy.properties import DictProperty
 
@@ -8,17 +7,10 @@ from batools.utils.audio.wave import load_wave
 Builder.load_file(__file__[:-3]+'.kv')
 
 
-class EditContainer(Container):
-    def on_kv_post(self, *args, **kwargs):
-        app = App.get_running_app()
-        self.app = app
-
-class EditWorkingContainer(Container):
+class OffprocessWorkingContainer(Container):
     audio_dict = DictProperty({})
 
     def on_kv_post(self, *args, **kwargs):
-        self.edit_container = self.parent.parent
-
         audio_display = self.ids.audio_display
         audio_toolbar = audio_display.ids.audio_toolbar
 
@@ -31,11 +23,12 @@ class EditWorkingContainer(Container):
         audio_detail = self.ids.audio_detail
 
         if audio_dict and audio_dict['data'] is None:
-            audio_dict['data'], audio_dict['fs'] = load_wave(self.audio_dict['path'])
+            audio_path = self.audio_dict['path']
+            audio_dict['data'], audio_dict['fs'] = load_wave(audio_path)
 
         audio_display.audio_dict = audio_detail.audio_dict = value
 
-class EditAudioDisplay(Container):
+class OffprocessAudioDisplay(Container):
     audio_dict = DictProperty({})
 
     def on_audio_dict(self, instance, value):
@@ -44,10 +37,11 @@ class EditAudioDisplay(Container):
 
         audio_timeline.audio_dict = audio_toolbar.audio_dict = value
 
-class EditAudioDetail(Container):
+class OffprocessAudioDetail(Container):
     audio_dict = DictProperty({})
 
     def on_audio_dict(self, instance, value):
-        silence_removal = self.ids.silence_removal
+        target = self.ids.target
+        frog = self.ids.frog
 
-        silence_removal.audio_dict = value
+        target.audio_dict = frog.audio_dict = value

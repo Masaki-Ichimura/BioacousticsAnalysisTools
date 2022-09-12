@@ -1,0 +1,23 @@
+#:kivy 2.1
+
+<MainContainer>:
+    BoxLayout:
+        pos: root.pos
+        size: root.size
+
+        TabbedPanel:
+            do_default_tab: False
+            tab_width: dp(200)
+            background_color: (1, 1, 1, .5)
+
+            EditTab:
+                id: edit_tab
+                text: '取り込み/編集'
+
+            OffprocessTab:
+                id: offprocess_tab
+                text: 'オフライン信号処理'
+
+            ConfigTab:
+                id: config_tab
+                text: '設定'

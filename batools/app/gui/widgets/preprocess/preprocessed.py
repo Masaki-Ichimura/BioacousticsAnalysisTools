@@ -4,13 +4,13 @@ import gc
 from kivy.lang import Builder
 from kivy.properties import ListProperty, ObjectProperty
 
-from batools.app.gui.widgets.tab import Tab
+from batools.app.gui.widgets.sub_tab import SubTab
 from batools.app.gui.widgets.scrollable_treeview import AudioTreeViewLabel
 
 Builder.load_file(__file__[:-3]+'.kv')
 
 
-class PreprocessedTab(Tab):
+class PreprocessedTab(SubTab):
     audio_dicts = ListProperty([])
     audio_labels = ObjectProperty(set())
 
