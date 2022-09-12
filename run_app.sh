@@ -1,7 +1,9 @@
-sh install.sh
+if [ ! -e venv ]; then
+    sh install.sh
+fi
 
-. venv/bin/activate
+pushd venv/bin
+source activate
+popd
 
 bagui
-
-deactivate

@@ -1,9 +1,14 @@
 APP_NAME=BAGUI
 
-git clone https://github.com/kivy/kivy-sdk-packager.git
+if [ -e kivy-sdk-packager ]; then
+    rm -rf kivy-sdk-packager/osx/$APP_NAME.{app,dmg}
+else
+    git clone https://github.com/kivy/kivy-sdk-packager.git
+    curl -L https://github.com/kivy/kivy/releases/download/2.1.0/Kivy.dmg -o kivy-sdk-packager/osx/Kivy.dmg
+fi
+
 cd kivy-sdk-packager/osx
 
-curl -O -L https://github.com/kivy/kivy/releases/download/2.1.0/Kivy.dmg
 hdiutil attach Kivy.dmg -mountroot .
 
 cp -R Kivy/Kivy.app $APP_NAME.app
@@ -16,11 +21,8 @@ source activate
 popd
 
 # install requirement packages
-PYTHON_LIB_DIR=`python -c "import site; print(site.getsitepackages()[0])"`
-
-python -m pip -U pip
-python -m pip install ../../
-git clone https://github.com/kivy-garden/garden.matplotlib.git $PYTHON_LIB_DIR/kivy/garden/matplotlib
+python -m pip install -U pip
+python -m pip install -I ../../
 
 # Reduce app size
 ./cleanup-app.sh $APP_NAME.app
@@ -31,4 +33,8 @@ ln -s ./venv/bin/bagui yourapp
 popd
 
 ./relocate.sh $APP_NAME.app
+
+# enlarge size to avoid error (XX: 99=>192)
+# create-osx-dmg.sh[line 73]: expr "$(cat "$work_dir/_size")" + XX > "$work_dir/_size"
+sed -i '' '73s/99/192/g' create-osx-dmg.sh
 ./create-osx-dmg.sh $APP_NAME.app $APP_NAME
