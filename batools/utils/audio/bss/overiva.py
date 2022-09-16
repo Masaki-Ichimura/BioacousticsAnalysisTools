@@ -94,8 +94,10 @@ class OverIVA(tf_bss_model_base):
         # Compute the demixed output
         def demix(Y, X, W):
             Y[:, :, :] = X @ W.conj()
+        
+        self.pbar = trange(n_iter)
 
-        for epoch in trange(n_iter):
+        for epoch in self.pbar:
 
             demix(Y, X, W)
 

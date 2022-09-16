@@ -31,17 +31,17 @@
                 FrogSeparate:
                     id: separate
                     name: 'separate'
-                    root_tab: root
+                    parent_tab: root
 
                 FrogSelect:
                     id: select
                     name: 'select'
-                    root_tab: root
+                    parent_tab: root
 
                 FrogAnalysis:
                     id: analysis
                     name: 'analysis'
-                    root_tab: root
+                    parent_tab: root
 
             MDNavigationDrawer:
                 id: nav_drawer
@@ -90,6 +90,13 @@
             size_hint_x: 2
             spacing: dp(10)
             adaptive_width: True
+
+            MDProgressBar:
+                id: progressbar
+                orientation: 'horizontal'
+                size_hint_y: None
+                # pos_hint: {"center_y": .6}
+                # type: "indeterminate"
 
             # MDBoxLayout:
             #     orientation: 'horizontal'
@@ -200,8 +207,7 @@
             text: 'separate'
             on_press:
                 root.separate()
-                root.root_tab.ids.screen_manager.current = 'select'
-
+                root.parent_tab.ids.screen_manager.current = 'select'
 
 <FrogSelect>:
     BoxLayout:
@@ -219,7 +225,6 @@
             text: 'select'
             on_press:
                 root.select()
-                root.root_tab.ids.screen_manager.current = 'analysis'
 
 <FrogAnalysis>:
     BoxLayout:

@@ -79,7 +79,9 @@ class ILRMA(tf_bss_model_base):
         if T.dtype!=P.dtype or V.dtype!=P.dtype:
             T, V = T.type(P.dtype), V.type(P.dtype)
 
-        for epoch in trange(n_iter):
+        self.pbar = trange(n_iter)
+
+        for epoch in self.pbar:
             if callback is not None and epoch % 10 == 0:
                 Y_t = Y.permute(2, 0, 1)
                 if proj_back:

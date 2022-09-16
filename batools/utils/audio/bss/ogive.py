@@ -132,7 +132,9 @@ class OGIVE(tf_bss_model_base):
         X_ref = X  # keep a reference to input signal
         X = X.swapaxes(0, 1).detach().clone()  # more efficient order for processing
 
-        for epoch in trange(n_iter):
+        self.pbar = trange(n_iter)
+
+        for epoch in self.pbar:
             # compute the switching criterion
             if update == "switching" and epoch % 10 == 0:
                 switching_criterion()

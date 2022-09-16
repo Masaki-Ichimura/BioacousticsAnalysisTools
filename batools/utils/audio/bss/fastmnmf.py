@@ -41,7 +41,7 @@ class FastMNMF(tf_bss_model_base):
             ]  # determined case (the number of source = the number of microphone)
 
         if initialize_ilrma:  # initialize by using ILRMA
-            from .utils.bss.ilrma import ILRMA
+            from .ilrma import ILRMA
 
             ilrma = ILRMA(**self.stft_args).to(device)
 
@@ -94,8 +94,10 @@ class FastMNMF(tf_bss_model_base):
                 separated_spec[n] = tmp
             return separated_spec
 
+        self.pbar = trange(n_iter)
+
         # update parameters
-        for epoch in trange(n_iter):
+        for epoch in self.pbar:
             if callback is not None and epoch % 10 == 0:
                 callback(separate())
 

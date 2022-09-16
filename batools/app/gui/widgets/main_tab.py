@@ -6,6 +6,5 @@ Builder.load_file(__file__[:-3]+'.kv')
 
 
 class MainTab(TabbedPanelItem):
-    def on_kv_post(self, *args, **kwargs):
-        app = App.get_running_app()
-        self.app = app
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)

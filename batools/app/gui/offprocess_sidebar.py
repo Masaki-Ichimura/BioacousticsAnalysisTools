@@ -14,9 +14,6 @@ class OffprocessSidebar(Sidebar):
     audio_dicts = ListProperty([])
     audio_labels = ObjectProperty(set())
 
-    def on_kv_post(self, *args, **kwargs):
-        self.offprocess_tab = self.parent.parent
-
     def remove_button_clicked(self):
         audio_treeview, audio_dicts = self.ids.audio_treeview, self.audio_dicts
 
@@ -92,5 +89,5 @@ class OffprocessSidebar(Sidebar):
             if selected_label in audio_labels:
                 audio_dict = audio_dicts[audio_labels.index(selected_label)]
 
-                working_container = self.offprocess_tab.ids.working_container
+                working_container = self.parent_tab.ids.working_container
                 working_container.audio_dict = audio_dict

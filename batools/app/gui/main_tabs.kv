@@ -9,11 +9,13 @@
 
         EditSidebar:
             id: sidebar
-            size_hint_x: 25
+            parent_tab: root
+            size_hint_x: 1
 
         EditWorkingContainer:
             id: working_container
-            size_hint_x: 75
+            parent_tab: root
+            size_hint_x: 3
 
 <OffprocessTab>:
     MDBoxLayout:
@@ -24,11 +26,13 @@
 
         OffprocessSidebar:
             id: sidebar
-            size_hint_x: 25
+            parent_tab: root
+            size_hint_x: 1
 
         OffprocessWorkingContainer:
             id: working_container
-            size_hint_x: 75
+            psarent_tab: root
+            size_hint_x: 3
 
 <ConfigTab>:
     MDBoxLayout:
@@ -38,3 +42,4 @@
 
         ConfigWorkingContainer:
             id: working_container
+            parent_tab: root

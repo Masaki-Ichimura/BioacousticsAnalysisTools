@@ -37,7 +37,7 @@ class MainApp(MDApp):
         self.links = dict(
             edit_tab=main_container.ids.edit_tab,
             offprocess_tab=main_container.ids.offprocess_tab,
-            config_container=main_container.ids.config_tab
+            config_tab=main_container.ids.config_tab
         )
 
     def build(self):

@@ -1,12 +1,13 @@
 import torch
 import torchaudio
-
+from collections import ChainMap
+from tqdm import trange
 
 class tf_bss_model_base(torch.nn.Module):
     """
     Base class of BSS model in time-frequency domain.
     """
-    def __init__(self, **stft_args):
+    def __init__(self, **args):
         """
         Parameters
         ----------
@@ -34,7 +35,7 @@ class tf_bss_model_base(torch.nn.Module):
 
         spec_fn = torchaudio.transforms.Spectrogram
         spec_args = {
-            k: v for k, v in stft_args.items()
+            k: v for k, v in args.items()
             if k in spec_fn.__init__.__annotations__.keys()
         }
         spec_args['power'] = None
@@ -42,12 +43,14 @@ class tf_bss_model_base(torch.nn.Module):
 
         ispec_fn = torchaudio.transforms.InverseSpectrogram
         ispec_args = {
-            k: v for k, v in stft_args.items()
+            k: v for k, v in args.items()
             if k in ispec_fn.__init__.__annotations__.keys()
         }
         self.istft = ispec_fn(**ispec_args)
 
-        self.stft_args = stft_args
+        self.stft_args = dict(ChainMap(spec_args, ispec_args))
+
+        self.pbar = trange(1)
 
     def forward(self, xnt, **separate_args):
         Xnkl = self.stft(xnt)

@@ -11,8 +11,6 @@ class EditWorkingContainer(Container):
     audio_dict = DictProperty({})
 
     def on_kv_post(self, *args, **kwargs):
-        self.edit_tab = self.parent.parent
-
         audio_display = self.ids.audio_display
         audio_toolbar = audio_display.ids.audio_toolbar
 

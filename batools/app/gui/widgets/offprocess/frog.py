@@ -1,9 +1,11 @@
 import torch
 import torchaudio
+import threading
 import matplotlib.pyplot as plt
 from itertools import combinations
 
 from kivy.app import App
+from kivy.clock import Clock
 from kivy.lang import Builder
 from kivy.properties import DictProperty
 from kivy.uix.treeview import TreeViewLabel
@@ -14,8 +16,6 @@ from kivymd.uix.label.label import MDIcon
 from kivymd.uix.selectioncontrol.selectioncontrol import MDCheckbox
 from kivymd.uix.segmentedcontrol.segmentedcontrol import MDSegmentedControlItem
 
-from batools.app.kivy_utils import TorchTensorProperty
-from batools.app.gui.widgets.container import Container
 from batools.app.gui.widgets.sub_tab import SubTab
 from batools.app.gui.widgets.audiodisplay import AudioMiniplot
 from batools.utils.audio.analysis.frog import check_synchronization
@@ -40,8 +40,6 @@ class FrogTab(SubTab):
 class FrogSeparate(MDScreen):
     audio_dict = DictProperty({})
     mode = 'ilrma'
-
-    root_tab = None
 
     def on_kv_post(self, *args, **kwargs):
 
@@ -69,8 +67,8 @@ class FrogSeparate(MDScreen):
 
     def get_func(self):
         app = App.get_running_app()
-        config_container = app.links['config_container']
-        stft_args = config_container.get_stft_args()
+        config_tab = app.links['config_tab']
+        stft_args = config_tab.ids.working_container.get_stft_args()
 
         if self.mode == 'ilrma':
             func = ILRMA(**stft_args)
@@ -98,7 +96,6 @@ class FrogSeparate(MDScreen):
         self.ids.fastmnmf_n_iter.text = '30'
         self.ids.fastmnmf_n_components.text = '4'
 
-
     def get_separate_args(self):
         if self.mode == 'ilrma':
             args = dict(
@@ -125,20 +122,40 @@ class FrogSeparate(MDScreen):
             app = App.get_running_app()
             cache_dir = app.tmp_dir
 
-            sep_fn = lambda x: self.get_func()(x, **self.get_separate_args())
+            sep_fn = self.get_func()
 
-            sep_data, sep_fs = sep_fn(self.audio_dict['data']), self.audio_dict['fs']
-            sep_label = f'bss_{self.mode}_{self.audio_dict["label"]}'
-            sep_cache = f'{cache_dir.name}/{sep_label}.wav'
-            sep_dict = dict(
-                label=sep_label, path=None, cache=sep_cache, data=sep_data, fs=sep_fs, ch=-1
-            )
+            self.ids.progressbar.value = 0
 
-            self.root_tab.ids.select.audio_dict = sep_dict
+            def check_progress(dt):
+                n, total = sep_fn.pbar.n, sep_fn.pbar.total
+
+                if sep_fn.pbar.disable:
+                    self.ids.progressbar.value = 100
+                    return False
+                else:
+                    self.ids.progressbar.value = 100 * n // total
+            
+            self.check_progress = Clock.schedule_interval(check_progress, .5)
+
+            def separate_process():
+                sep_data = sep_fn(self.audio_dict['data'], **self.get_separate_args())
+                sep_fs = self.audio_dict['fs']
+                sep_label = f'bss_{self.mode}_{self.audio_dict["label"]}'
+                sep_cache = f'{cache_dir.name}/{sep_label}.wav'
+                self.sep_dict = dict(
+                    label=sep_label, path=None, cache=sep_cache, data=sep_data, fs=sep_fs, ch=-1
+                )
+                Clock.schedule_once(update_process)
+            
+            def update_process(dt):
+                self.parent_tab.ids.select.audio_dict = self.sep_dict
+                self.parent_tab.ids.screen_manager.current = 'analysis'
+
+            thread = threading.Thread(target=separate_process)
+            thread.start()
 
 class FrogSelect(MDScreen):
     audio_dict = DictProperty({})
-    root_tab = None
     checkboxes = []
 
     def on_audio_dict(self, instance, value):
@@ -185,11 +202,10 @@ class FrogSelect(MDScreen):
                 label=sct_label, path=None, cache=sct_cache, data=sct_data, fs=sct_fs, ch=-1
             )
 
-            self.root_tab.ids.analysis.audio_dict = sct_dict
+            self.parent_tab.ids.analysis.audio_dict = sct_dict
 
 class FrogAnalysis(MDScreen):
     audio_dict = DictProperty({})
-    root_tab = None
 
     def on_kv_post(self, *args, **kwargs):
         self.fig_hist = plt.figure()
@@ -205,7 +221,7 @@ class FrogAnalysis(MDScreen):
             if ana_datas.size(0) > 1:
                 combs = combinations(range(ana_datas.size(0)), 2)
 
-                sep_miniplots = self.root_tab.ids.select.ids.stack_sep.children
+                sep_miniplots = self.parent_tab.ids.select.ids.stack_sep.children
                 sep_datas = [mp.audio_data for mp in sep_miniplots]
 
                 sct_miniplots = [

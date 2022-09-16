@@ -100,7 +100,9 @@ class AuxIVA(tf_bss_model_base):
         def demix(Y, X, W):
             Y[:, :, :] = torch.matmul(W, X)
 
-        for epoch in trange(n_iter):
+        self.pbar = trange(n_iter)
+
+        for epoch in self.pbar:
 
             demix(Y, X, W)
 

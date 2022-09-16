@@ -102,8 +102,10 @@ class NMFLGM(LGM):
             torch.eye(n_chan, dtype=dtype, device=device).tile(n_freq, 1, 1)
         R_nfcc = normalize_RV(R_nfcc)
 
+        self.pbar = trange(n_iter)
+
         loss_list = []
-        for epoch in trange(n_iter):
+        for epoch in self.pbar:
             # E-step
             V_nft = V_nft if epoch == 0 else torch.bmm(W_nfk, H_nkt)
             V_nft = V_nft.clip(min=0)
