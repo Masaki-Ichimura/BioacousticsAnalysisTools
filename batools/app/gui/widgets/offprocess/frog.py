@@ -134,7 +134,7 @@ class FrogSeparate(MDScreen):
                     return False
                 else:
                     self.ids.progressbar.value = 100 * n // total
-            
+
             self.check_progress = Clock.schedule_interval(check_progress, .5)
 
             def separate_process():
@@ -146,10 +146,11 @@ class FrogSeparate(MDScreen):
                     label=sep_label, path=None, cache=sep_cache, data=sep_data, fs=sep_fs, ch=-1
                 )
                 Clock.schedule_once(update_process)
-            
+
             def update_process(dt):
                 self.parent_tab.ids.select.audio_dict = self.sep_dict
-                self.parent_tab.ids.screen_manager.current = 'analysis'
+                self.parent_tab.ids.screen_manager.current = 'select'
+                self.ids.progressbar.value = 0
 
             thread = threading.Thread(target=separate_process)
             thread.start()

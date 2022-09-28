@@ -2,7 +2,7 @@ import torch
 
 from kivy.app import App
 from kivy.lang import Builder
-from kivy.properties import DictProperty
+from kivy.properties import DictProperty, ListProperty
 
 from batools.utils.audio import silence_pydub, silence_pyaudioanalysis
 from batools.utils.audio.transform import apply_freq_mask, extract_from_section
@@ -14,10 +14,8 @@ Builder.load_file(__file__[:-3]+'.kv')
 
 class SilenceRemovalTab(SubTab):
     audio_dict = DictProperty({})
-    audio_data_org = TorchTensorProperty(torch.zeros(1))
-
     prob_dict = None
-    nonsilent_sections = None
+    nonsilent_sections = ListProperty([])
     mode = 'svm'
 
     def on_kv_post(self, *args, **kwargs):
@@ -25,15 +23,22 @@ class SilenceRemovalTab(SubTab):
 
     def on_audio_dict(self, instance, value):
         if value:
-            self.audio_data_org = value['data']
-            self.nonsilent_sections = self.prob_dict = None
-
-    def on_audio_data_org(self, instance, value):
-        label = self.audio_dict['label']
-        if '.' in label:
-            label = label[:-label[::-1].index('.')-1]
+            label = value['label']
+            if '.' in label:
+                label = label[:-label[::-1].index('.')-1]
+        else:
+            label = ''
 
         self.ids.label.text = label
+        self.nonsilent_sections = []
+        self.prob_dict = None
+
+    def on_nonsilent_sections(self, instance, value):
+        app = App.get_running_app()
+        working_container = app.links['edit_tab'].ids.working_container
+        preprocessed = working_container.ids.audio_detail.ids.preprocessed
+
+        preprocessed.ids.silence_removal_checkbox.disabled = not value
 
     def get_freq_args(self):
         if self.ids.limit_freq.active:
@@ -157,7 +162,7 @@ class SilenceRemovalTab(SubTab):
         if self.mode == 'svm':
             if audio_data is not None and prob_dict:
                 func_args = self.get_func_args()
-                nonsilent_sections = silence_pyaudioanalysis.segmentation(
+                self.nonsilent_sections = silence_pyaudioanalysis.segmentation(
                     probability=prob_dict['probability'],
                     threshold=prob_dict['threshold'],
                     seek_num=func_args['seek_ms'],
@@ -185,11 +190,11 @@ class SilenceRemovalTab(SubTab):
 
         self.replot_button_clicked()
 
-    def extract_button_clicked(self):
+    def extract(self):
         nonsilent_sections = self.nonsilent_sections
         audio_data, audio_fs = self.audio_dict['data'], self.audio_dict['fs']
 
-        if audio_data is not None and nonsilent_sections is not None:
+        if audio_data is not None and nonsilent_sections:
             app = App.get_running_app()
             cache_dir = app.tmp_dir
             extracted_dicts = []
@@ -203,10 +208,14 @@ class SilenceRemovalTab(SubTab):
                     fs=audio_fs, ch=-1
                 ))
 
-            audio_detail = self.parent.parent.parent.parent.parent.parent
-            preprocessed = audio_detail.ids.preprocessed
+            return extracted_dicts
 
-            preprocessed.audio_dicts.extend(extracted_dicts)
+        else: []
 
-            tabs = audio_detail.ids.tabs
-            tabs.switch_tab('format-list-bulleted', search_by='icon')
+            # audio_detail = self.parent.parent.parent.parent.parent.parent
+            # preprocessed = audio_detail.ids.preprocessed
+
+            # preprocessed.audio_dicts.extend(extracted_dicts)
+
+            # tabs = audio_detail.ids.tabs
+            # tabs.switch_tab('format-list-bulleted', search_by='icon')

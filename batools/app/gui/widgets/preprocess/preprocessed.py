@@ -1,6 +1,8 @@
 import datetime
 import gc
+from torchaudio.sox_effects import apply_effects_tensor
 
+from kivy.app import App
 from kivy.lang import Builder
 from kivy.properties import ListProperty, ObjectProperty
 
@@ -72,3 +74,59 @@ class PreprocessedTab(SubTab):
                  audio_treeview.add_node(AudioTreeViewLabel(text=f'{k}: {v}'), parent=audio_node)
                  for k, v in metadata.items()
              ]
+
+    def ok_button_clicked(self):
+        if self.ids.silence_removal_checkbox.state == 'down':
+            silence_removal = self.parent_tab.ids.silence_removal
+            audio_dicts = silence_removal.extract()
+        else:
+            app = App.get_running_app()
+            working_container = app.links['edit_tab'].ids.working_container
+            audio_dicts = [working_container.audio_dict]
+
+        effects = []
+        if any(audio_dicts):
+            fs_org = audio_dicts[0]['fs']
+
+            if self.ids.resample_checkbox.state == 'down':
+                if self.ids.resample_fs.text:
+                    fs_new = int(self.ids.resample_fs.text)
+                    fs_new = fs_org if fs_new < 0 else fs_new
+                else:
+                    fs_new = fs_org
+
+                if fs_new != fs_org:
+                    effects.append(['rate', str(fs_new)])
+
+            if self.ids.freqfilter_checkbox.state == 'down':
+                if self.ids.freqfilter_fs_min.text:
+                    freqfilter_fs_min = min(max(int(self.ids.freqfilter_fs_min.text), 0), fs_org//2)
+                else:
+                    freqfilter_fs_min = 0
+
+                if self.ids.freqfilter_fs_max.text:
+                    freqfilter_fs_max = max(min(int(self.ids.freqfilter_fs_max.text), fs_org//2), 0)
+                else:
+                    freqfilter_fs_max = fs_org//2
+
+                if freqfilter_fs_min < freqfilter_fs_max:
+                    freqfilter_fs_min = freqfilter_fs_min if freqfilter_fs_min != 0 else ''
+                    freqfilter_fs_max = freqfilter_fs_max if freqfilter_fs_max != fs_org//2 else ''
+
+                    if not freqfilter_fs_max:
+                        sinc_arg = f'{freqfilter_fs_min}'
+                    else:
+                        sinc_arg = f'{freqfilter_fs_min}-{freqfilter_fs_max}'
+
+                    if sinc_arg:
+                        effects.append(['sinc', sinc_arg])
+
+        if effects:
+            for audio_dict in audio_dicts:
+                data_new, fs_new = apply_effects_tensor(
+                    audio_dict['data'], audio_dict['fs'], effects=effects, channels_first=True
+                )
+
+                audio_dict['data'], audio_dict['fs'] = data_new, fs_new
+
+        self.audio_dicts.extend(audio_dicts)

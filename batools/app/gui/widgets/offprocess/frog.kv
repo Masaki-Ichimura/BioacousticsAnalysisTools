@@ -207,7 +207,6 @@
             text: 'separate'
             on_press:
                 root.separate()
-                root.parent_tab.ids.screen_manager.current = 'select'
 
 <FrogSelect>:
     BoxLayout:
@@ -225,6 +224,7 @@
             text: 'select'
             on_press:
                 root.select()
+                root.parent_tab.ids.screen_manager.current = 'analysis'
 
 <FrogAnalysis>:
     BoxLayout:
