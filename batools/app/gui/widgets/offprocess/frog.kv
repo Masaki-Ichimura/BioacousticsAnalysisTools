@@ -202,10 +202,15 @@
                             hint_text: 'number of components in the non-negative spectrum.'
                             helper_text: 'default: 4'
 
+        VSeparator:
+
         Button:
+            id: separate_button
             size_hint_x: 1
             text: 'separate'
             on_press:
+                self.disabled = True
+                mode_control.disabled = True
                 root.separate()
 
 <FrogSelect>:

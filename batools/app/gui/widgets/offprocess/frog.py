@@ -150,6 +150,8 @@ class FrogSeparate(MDScreen):
             def update_process(dt):
                 self.parent_tab.ids.select.audio_dict = self.sep_dict
                 self.parent_tab.ids.screen_manager.current = 'select'
+                self.ids.separate_button.disabled = False
+                self.ids.mode_control.disabled = False
                 self.ids.progressbar.value = 0
 
             thread = threading.Thread(target=separate_process)
