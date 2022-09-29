@@ -1,6 +1,7 @@
 # GUI ライブラリ
 kivy
 kivymd
+git+https://github.com/kivy/plyer
 kivy-garden
 japanize-kivy
 
@@ -14,6 +15,7 @@ torchnmf
 # etc
 scikit-learn
 librosa
+pyobjus
 
 # 音声再生ライブラリ
 ffpyplayer

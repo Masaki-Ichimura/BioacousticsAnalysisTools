@@ -17,9 +17,10 @@ class PreprocessedTab(SubTab):
     audio_labels = ObjectProperty(set())
 
     def on_audio_dicts(self, instance, value):
-        audio_labels = set([ad['label'] for ad in self.audio_dicts])
-        if audio_labels != self.audio_labels:
-            self.audio_labels = audio_labels
+        if value:
+            audio_labels = set([ad['label'] for ad in self.audio_dicts])
+            if audio_labels != self.audio_labels:
+                self.audio_labels = audio_labels
 
     def on_audio_labels(self, instance, value):
         self.add_treeview()
@@ -81,11 +82,10 @@ class PreprocessedTab(SubTab):
             audio_dicts = silence_removal.extract()
         else:
             app = App.get_running_app()
-            working_container = app.links['edit_tab'].ids.working_container
-            audio_dicts = [working_container.audio_dict]
+            audio_dicts = [app.links['edit_tab'].ids.working_container.audio_dict]
 
-        effects = []
         if any(audio_dicts):
+            effects = []
             fs_org = audio_dicts[0]['fs']
 
             if self.ids.resample_checkbox.state == 'down':
@@ -119,14 +119,16 @@ class PreprocessedTab(SubTab):
                         sinc_arg = f'{freqfilter_fs_min}-{freqfilter_fs_max}'
 
                     if sinc_arg:
-                        effects.append(['sinc', sinc_arg])
+                        effects.append(['sinc', '-n 32767', sinc_arg])
 
-        if effects:
-            for audio_dict in audio_dicts:
-                data_new, fs_new = apply_effects_tensor(
-                    audio_dict['data'], audio_dict['fs'], effects=effects, channels_first=True
-                )
+            if effects:
+                _ = [
+                    audio_dict.update(dict(zip(
+                        ('data', 'fs'),
+                        apply_effects_tensor(
+                            audio_dict['data'], audio_dict['fs'], effects, channels_first=True
+                        )
+                    ))) for audio_dict in audio_dicts
+                ]
 
-                audio_dict['data'], audio_dict['fs'] = data_new, fs_new
-
-        self.audio_dicts.extend(audio_dicts)
+            self.audio_dicts.extend(audio_dicts)

@@ -1,31 +1,29 @@
 import datetime
 import gc
+from plyer import filechooser
 
 from kivy.lang import Builder
 from kivy.properties import ListProperty, ObjectProperty
 
 from batools.app.gui.widgets.sidebar import Sidebar
 from batools.app.gui.widgets.scrollable_treeview import AudioTreeViewLabel
-from batools.app.gui.widgets.filechooser import FilechooserPopup
 from batools.utils.audio.wave import metadata_wave, load_wave
 
 Builder.load_file(__file__[:-3]+'.kv')
 
-
 class EditSidebar(Sidebar):
-    filechooser_popup = ObjectProperty(None)
-
     choosed_audio_dicts = ListProperty([])
     choosed_audio_labels = ObjectProperty(set())
     target_audio_dicts = ListProperty([])
     target_audio_labels = ObjectProperty(set())
 
     def choose_button_clicked(self):
-        cache_dir = self.parent_tab.app.tmp_dir
-
-        def choose(selections):
-            self.filechooser_popup.dismiss()
-
+        selections = filechooser.open_file(
+            title='pick audio files', filters=[('audio file', '*.wav')],
+            multiple=True
+        )
+        if selections:
+            cache_dir = self.parent_tab.app.tmp_dir
             choosed_labels = [ad['label'] for ad in self.choosed_audio_dicts]
             add_dicts = []
             for selection in selections:
@@ -39,11 +37,7 @@ class EditSidebar(Sidebar):
                         path=audio_path, cache=audio_cache,
                         data=audio_data, fs=audio_fs, ch=audio_ch
                     ))
-
             self.choosed_audio_dicts.extend(add_dicts)
-
-        self.filechooser_popup = FilechooserPopup(load=choose)
-        self.filechooser_popup.open()
 
     def move_button_clicked(self):
         audio_dicts = self.choosed_audio_dicts

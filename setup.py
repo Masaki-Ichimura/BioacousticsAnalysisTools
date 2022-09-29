@@ -7,6 +7,12 @@ from site import getsitepackages
 with open('requirements.txt') as requirements_file:
     install_requirements = requirements_file.read().splitlines()
 
+install_requirements = [
+    f'{req.split("/")[-1]}@{req}' if req[:4] == 'git+' else req
+    for req in install_requirements
+    if req[:1] != r'#'
+]
+
 setup(
     name='batools',
     version='0.0.1',
