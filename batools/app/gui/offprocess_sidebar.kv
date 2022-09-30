@@ -22,15 +22,19 @@
 
                 OffprocessSidebarIconButton:
                     icon: 'file-remove-outline'
-                    on_press: root.remove_button_clicked()
+                    on_press: root.remove_button_clicked(select=True)
 
                 OffprocessSidebarIconButton:
                     icon: 'delete-forever-outline'
-                    on_press: root.reset_button_clicked()
+                    on_press: root.remove_button_clicked(select=False)
+
+                OffprocessSidebarIconButton:
+                    icon: 'sort-ascending'
+                    on_press: root.sort_button_clicked(value='duration', button=self)
 
                 OffprocessSidebarIconButton:
                     icon: 'sort-alphabetical-ascending'
-                    on_press: root.sort_button_clicked()
+                    on_press: root.sort_button_clicked(value='label', button=self)
 
             HSeparator:
                 rgba: 0.5, 0.5, 0.5, 1

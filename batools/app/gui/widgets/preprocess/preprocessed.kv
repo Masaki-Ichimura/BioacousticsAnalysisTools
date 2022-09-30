@@ -37,15 +37,28 @@
 
                 PreprocessedIconButton:
                     icon: 'file-remove-outline'
-                    on_press: root.remove_button_clicked()
+                    on_press: root.remove_button_clicked(select=True)
 
                 PreprocessedIconButton:
                     icon: 'delete-forever-outline'
-                    on_press: root.reset_button_clicked()
+                    on_press: root.remove_button_clicked(select=False)
+
+                PreprocessedIconButton:
+                    icon: 'sort-ascending'
+                    on_press: root.sort_button_clicked(value='duration', button=self)
 
                 PreprocessedIconButton:
                     icon: 'sort-alphabetical-ascending'
-                    on_press: root.sort_button_clicked()
+                    on_press: root.sort_button_clicked(value='label', button=self)
+
+                PreprocessedIconButton:
+                    icon: 'content-save'
+                    # on_press:
+
+                PreprocessedIconButton:
+                    icon: 'content-save-all'
+                    # on_press:
+
 
             HSeparator:
                 rgba: 0.5, 0.5, 0.5, 1

@@ -33,15 +33,19 @@
 
                     EditSidebarIconButton:
                         icon: 'file-remove-outline'
-                        on_press: root.remove_button_clicked(mode='choosed')
+                        on_press: root.remove_button_clicked(mode='choosed', select=True)
 
                     EditSidebarIconButton:
                         icon: 'delete-forever-outline'
-                        on_press: root.reset_button_clicked(mode='choosed')
+                        on_press: root.remove_button_clicked(mode='choosed', select=False)
+
+                    EditSidebarIconButton:
+                        icon: 'sort-ascending'
+                        on_press: root.sort_button_clicked(mode='choosed', value='duration', button=self)
 
                     EditSidebarIconButton:
                         icon: 'sort-alphabetical-ascending'
-                        on_press: root.sort_button_clicked(mode='choosed')
+                        on_press: root.sort_button_clicked(mode='choosed', value='label', button=self)
 
                 HSeparator:
                     rgba: 0.5, 0.5, 0.5, 1
@@ -67,11 +71,11 @@
 
                     EditSidebarButton:
                         text: '▽ 選択 ▽'
-                        on_press: root.move_button_clicked()
+                        on_press: root.move_button_clicked(select=True)
 
                     EditSidebarButton:
                         text: '▼ 一括 ▼'
-                        on_press: root.move_full_button_clicked()
+                        on_press: root.move_button_clicked(select=False)
 
                 MDBoxLayout:
                     orientation: 'horizontal'
@@ -81,15 +85,19 @@
 
                     EditSidebarIconButton:
                         icon: 'file-remove-outline'
-                        on_press: root.remove_button_clicked(mode='target')
+                        on_press: root.remove_button_clicked(mode='target', select=True)
 
                     EditSidebarIconButton:
                         icon: 'delete-forever-outline'
-                        on_press: root.reset_button_clicked(mode='target')
+                        on_press: root.remove_button_clicked(mode='target', select=False)
+
+                    EditSidebarIconButton:
+                        icon: 'sort-ascending'
+                        on_press: root.reset_button_clicked(mode='target', value='duration', button=self)
 
                     EditSidebarIconButton:
                         icon: 'sort-alphabetical-ascending'
-                        on_press: root.sort_button_clicked(mode='target')
+                        on_press: root.reset_button_clicked(mode='target', value='label', button=self)
 
                 HSeparator:
                     rgba: 0.5, 0.5, 0.5, 1

@@ -39,59 +39,61 @@ class EditSidebar(Sidebar):
                     ))
             self.choosed_audio_dicts.extend(add_dicts)
 
-    def move_button_clicked(self):
-        audio_dicts = self.choosed_audio_dicts
-        selected_node = self.ids.choosed_audio_treeview.selected_node
-
-        if selected_node:
-            selected_label = selected_node.text
-            audio_labels = [ad['label'] for ad in audio_dicts]
-
-            if selected_label in audio_labels and selected_label not in self.target_audio_labels:
-                self.target_audio_dicts.extend([audio_dicts[audio_labels.index(selected_label)]])
-
-    def move_full_button_clicked(self):
+    def move_button_clicked(self, select):
         audio_dicts = self.choosed_audio_dicts
 
-        self.target_audio_dicts.extend(
-            [ad for ad in audio_dicts if ad['label'] not in self.target_audio_labels]
-        )
+        if select:
+            selected_node = self.ids.choosed_audio_treeview.selected_node
 
-    def remove_button_clicked(self, mode):
-        if mode == 'choosed':
-            audio_treeview, audio_dicts = self.ids.choosed_audio_treeview, self.choosed_audio_dicts
-        elif mode == 'target':
-            audio_treeview, audio_dicts = self.ids.target_audio_treeview, self.target_audio_dicts
+            if selected_node:
+                selected_label = selected_node.text
+                audio_labels = [ad['label'] for ad in audio_dicts]
 
-        selected_node = audio_treeview.selected_node
+                if selected_label in audio_labels and selected_label not in self.target_audio_labels:
+                    self.target_audio_dicts.append(audio_dicts[audio_labels.index(selected_label)])
+        else:
+            self.target_audio_dicts.extend(
+                [ad for ad in audio_dicts if ad['label'] not in self.target_audio_labels]
+            )
 
-        if selected_node:
-            selected_label = selected_node.text
-            audio_labels = [ad['label'] for ad in audio_dicts]
+    def remove_button_clicked(self, mode, select):
+        audio_treeview = getattr(self.ids, f'{mode}_audio_treeview')
+        audio_dicts = getattr(self, f'{mode}_audio_dicts')
+        audio_labels = getattr(self, f'{mode}_audio_labels')
 
-            if selected_label in audio_labels:
-                audio_dicts.pop(audio_labels.index(selected_label))
+        if select:
+            selected_node = audio_treeview.selected_node
 
-    def reset_button_clicked(self, mode):
-        if mode == 'choosed':
-            audio_dicts, audio_labels = self.choosed_audio_dicts, self.choosed_audio_labels
-        elif mode == 'target':
-            audio_dicts, audio_labels = self.target_audio_dicts, self.target_audio_labels
+            if selected_node:
+                selected_label = selected_node.text
+                audio_labels = [ad['label'] for ad in audio_dicts]
 
-        _ = [elem.clear() for elem in [audio_dicts, audio_labels]]
+                if selected_label in audio_labels:
+                    audio_dicts.pop(audio_labels.index(selected_label))
+        else:
+            _ = [elem.clear() for elem in [audio_dicts, audio_labels]]
+            self.clear_treeview(mode)
+            gc.collect()
 
-        self.clear_treeview(mode)
-        gc.collect()
+    def sort_button_clicked(self, mode, value, button):
+        audio_dicts = getattr(self, f'{mode}_audio_dicts')
 
-    def sort_button_clicked(self, mode):
-        if mode == 'choosed':
-            audio_dicts = self.choosed_audio_dicts
-        elif mode == 'target':
-            audio_dicts = self.target_audio_dicts
+        sort_args = {}
+        if value == 'label':
+            sort_args['key'] = lambda x: x['label']
+        elif value == 'duration':
+            sort_args['key'] = lambda x: x['data'].size(-1)
 
-        audio_dicts.sort(key=lambda x: x['label'])
+        if button.icon.split('-')[-1] == 'ascending':
+            sort_args['reverse'] = False
+            button.icon = button.icon[:-button.icon[::-1].index('-')] + 'descending'
+        elif button.icon.split('-')[-1] == 'descending':
+            sort_args['reverse'] = True
+            button.icon = button.icon[:-button.icon[::-1].index('-')] + 'ascending'
 
-        self.add_treeview(mode)
+        if sort_args:
+            audio_dicts.sort(**sort_args)
+            self.add_treeview(mode)
 
     def select_button_clicked(self):
         audio_dicts = self.choosed_audio_dicts
@@ -139,10 +141,7 @@ class EditSidebar(Sidebar):
             )
 
     def clear_treeview(self, mode):
-        if mode == 'choosed':
-            audio_treeview = self.ids.choosed_audio_treeview
-        elif mode == 'target':
-            audio_treeview = self.ids.target_audio_treeview
+        audio_treeview = getattr(self.ids, f'{mode}_audio_treeview')
 
         _ = [
             audio_treeview.remove_node(node) for node in list(audio_treeview.iterate_all_nodes())

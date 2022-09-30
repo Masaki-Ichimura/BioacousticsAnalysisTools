@@ -25,30 +25,41 @@ class PreprocessedTab(SubTab):
     def on_audio_labels(self, instance, value):
         self.add_treeview()
 
-    def remove_button_clicked(self):
-        audio_treeview = self.ids.audio_treeview
-        audio_dicts = self.audio_dicts
-
-        selected_node = audio_treeview.selected_node
-
-        if selected_node:
-            selected_label = selected_node.text
-            audio_labels = [ad['label'] for ad in audio_dicts]
-
-            if selected_label in audio_labels:
-                audio_dicts.pop(audio_labels.index(selected_label))
-
-    def reset_button_clicked(self):
+    def remove_button_clicked(self, select):
         audio_dicts, audio_labels = self.audio_dicts, self.audio_labels
 
-        _ = [elem.clear() for elem in [audio_dicts, audio_labels]]
-        self.clear_treeview()
-        gc.collect()
+        if select:
+            audio_treeview = self.ids.audio_treeview
+            selected_node = audio_treeview.selected_node
 
-    def sort_button_clicked(self):
-        self.audio_dicts.sort(key=lambda x: x['label'])
+            if selected_node:
+                selected_label = selected_node.text
+                audio_labels = [ad['label'] for ad in audio_dicts]
 
-        self.add_treeview()
+                if selected_label in audio_labels:
+                    audio_dicts.pop(audio_labels.index(selected_label))
+        else:
+            _ = [elem.clear() for elem in [audio_dicts, audio_labels]]
+            self.clear_treeview()
+            gc.collect()
+
+    def sort_button_clicked(self, value, button):
+        sort_args = {}
+        if value == 'label':
+            sort_args['key'] = lambda x: x['label']
+        elif value == 'duration':
+            sort_args['key'] = lambda x: x['data'].size(-1)
+
+        if button.icon.split('-')[-1] == 'ascending':
+            sort_args['reverse'] = False
+            button.icon = button.icon[:-button.icon[::-1].index('-')] + 'descending'
+        elif button.icon.split('-')[-1] == 'descending':
+            sort_args['reverse'] = True
+            button.icon = button.icon[:-button.icon[::-1].index('-')] + 'ascending'
+
+        if sort_args:
+            self.audio_dicts.sort(**sort_args)
+            self.add_treeview()
 
     def clear_treeview(self):
         audio_treeview = self.ids.audio_treeview
