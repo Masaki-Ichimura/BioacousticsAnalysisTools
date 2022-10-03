@@ -57,18 +57,18 @@ class EditSidebar(Sidebar):
             )
 
     def remove_button_clicked(self, mode, select):
-        audio_treeview = getattr(self.ids, f'{mode}_audio_treeview')
         audio_dicts = getattr(self, f'{mode}_audio_dicts')
         audio_labels = getattr(self, f'{mode}_audio_labels')
 
         if select:
+            audio_treeview = getattr(self.ids, f'{mode}_audio_treeview')
             selected_node = audio_treeview.selected_node
 
             if selected_node:
                 selected_label = selected_node.text
-                audio_labels = [ad['label'] for ad in audio_dicts]
 
                 if selected_label in audio_labels:
+                    audio_labels = [ad['label'] for ad in audio_dicts]
                     audio_dicts.pop(audio_labels.index(selected_label))
         else:
             _ = [elem.clear() for elem in [audio_dicts, audio_labels]]
@@ -200,7 +200,7 @@ class EditSidebar(Sidebar):
                 ]
 
     def on_target_audio_dicts(self, instance, value):
-        audio_labels = set([ad['label'] for ad in self.target_audio_dicts])
+        audio_labels = set([ad['label'] for ad in value])
 
         if audio_labels != self.target_audio_labels:
             self.target_audio_labels = audio_labels
@@ -214,7 +214,7 @@ class EditSidebar(Sidebar):
         offprocess_sidebar.audio_dicts = audio_dicts
 
     def on_choosed_audio_dicts(self, instance, value):
-        audio_labels = set([ad['label'] for ad in self.choosed_audio_dicts])
+        audio_labels = set([ad['label'] for ad in value])
 
         if audio_labels != self.choosed_audio_labels:
             self.choosed_audio_labels = audio_labels

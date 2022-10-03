@@ -18,14 +18,13 @@ class OffprocessSidebar(Sidebar):
         audio_dicts, audio_labels = self.audio_dicts, self.audio_labels
 
         if select:
-            audio_treeview = self.ids.audio_treeview
-            selected_node = audio_treeview.selected_node
+            selected_node = self.ids.audio_treeview.selected_node
 
             if selected_node:
                 selected_label = selected_node.text
-                audio_labels = [ad['label'] for ad in audio_dicts]
 
                 if selected_label in audio_labels:
+                    audio_labels = [ad['label'] for ad in audio_dicts]
                     audio_dicts.pop(audio_labels.index(selected_label))
         else:
             _ = [elem.clear() for elem in [audio_dicts, audio_labels]]
@@ -77,7 +76,7 @@ class OffprocessSidebar(Sidebar):
             ]
 
     def on_audio_dicts(self, instance, value):
-        audio_labels = set([ad['label'] for ad in self.audio_dicts])
+        audio_labels = set([ad['label'] for ad in value])
         if self.audio_labels != audio_labels:
             self.audio_labels = audio_labels
 

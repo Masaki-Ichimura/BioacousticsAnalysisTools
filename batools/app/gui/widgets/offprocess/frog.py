@@ -218,7 +218,7 @@ class FrogAnalysis(MDScreen):
         self.ids.box_hist.add_widget(FigureCanvasKivyAgg(self.fig_hist))
 
     def on_audio_dict(self, instance, value):
-        if self.audio_dict:
+        if value:
             ana_datas, ana_fs = self.audio_dict['data'], self.audio_dict['fs']
 
             if ana_datas.size(0) > 1:

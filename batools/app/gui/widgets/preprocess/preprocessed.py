@@ -1,5 +1,10 @@
+from audioop import add
 import datetime
+from email.mime import audio
 import gc
+import pathlib
+import torchaudio
+from plyer import filechooser
 from torchaudio.sox_effects import apply_effects_tensor
 
 from kivy.app import App
@@ -17,10 +22,9 @@ class PreprocessedTab(SubTab):
     audio_labels = ObjectProperty(set())
 
     def on_audio_dicts(self, instance, value):
-        if value:
-            audio_labels = set([ad['label'] for ad in self.audio_dicts])
-            if audio_labels != self.audio_labels:
-                self.audio_labels = audio_labels
+        audio_labels = set([ad['label'] for ad in value])
+        if audio_labels != self.audio_labels:
+            self.audio_labels = audio_labels
 
     def on_audio_labels(self, instance, value):
         self.add_treeview()
@@ -29,14 +33,13 @@ class PreprocessedTab(SubTab):
         audio_dicts, audio_labels = self.audio_dicts, self.audio_labels
 
         if select:
-            audio_treeview = self.ids.audio_treeview
-            selected_node = audio_treeview.selected_node
+            selected_node = self.ids.audio_treeview.selected_node
 
             if selected_node:
                 selected_label = selected_node.text
-                audio_labels = [ad['label'] for ad in audio_dicts]
 
                 if selected_label in audio_labels:
+                    audio_labels = [ad['label'] for ad in audio_dicts]
                     audio_dicts.pop(audio_labels.index(selected_label))
         else:
             _ = [elem.clear() for elem in [audio_dicts, audio_labels]]
@@ -60,6 +63,46 @@ class PreprocessedTab(SubTab):
         if sort_args:
             self.audio_dicts.sort(**sort_args)
             self.add_treeview()
+
+    def save_button_clicked(self, select):
+        audio_dicts, audio_labels = self.audio_dicts, self.audio_labels
+
+        if select:
+            selected_node = self.ids.audio_treeview.selected_node
+
+            if selected_node:
+                selected_label = selected_node.text
+
+                if selected_label in audio_labels:
+                    audio_labels = [ad['label'] for ad in audio_dicts]
+                    audio_dict = audio_dicts[audio_labels.index(selected_label)]
+                else:
+                    return None
+
+                selections = filechooser.save_file(
+                    title='save selected audio file', filters=[('audio file', '*.wav')],
+                )
+
+                if selections:
+                    audio_path = selections[0]
+                    audio_data, audio_fs = audio_dict['data'], audio_dict['fs']
+                    torchaudio.save(filepath=audio_path, src=audio_data, sample_rate=audio_fs)
+
+        else:
+            if self.audio_labels:
+                selections = filechooser.choose_dir(
+                    title='save audio file', filters=[('audio file', '*.wav')]
+                )
+
+                if selections:
+                    audio_dir = pathlib.Path(selections[0])
+                    _ = [
+                        torchaudio.save(
+                            filepath=str(audio_dir/f'{ad["label"]}.wav'),
+                            src=ad['data'], sample_rate=ad['fs']
+                        )
+                        for ad in audio_dicts
+                    ]
 
     def clear_treeview(self):
         audio_treeview = self.ids.audio_treeview
@@ -134,12 +177,23 @@ class PreprocessedTab(SubTab):
 
             if effects:
                 _ = [
-                    audio_dict.update(dict(zip(
+                    ad.update(dict(zip(
                         ('data', 'fs'),
-                        apply_effects_tensor(
-                            audio_dict['data'], audio_dict['fs'], effects, channels_first=True
-                        )
-                    ))) for audio_dict in audio_dicts
+                        apply_effects_tensor(ad['data'], ad['fs'], effects, channels_first=True)
+                    ))) for ad in audio_dicts
                 ]
 
-            self.audio_dicts.extend(audio_dicts)
+            audio_labels = [ad['label'] for ad in audio_dicts]
+            add_dicts = []
+            for ad in self.audio_dicts:
+                if ad['label'] in audio_labels:
+                    idx = audio_labels.index(ad['label'])
+                    add_dicts.append(audio_dicts[idx])
+                    _ = [elem.pop(idx) for elem in [audio_dicts, audio_labels]]
+                else:
+                    add_dicts.append(ad)
+
+            add_dicts += audio_dicts
+
+            self.audio_dicts = add_dicts
+            self.add_treeview()

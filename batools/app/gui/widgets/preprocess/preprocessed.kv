@@ -53,11 +53,11 @@
 
                 PreprocessedIconButton:
                     icon: 'content-save'
-                    # on_press:
+                    on_press: root.save_button_clicked(select=True)
 
                 PreprocessedIconButton:
                     icon: 'content-save-all'
-                    # on_press:
+                    on_press: root.save_button_clicked(select=False)
 
 
             HSeparator:
