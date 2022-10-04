@@ -3,6 +3,11 @@
 <EditSidebarIconButton@MDIconButton>:
     icon_size: '20sp'
 
+<EditSidebarIconSeparator@MDLabel>:
+    text: '|'
+    font_size: '25sp'
+    theme_text_color: 'Secondary'
+
 <EditSidebarButton@Button>:
     font_size: '15sp'
 
@@ -20,32 +25,40 @@
                 orientation: 'vertical'
                 size_hint_y: 2
 
-                MDBoxLayout:
-                    id: choosed_bar
-                    orientation: 'horizontal'
-                    padding: dp(5)
+                ScrollView:
+                    do_scroll_y: False
                     height: dp(54)
                     size_hint_y: None
 
-                    EditSidebarIconButton:
-                        icon: 'file-plus-outline'
-                        on_press: root.choose_button_clicked()
+                    MDBoxLayout:
+                        id: choosed_bar
+                        orientation: 'horizontal'
+                        padding: dp(5)
+                        adaptive_width: True
 
-                    EditSidebarIconButton:
-                        icon: 'file-remove-outline'
-                        on_press: root.remove_button_clicked(mode='choosed', select=True)
+                        EditSidebarIconButton:
+                            icon: 'file-plus-outline'
+                            on_press: root.choose_button_clicked()
 
-                    EditSidebarIconButton:
-                        icon: 'delete-forever-outline'
-                        on_press: root.remove_button_clicked(mode='choosed', select=False)
+                        EditSidebarIconSeparator:
 
-                    EditSidebarIconButton:
-                        icon: 'sort-ascending'
-                        on_press: root.sort_button_clicked(mode='choosed', value='duration', button=self)
+                        EditSidebarIconButton:
+                            icon: 'file-remove-outline'
+                            on_press: root.remove_button_clicked(mode='choosed', select=True)
 
-                    EditSidebarIconButton:
-                        icon: 'sort-alphabetical-ascending'
-                        on_press: root.sort_button_clicked(mode='choosed', value='label', button=self)
+                        EditSidebarIconButton:
+                            icon: 'delete-forever-outline'
+                            on_press: root.remove_button_clicked(mode='choosed', select=False)
+
+                        EditSidebarIconSeparator:
+
+                        EditSidebarIconButton:
+                            icon: 'sort-ascending'
+                            on_press: root.sort_button_clicked(mode='choosed', value='duration', button=self)
+
+                        EditSidebarIconButton:
+                            icon: 'sort-alphabetical-ascending'
+                            on_press: root.sort_button_clicked(mode='choosed', value='label', button=self)
 
                 HSeparator:
                     rgba: 0.5, 0.5, 0.5, 1
@@ -77,27 +90,33 @@
                         text: '▼ 一括 ▼'
                         on_press: root.move_button_clicked(select=False)
 
-                MDBoxLayout:
-                    orientation: 'horizontal'
-                    padding: dp(5)
+                ScrollView:
+                    do_scroll_y: False
                     height: dp(54)
                     size_hint_y: None
 
-                    EditSidebarIconButton:
-                        icon: 'file-remove-outline'
-                        on_press: root.remove_button_clicked(mode='target', select=True)
+                    MDBoxLayout:
+                        orientation: 'horizontal'
+                        padding: dp(5)
+                        adaptive_width: True
 
-                    EditSidebarIconButton:
-                        icon: 'delete-forever-outline'
-                        on_press: root.remove_button_clicked(mode='target', select=False)
+                        EditSidebarIconButton:
+                            icon: 'file-remove-outline'
+                            on_press: root.remove_button_clicked(mode='target', select=True)
 
-                    EditSidebarIconButton:
-                        icon: 'sort-ascending'
-                        on_press: root.reset_button_clicked(mode='target', value='duration', button=self)
+                        EditSidebarIconButton:
+                            icon: 'delete-forever-outline'
+                            on_press: root.remove_button_clicked(mode='target', select=False)
 
-                    EditSidebarIconButton:
-                        icon: 'sort-alphabetical-ascending'
-                        on_press: root.reset_button_clicked(mode='target', value='label', button=self)
+                        EditSidebarIconSeparator:
+
+                        EditSidebarIconButton:
+                            icon: 'sort-ascending'
+                            on_press: root.sort_button_clicked(mode='target', value='duration', button=self)
+
+                        EditSidebarIconButton:
+                            icon: 'sort-alphabetical-ascending'
+                            on_press: root.sort_button_clicked(mode='target', value='label', button=self)
 
                 HSeparator:
                     rgba: 0.5, 0.5, 0.5, 1

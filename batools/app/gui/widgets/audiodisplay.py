@@ -217,8 +217,7 @@ class AudioTimeline(Container):
         ax_y.set_xticks([])
         #ax_y.tick_params(which='both', axis='both', reset=True)
         ax_y.tick_params(
-            which='both', axis='x',
-            top=False, labeltop=False, bottom=False, labelbottom=False
+            which='both', axis='x', top=False, labeltop=False, bottom=False, labelbottom=False
         )
         ax_y.tick_params(
             which='major', axis='y', labelsize=self.label_size, length=self.minortick_length,
@@ -398,6 +397,13 @@ class AudioToolbar(Container):
     def close(self):
         if self.root_audio_dict_container:
             self.root_audio_dict_container.audio_dict = {}
+
+    # def expand(self):
+    #     if self.root_audio_dict_container and self.root_audio_dict_container.audio_dict:
+    #         audio_dict = self.root_audio_dict_container.audio_dict
+    #         audio_data, audio_fs = audio_dict['data'], audio_dict['fs']
+
+    #         fig, axes = plt.subplots(2, 1)
 
 class AudioMiniplot(FloatLayout):
     def __init__(self, *args, **kwargs):

@@ -3,6 +3,11 @@
 <OffprocessSidebarIconButton@MDIconButton>:
     icon_size: '20sp'
 
+<OffprocessSidebarIconSeparator@MDLabel>:
+    text: '|'
+    font_size: '25sp'
+    theme_text_color: 'Secondary'
+
 <OffprocessSidebar>:
     BoxLayout:
         orientation: 'horizontal'
@@ -13,28 +18,34 @@
             orientation: 'vertical'
             size_hint_x: 95
 
-            MDBoxLayout:
-                id: bar
-                orientation: 'horizontal'
-                padding: dp(5)
+            ScrollView:
+                do_scroll_y: False
                 height: dp(54)
                 size_hint_y: None
 
-                OffprocessSidebarIconButton:
-                    icon: 'file-remove-outline'
-                    on_press: root.remove_button_clicked(select=True)
+                MDBoxLayout:
+                    id: bar
+                    orientation: 'horizontal'
+                    padding: dp(5)
+                    adaptive_width: True
 
-                OffprocessSidebarIconButton:
-                    icon: 'delete-forever-outline'
-                    on_press: root.remove_button_clicked(select=False)
+                    OffprocessSidebarIconButton:
+                        icon: 'file-remove-outline'
+                        on_press: root.remove_button_clicked(select=True)
 
-                OffprocessSidebarIconButton:
-                    icon: 'sort-ascending'
-                    on_press: root.sort_button_clicked(value='duration', button=self)
+                    OffprocessSidebarIconButton:
+                        icon: 'delete-forever-outline'
+                        on_press: root.remove_button_clicked(select=False)
 
-                OffprocessSidebarIconButton:
-                    icon: 'sort-alphabetical-ascending'
-                    on_press: root.sort_button_clicked(value='label', button=self)
+                    OffprocessSidebarIconSeparator:
+
+                    OffprocessSidebarIconButton:
+                        icon: 'sort-ascending'
+                        on_press: root.sort_button_clicked(value='duration', button=self)
+
+                    OffprocessSidebarIconButton:
+                        icon: 'sort-alphabetical-ascending'
+                        on_press: root.sort_button_clicked(value='label', button=self)
 
             HSeparator:
                 rgba: 0.5, 0.5, 0.5, 1
