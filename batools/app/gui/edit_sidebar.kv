@@ -149,9 +149,9 @@
                 EditSidebarButton:
                     id: fetch
                     text: '◁'
-                    on_press: root.fetch_button_clicked()
+                    on_press: root.fetch_button_clicked(select=True)
 
                 EditSidebarButton:
                     id: fetch_full
                     text: '◀'
-                    on_press: root.fetch_full_button_clicked()
+                    on_press: root.fetch_button_clicked(select=False)

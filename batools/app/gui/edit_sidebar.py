@@ -109,25 +109,7 @@ class EditSidebar(Sidebar):
                 working_container = self.parent_tab.ids.working_container
                 working_container.audio_dict = audio_dict
 
-    def fetch_button_clicked(self):
-        working_container = self.parent_tab.ids.working_container
-        audio_detail = working_container.ids.audio_detail
-        tabs = audio_detail.ids.tabs
-
-        if tabs.get_current_tab().icon == 'format-list-bulleted':
-            preprocessed = audio_detail.ids.preprocessed
-            audio_dicts, audio_treeview = preprocessed.audio_dicts, preprocessed.ids.audio_treeview
-
-            selected_node = audio_treeview.selected_node
-
-            if selected_node:
-                selected_label = selected_node.text
-                audio_labels = [ad['label'] for ad in audio_dicts]
-
-                if selected_label in audio_labels:
-                    self.target_audio_dicts.extend([audio_dicts[audio_labels.index(selected_label)]])
-
-    def fetch_full_button_clicked(self):
+    def fetch_button_clicked(self, select):
         working_container = self.parent_tab.ids.working_container
         audio_detail = working_container.ids.audio_detail
         tabs = audio_detail.ids.tabs
@@ -136,9 +118,22 @@ class EditSidebar(Sidebar):
             preprocessed = audio_detail.ids.preprocessed
             audio_dicts = preprocessed.audio_dicts
 
-            self.target_audio_dicts.extend(
-                [ad for ad in audio_dicts if ad['label'] not in self.target_audio_labels]
-            )
+            if select:
+                audio_treeview = preprocessed.ids.audio_treeview
+                selected_node = audio_treeview.selected_node
+
+                if selected_node:
+                    selected_label = selected_node.text
+                    audio_labels = [ad['label'] for ad in audio_dicts]
+
+                    if selected_label in audio_labels:
+                        self.target_audio_dicts.append(
+                            audio_dicts[audio_labels.index(selected_label)]
+                        )
+            else:
+                self.target_audio_dicts.extend(
+                    [ad for ad in audio_dicts if ad['label'] not in self.target_audio_labels]
+                )
 
     def clear_treeview(self, mode):
         audio_treeview = getattr(self.ids, f'{mode}_audio_treeview')

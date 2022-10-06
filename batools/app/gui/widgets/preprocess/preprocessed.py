@@ -1,6 +1,4 @@
-from audioop import add
 import datetime
-from email.mime import audio
 import gc
 import pathlib
 import torchaudio
@@ -143,8 +141,8 @@ class PreprocessedTab(SubTab):
             fs_org = audio_dicts[0]['fs']
 
             if self.ids.resample_checkbox.state == 'down':
-                if self.ids.resample_fs.text:
-                    fs_new = int(self.ids.resample_fs.text)
+                if self.ids.resample_value.text:
+                    fs_new = int(self.ids.resample_value.text)
                     fs_new = fs_org if fs_new < 0 else fs_new
                 else:
                     fs_new = fs_org
@@ -153,24 +151,24 @@ class PreprocessedTab(SubTab):
                     effects.append(['rate', str(fs_new)])
 
             if self.ids.freqfilter_checkbox.state == 'down':
-                if self.ids.freqfilter_fs_min.text:
-                    freqfilter_fs_min = min(max(int(self.ids.freqfilter_fs_min.text), 0), fs_org//2)
+                if self.ids.freqfilter_min_value.text:
+                    freqfilter_min = min(max(int(self.ids.freqfilter_min_value.text), 0), fs_org//2)
                 else:
-                    freqfilter_fs_min = 0
+                    freqfilter_min = 0
 
-                if self.ids.freqfilter_fs_max.text:
-                    freqfilter_fs_max = max(min(int(self.ids.freqfilter_fs_max.text), fs_org//2), 0)
+                if self.ids.freqfilter_max_value.text:
+                    freqfilter_max = max(min(int(self.ids.freqfilter_max_value.text), fs_org//2), 0)
                 else:
-                    freqfilter_fs_max = fs_org//2
+                    freqfilter_max = fs_org//2
 
-                if freqfilter_fs_min < freqfilter_fs_max:
-                    freqfilter_fs_min = freqfilter_fs_min if freqfilter_fs_min != 0 else ''
-                    freqfilter_fs_max = freqfilter_fs_max if freqfilter_fs_max != fs_org//2 else ''
+                if freqfilter_min < freqfilter_max:
+                    freqfilter_min = freqfilter_min if freqfilter_min != 0 else ''
+                    freqfilter_max = freqfilter_max if freqfilter_max != fs_org//2 else ''
 
-                    if not freqfilter_fs_max:
-                        sinc_arg = f'{freqfilter_fs_min}'
+                    if not freqfilter_max:
+                        sinc_arg = f'{freqfilter_min}'
                     else:
-                        sinc_arg = f'{freqfilter_fs_min}-{freqfilter_fs_max}'
+                        sinc_arg = f'{freqfilter_min}-{freqfilter_max}'
 
                     if sinc_arg:
                         effects.append(['sinc', '-n 32767', sinc_arg])

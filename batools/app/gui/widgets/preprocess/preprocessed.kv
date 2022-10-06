@@ -7,6 +7,7 @@
 <PreprocessOptionTextField@MDTextField>:
     font_size: '15sp'
     mode: 'line'
+    halign: 'center'
     multiline: False
     text_color_normal: app.theme_cls.text_color
     line_color_normal: app.theme_cls.text_color
@@ -15,7 +16,7 @@
 <PreprocessedIconButton@MDIconButton>:
     icon_size: '20sp'
 
-<PreprocessedIconSeparator@MDLabel>
+<PreprocessedIconSeparator@MDLabel>:
     text: '|'
     font_size: '25sp'
     theme_text_color: 'Secondary'
@@ -88,114 +89,117 @@
             orientation: 'horizontal'
             size_hint_x: 41
 
-            MDStackLayout:
-                orientation: 'tb-lr'
-                padding: [dp(15), dp(10)]
+            ScrollView:
                 size_hint_x: 2
+                do_scroll: False
 
                 MDBoxLayout:
-                    orientation: 'horizontal'
+                    orientation: 'vertical'
+                    padding: [dp(15), dp(10)]
                     adaptive_height: True
 
-                    PreprocessCheckbox:
-                        id: silence_removal_checkbox
-                        disabled: True
+                    MDBoxLayout:
+                        orientation: 'horizontal'
+                        adaptive_height: True
 
-                    MDLabel:
-                        text: '無音区間除去'
+                        PreprocessCheckbox:
+                            id: silence_removal_checkbox
+                            disabled: True
 
-                MDStackLayout:
-                    orientation: 'lr-tb'
-                    adaptive_height: True
-                    padding: [dp(30), 0, 0, 0]
+                        MDLabel:
+                            text: '無音区間除去'
 
-                    Label:
-                        text: '[u]無音区間除去タブから区間の設定が必要です[/u]'
-                        markup: True
-                        size: self.texture_size
-                        size_hint: None, None
+                    MDBoxLayout:
+                        adaptive_height: True
+                        padding: [dp(30), 0, 0, 0]
 
-                MDBoxLayout:
-                    orientation: 'horizontal'
-                    adaptive_height: True
+                        Label:
+                            text: '[u]無音区間除去タブから区間の設定が必要です[/u]'
+                            markup: True
+                            size: self.texture_size
+                            size_hint: None, None
 
-                    PreprocessCheckbox:
-                        id: resample_checkbox
-                        disabled: True
-                        on_state:
-                            resample_fs.disabled = False if self.state == 'down' else True
+                    MDBoxLayout:
+                        orientation: 'horizontal'
+                        adaptive_height: True
 
-                    MDLabel:
-                        text: 'リサンプリング'
+                        PreprocessCheckbox:
+                            id: resample_checkbox
+                            disabled: True
+                            on_state:
+                                resample_value.disabled = False if self.state == 'down' else True
 
-                MDStackLayout:
-                    orientation: 'lr-tb'
-                    adaptive_height: True
-                    padding: [dp(30), 0, 0, 0]
-                    spacing: dp(5)
+                        MDLabel:
+                            text: 'リサンプリング'
 
-                    PreprocessOptionTextField:
-                        id: resample_fs
-                        width: sp(100)
-                        size_hint: None, None
-                        disabled: True
+                    MDStackLayout:
+                        orientation: 'lr-tb'
+                        adaptive_height: True
+                        padding: [dp(30), 0, 0, 0]
+                        spacing: dp(5)
 
-                    Label:
-                        text: '(Hz)'
-                        size: self.texture_size[0], resample_fs.height
-                        size_hint: None, None
+                        PreprocessOptionTextField:
+                            id: resample_value
+                            width: sp(80)
+                            size_hint: None, None
+                            disabled: True
 
-                MDBoxLayout:
-                    orientation: 'horizontal'
-                    adaptive_height: True
+                        Label:
+                            text: '(Hz)'
+                            size: self.texture_size[0], resample_value.height
+                            size_hint: None, None
 
-                    PreprocessCheckbox:
-                        id: freqfilter_checkbox
-                        disabled: True
-                        on_press:
-                            freqfilter_fs_min.disabled = False if self.state == 'down' else True
-                            freqfilter_fs_max.disabled = False if self.state == 'down' else True
+                    MDBoxLayout:
+                        orientation: 'horizontal'
+                        adaptive_height: True
 
-                    MDLabel:
-                        text: '周波数フィルタ (Hz)'
+                        PreprocessCheckbox:
+                            id: freqfilter_checkbox
+                            disabled: True
+                            on_press:
+                                freqfilter_min_value.disabled = False if self.state == 'down' else True
+                                freqfilter_max_value.disabled = False if self.state == 'down' else True
 
-                MDStackLayout:
-                    orientation: 'lr-tb'
-                    adaptive_height: True
-                    padding: [dp(30), 0, 0, 0]
-                    spacing: dp(5)
+                        MDLabel:
+                            text: '周波数フィルタ'
 
-                    Label:
-                        text: 'min:'
-                        size: self.texture_size[0], freqfilter_fs_min.height
-                        size_hint: None, None
+                    MDStackLayout:
+                        orientation: 'lr-tb'
+                        adaptive_height: True
+                        padding: [dp(30), 0, 0, 0]
+                        spacing: dp(5)
 
-                    PreprocessOptionTextField:
-                        id: freqfilter_fs_min
-                        width: sp(100)
-                        size_hint: None, None
-                        disabled: True
+                        Label:
+                            text: 'min:'
+                            size: self.texture_size[0], freqfilter_min_value.height
+                            size_hint: None, None
 
-                    Label:
-                        text: '〜'
-                        size: sp(40), freqfilter_fs_min.height
-                        size_hint: None, None
+                        PreprocessOptionTextField:
+                            id: freqfilter_min_value
+                            width: sp(80)
+                            size_hint: None, None
+                            disabled: True
 
-                    Label:
-                        text: 'max:'
-                        size: self.texture_size[0], freqfilter_fs_min.height
-                        size_hint: None, None
+                        Label:
+                            text: '〜'
+                            size: sp(40), freqfilter_max_value.height
+                            size_hint: None, None
 
-                    PreprocessOptionTextField:
-                        id: freqfilter_fs_max
-                        width: sp(100)
-                        size_hint: None, None
-                        disabled: True
+                        Label:
+                            text: 'max:'
+                            size: self.texture_size[0], freqfilter_max_value.height
+                            size_hint: None, None
 
-                    Label:
-                        text: '(Hz)'
-                        size: self.texture_size[0], freqfilter_fs_min.height
-                        size_hint: None, None
+                        PreprocessOptionTextField:
+                            id: freqfilter_max_value
+                            width: sp(80)
+                            size_hint: None, None
+                            disabled: True
+
+                        Label:
+                            text: '(Hz)'
+                            size: self.texture_size[0], freqfilter_max_value.height
+                            size_hint: None, None
 
             VSeparator:
 

@@ -4,9 +4,8 @@ from kivy.app import App
 from kivy.lang import Builder
 from kivy.properties import DictProperty, ListProperty
 
-from batools.utils.audio import silence_pydub, silence_pyaudioanalysis
+from batools.utils.audio.silence_pyaudioanalysis import silence_removal, segmentation
 from batools.utils.audio.transform import apply_freq_mask, extract_from_section
-from batools.app.kivy_utils import TorchTensorProperty
 from batools.app.gui.widgets.sub_tab import SubTab
 
 Builder.load_file(__file__[:-3]+'.kv')
@@ -16,10 +15,6 @@ class SilenceRemovalTab(SubTab):
     audio_dict = DictProperty({})
     prob_dict = None
     nonsilent_sections = ListProperty([])
-    mode = 'svm'
-
-    def on_kv_post(self, *args, **kwargs):
-        self.ids.screen_manager.current = 'svm_thr'
 
     def on_audio_dict(self, instance, value):
         if value:
@@ -29,7 +24,30 @@ class SilenceRemovalTab(SubTab):
         else:
             label = ''
 
-        self.ids.label.text = label
+        option_names = [
+            'freqfilter', 'minimum_nonsilence', 'broadened_nonsilence',
+            'window', 'hop', 'weight', 'smooth_window'
+        ]
+        option_values = {
+            'label': label,
+            'freqfilter_min': f'{"" if not value else 0}',
+            'freqfilter_max': f'{"" if not value else value["fs"]//2}',
+            'minimum_nonsilence': f'{200}',
+            'broadened_nonsilence': f'{0}',
+            'window': f'{1000}',
+            'hop': f'{500}',
+            'smooth_window': f'{500}',
+            'weight': f'{0.5}'
+        }
+
+        _ = [
+            setattr(getattr(self.ids, f'{name}_checkbox'), 'disabled', not value)
+            for name in option_names
+        ]
+        _ = [
+            setattr(getattr(self.ids, f'{name}_value'), 'text', opt_value)
+            for name, opt_value in option_values.items()
+        ]
         self.nonsilent_sections = []
         self.prob_dict = None
 
@@ -40,39 +58,83 @@ class SilenceRemovalTab(SubTab):
 
         preprocessed.ids.silence_removal_checkbox.disabled = not value
 
-    def get_freq_args(self):
-        if self.ids.limit_freq.active:
-            freq_high, freq_low = int(self.ids.freq_high.text), int(self.ids.freq_low.text)
-        else:
-            freq_high, freq_low = None, None
-
-        return dict(freq_high=freq_high, freq_low=freq_low)
-
-    def get_func(self):
-        if self.mode == 'svm':
-            return silence_pyaudioanalysis.silence_removal
-        elif self.mode == 'rms':
-            return silence_pydub.silence_removal
-
     def get_func_args(self):
-        if self.mode == 'svm':
-            func_args = dict(
-                win_ms=int(self.ids.svm_win.text),
-                seek_ms=int(self.ids.svm_seek.text),
-                weight=float(self.ids.svm_weight.text),
-                smooth_window_ms=int(self.ids.svm_smooth_window.text),
-                broaden_section_ms=int(self.ids.svm_broaden.text),
-                min_nonsilence_ms=int(self.ids.svm_min_nonsilence.text),
-                return_prob=True
-            )
-            func_args.update(self.get_freq_args())
-        elif self.mode == 'rms':
-            func_args = dict(
-                min_silence_ms=int(self.ids.rms_min_silence.text),
-                seek_ms=int(self.ids.rms_seek.text),
-                threshold=float(self.ids.rms_threshold.text),
-                return_prob=True
-            )
+        func_args = dict(
+            win_ms=1000,
+            seek_ms=500,
+            weight=.5,
+            smooth_window_ms=500,
+            broaden_section_ms=0,
+            min_nonsilence_ms=200,
+            freq_high=None,
+            freq_low=None,
+            return_prob=True
+        )
+
+        if self.ids.freqfilter_checkbox.state == 'down':
+            try:
+                audio_fs = self.audio_dict['fs']
+                freq_high = max(min(int(self.ids.freqfilter_max_value.text), audio_fs//2), 0)
+                freq_low = min(max(int(self.ids.freqfilter_min_value.text), 0), audio_fs//2)
+            except ValueError:
+                freq_high, freq_low = None, None
+
+            if freq_high is not None or freq_low is not None:
+                func_args.update(dict(freq_high=freq_high, freq_low=freq_low))
+
+        if self.ids.minimum_nonsilence_checkbox.state == 'down':
+            try:
+                min_nonsilence_ms = max(int(self.ids.minimum_nonsilence_value.text), 0)
+            except ValueError:
+                min_nonsilence_ms = None
+
+            if min_nonsilence_ms is not None:
+                func_args.update(dict(min_nonsilence_ms=min_nonsilence_ms))
+
+        if self.ids.broadened_nonsilence_checkbox.state == 'down':
+            try:
+                broaden_section_ms = max(int(self.ids.broadened_nonsilence_value.text), 0)
+            except ValueError:
+                broaden_section_ms = None
+
+            if broaden_section_ms is not None:
+                func_args.update(dict(broaden_section_ms=broaden_section_ms))
+
+        if self.ids.window_checkbox.state == 'down':
+            try:
+                win_ms = max(int(self.ids.window_value.text), 1)
+            except ValueError:
+                win_ms = None
+
+            if win_ms is not None:
+                func_args.update(dict(win_ms=win_ms))
+
+        if self.ids.hop_checkbox.state == 'down':
+            try:
+                seek_ms = max(int(self.ids.hop_value.text), 1)
+            except ValueError:
+                seek_ms = None
+
+            if seek_ms is not None:
+                func_args.update(dict(seek_ms=seek_ms))
+
+        if self.ids.weight_checkbox.state == 'down':
+            try:
+                weight = min(max(int(self.ids.weight_value.text), .01), .99)
+            except ValueError:
+                weight = None
+
+            if weight is not None:
+                func_args.update(dict(weight=weight))
+
+        if self.ids.smooth_window_checkbox.state == 'down':
+            try:
+                smooth_window_ms = max(int(self.ids.smooth_window_value), func_args['seek_ms'])
+            except ValueError:
+                smooth_window_ms = None
+
+            if smooth_window_ms is not None:
+                func_args.update(dict(smooth_window_ms=smooth_window_ms))
 
         return func_args
 
@@ -131,18 +193,18 @@ class SilenceRemovalTab(SubTab):
             working_container = audio_detail.parent.parent
             audio_timeline = working_container.ids.audio_display.ids.audio_timeline
 
-            func = self.get_func()
             func_args = self.get_func_args()
-            freq_args = self.get_freq_args()
 
             xnt = audio_data
 
-            if self.ids.limit_freq.active:
-                ynt = apply_freq_mask(xnt, audio_fs, **freq_args)
+            if self.ids.freqfilter_checkbox.state == 'down':
+                ynt = apply_freq_mask(
+                    xnt, audio_fs, freq_high=func_args['freq_high'], freq_low=func_args['freq_low']
+                )
             else:
                 ynt = xnt
 
-            nonsilent_sections, prob_dict = func(ynt, audio_fs, **func_args)
+            nonsilent_sections, prob_dict = silence_removal(ynt, audio_fs, **func_args)
             self.nonsilent_sections, self.prob_dict = nonsilent_sections, prob_dict
 
             ax_wave = audio_timeline.fig_wave.axes[0]
@@ -159,23 +221,22 @@ class SilenceRemovalTab(SubTab):
         working_container = audio_detail.parent.parent
         audio_timeline = working_container.ids.audio_display.ids.audio_timeline
 
-        if self.mode == 'svm':
-            if audio_data is not None and prob_dict:
-                func_args = self.get_func_args()
-                self.nonsilent_sections = silence_pyaudioanalysis.segmentation(
-                    probability=prob_dict['probability'],
-                    threshold=prob_dict['threshold'],
-                    seek_num=func_args['seek_ms'],
-                    clustering=True,
-                    broaden_section_num=func_args['broaden_section_ms'],
-                    enable_merge=True,
-                    min_duration_num=func_args['min_nonsilence_ms']
-                )
-                ax_wave = audio_timeline.fig_wave.axes[0]
+        if audio_data is not None and prob_dict:
+            func_args = self.get_func_args()
+            self.nonsilent_sections = segmentation(
+                probability=prob_dict['probability'],
+                threshold=prob_dict['threshold'],
+                seek_num=func_args['seek_ms'],
+                clustering=True,
+                broaden_section_num=func_args['broaden_section_ms'],
+                enable_merge=True,
+                min_duration_num=func_args['min_nonsilence_ms']
+            )
+            ax_wave = audio_timeline.fig_wave.axes[0]
 
-                self.clear()
-                self.plot(ax_wave, **prob_dict)
-                audio_timeline.fig_wave.canvas.draw()
+            self.clear()
+            self.plot(ax_wave, **prob_dict)
+            audio_timeline.fig_wave.canvas.draw()
 
     def change_threshold_button_clicked(self, val: str):
         prob_dict = self.prob_dict
@@ -199,7 +260,7 @@ class SilenceRemovalTab(SubTab):
             cache_dir = app.tmp_dir
             extracted_dicts = []
             for section in nonsilent_sections:
-                audio_label = f'{self.ids.label.text}_{section[0]}-{section[1]}'
+                audio_label = f'{self.ids.label_value.text}_{section[0]}-{section[1]}'
                 audio_cache = f'{cache_dir.name}/tmp_{audio_label}.wav'
 
                 extracted_dicts.append(dict(
@@ -210,12 +271,12 @@ class SilenceRemovalTab(SubTab):
 
             return extracted_dicts
 
-        else: []
+        # else:
 
-            # audio_detail = self.parent.parent.parent.parent.parent.parent
-            # preprocessed = audio_detail.ids.preprocessed
+        #     audio_detail = self.parent.parent.parent.parent.parent.parent
+        #     preprocessed = audio_detail.ids.preprocessed
 
-            # preprocessed.audio_dicts.extend(extracted_dicts)
+        #     preprocessed.audio_dicts.extend(extracted_dicts)
 
-            # tabs = audio_detail.ids.tabs
-            # tabs.switch_tab('format-list-bulleted', search_by='icon')
+        #     tabs = audio_detail.ids.tabs
+        #     tabs.switch_tab('format-list-bulleted', search_by='icon')

@@ -1,12 +1,14 @@
 #:kivy 2.1
 
-<FrogDrawerItem@MDNavigationDrawerItem>
+#:import NoTransition kivy.uix.screenmanager.NoTransition
+
+<FrogDrawerItem@MDNavigationDrawerItem>:
     icon_color: app.theme_cls.text_color
     theme_text_color: 'Custom'
     text_color: app.theme_cls.text_color
     selected_color: app.theme_cls.secondary_text_color
 
-<FrogSeparateOptionTextField@MDTextField>
+<FrogSeparateOptionTextField@MDTextField>:
     font_size: '15sp'
     mode: 'rectangle'
     multiline: False

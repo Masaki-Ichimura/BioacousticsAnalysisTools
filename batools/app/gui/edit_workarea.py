@@ -23,24 +23,6 @@ class EditWorkingContainer(Container):
 
         audio_display.audio_dict = audio_detail.audio_dict = value
 
-        preprocessed_tab = audio_detail.ids.preprocessed
-
-        if audio_dict:
-            fs_org = audio_dict['fs']
-            resample_fs, freqfilter_fs_min, freqfilter_fs_max = map(str, [fs_org, 0, fs_org//2])
-        else:
-            resample_fs, freqfilter_fs_min, freqfilter_fs_max = '', '', ''
-
-        preprocessed_tab.ids.resample_fs.text = resample_fs
-        preprocessed_tab.ids.freqfilter_fs_min.text = freqfilter_fs_min
-        preprocessed_tab.ids.freqfilter_fs_max.text = freqfilter_fs_max
-
-        checkboxes = [
-            getattr(preprocessed_tab.ids, f'{fn}_checkbox') for fn in ['resample', 'freqfilter']
-        ]
-        for checkbox in checkboxes:
-            checkbox.disabled = not audio_dict
-
 class EditAudioDisplay(Container):
     audio_dict = DictProperty({})
 
@@ -52,5 +34,20 @@ class EditAudioDetail(Container):
     audio_dict = DictProperty({})
 
     def on_audio_dict(self, instance, value):
-        silence_removal = self.ids.silence_removal
+        silence_removal, preprocessed = self.ids.silence_removal, self.ids.preprocessed
         silence_removal.audio_dict = value
+
+        if value:
+            fs_org = value['fs']
+            resample, freqfilter_min, freqfilter_max = map(str, [fs_org, 0, fs_org//2])
+        else:
+            resample, freqfilter_min, freqfilter_max = '', '', ''
+
+        preprocessed.ids.resample_value.text = resample
+        preprocessed.ids.freqfilter_min_value.text = freqfilter_min
+        preprocessed.ids.freqfilter_max_value.text = freqfilter_max
+
+        _ = [
+            setattr(getattr(preprocessed.ids, f'{name}_checkbox'), 'disabled', not value)
+            for name in ['resample', 'freqfilter']
+        ]
