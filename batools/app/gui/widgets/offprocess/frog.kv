@@ -3,279 +3,361 @@
 #:import NoTransition kivy.uix.screenmanager.NoTransition
 
 <FrogDrawerItem@MDNavigationDrawerItem>:
-    icon_color: app.theme_cls.text_color
-    theme_text_color: 'Custom'
-    text_color: app.theme_cls.text_color
-    selected_color: app.theme_cls.secondary_text_color
+  icon_color: app.theme_cls.text_color
+  theme_text_color: 'Custom'
+  text_color: app.theme_cls.text_color
+  selected_color: app.theme_cls.secondary_text_color
 
 <FrogSeparateOptionTextField@MDTextField>:
-    font_size: '15sp'
-    mode: 'rectangle'
-    multiline: False
-    helper_text_mode: 'persistent'
-    text_color_normal: app.theme_cls.text_color
-    line_color_normal: app.theme_cls.text_color
-    disabled_foreground_color: app.theme_cls.secondary_text_color
+  font_size: '15sp'
+  mode: 'line'
+  halign: 'center'
+  multiline: False
+  text_color_normal: app.theme_cls.text_color
+  line_color_normal: app.theme_cls.text_color
+  disabled_foreground_color: app.theme_cls.secondary_text_color
 
 <FrogTab>:
-    title: 'カエル'
+  title: 'カエル'
 
-    BoxLayout:
-        orientation: 'vertical'
-        size: root.size
+  BoxLayout:
+    # orientation: 'vertical'
+    size: root.size
+    pos: root.pos
+
+    MDNavigationLayout:
+
+      ScreenManager:
+        id: screen_manager
+
+        FrogSeparate:
+          id: separate
+          name: 'separate'
+          parent_tab: root
+
+        FrogSelect:
+          id: select
+          name: 'select'
+          parent_tab: root
+
+        FrogAnalysis:
+          id: analysis
+          name: 'analysis'
+          parent_tab: root
+
+      MDNavigationDrawer:
+        id: nav_drawer
+        type: 'standard'
         pos: root.pos
+        width: root.width*.25
 
-        MDNavigationLayout:
+        MDNavigationDrawerMenu:
 
-            ScreenManager:
-                id: screen_manager
+          FrogDrawerItem:
+            icon: 'call-split'
+            text: '音源分離'
+            on_press:
+              screen_manager.current = 'separate'
+              #nav_drawer.set_state('close')
 
-                FrogSeparate:
-                    id: separate
-                    name: 'separate'
-                    parent_tab: root
+          MDNavigationDrawerLabel:
+            text: '▽'
+            padding: [dp(40), dp(5), 0, dp(5)]
 
-                FrogSelect:
-                    id: select
-                    name: 'select'
-                    parent_tab: root
+          FrogDrawerItem:
+            icon: 'check-bold'
+            text: 'カエル信号の選択'
+            on_press:
+              screen_manager.current = 'select'
+              #nav_drawer.set_state('close')
 
-                FrogAnalysis:
-                    id: analysis
-                    name: 'analysis'
-                    parent_tab: root
+          MDNavigationDrawerLabel:
+            text: '▽'
+            padding: [dp(40), dp(5), 0, dp(5)]
 
-            MDNavigationDrawer:
-                id: nav_drawer
-                type: 'standard'
-                pos: root.pos
-                width: root.width*.25
-
-                MDNavigationDrawerMenu:
-
-                    FrogDrawerItem:
-                        icon: 'call-split'
-                        text: '音源分離'
-                        on_press:
-                            screen_manager.current = 'separate'
-                            #nav_drawer.set_state('close')
-
-                    MDNavigationDrawerLabel:
-                        text: '▽'
-                        padding: [dp(40), dp(5), 0, dp(5)]
-
-                    FrogDrawerItem:
-                        icon: 'check-bold'
-                        text: 'カエル信号の選択'
-                        on_press:
-                            screen_manager.current = 'select'
-                            #nav_drawer.set_state('close')
-
-                    MDNavigationDrawerLabel:
-                        text: '▽'
-                        padding: [dp(40), dp(5), 0, dp(5)]
-
-                    FrogDrawerItem:
-                        icon: 'poll'
-                        text: '同期解析'
-                        on_press:
-                            screen_manager.current = 'analysis'
-                            #nav_drawer.set_state('close')
+          FrogDrawerItem:
+            icon: 'poll'
+            text: '同期解析'
+            on_press:
+              screen_manager.current = 'analysis'
+              #nav_drawer.set_state('close')
 
 <FrogSeparate>:
-    BoxLayout:
+  BoxLayout:
+    orientation: 'horizontal'
+    size: root.size
+
+    MDBoxLayout:
+      orientation: 'vertical'
+      size_hint_x: 2
+      spacing: dp(10)
+      adaptive_width: True
+
+      MDProgressBar:
+        id: progressbar
         orientation: 'horizontal'
-        size: root.size
+        size_hint_y: None
 
-        MDBoxLayout:
-            orientation: 'vertical'
-            size_hint_x: 2
-            spacing: dp(10)
-            adaptive_width: True
+      MDSegmentedControl:
+        id: mode_control
+        radius: 0
+        segment_color: 1, 1, 1, .4
 
-            MDProgressBar:
-                id: progressbar
+        MDSegmentedControlItem:
+          text: 'ILRMA'
+
+        MDSegmentedControlItem:
+          text: 'AuxIVA'
+
+        MDSegmentedControlItem:
+          text: 'FastMNMF'
+
+      ScreenManager:
+        id: screen_manager
+        transition: NoTransition()
+
+        MDScreen:
+          name: 'ilrma'
+
+          ScrollView:
+            do_scroll: False
+
+            MDBoxLayout:
+              orientation: 'vertical'
+              padding: [dp(15), dp(10)]
+              adaptive_height: True
+
+              MDBoxLayout:
                 orientation: 'horizontal'
-                size_hint_y: None
-                # pos_hint: {"center_y": .6}
-                # type: "indeterminate"
+                adaptive_height: True
 
-            # MDBoxLayout:
-            #     orientation: 'horizontal'
-            #     padding: dp(20), dp(10)
-            #     spacing: dp(15)
-            #     adaptive_height: True
-            #
-            #     MDIcon:
-            #         icon: 'cog-outline'
-            #         font_size: '20sp'
-            #
-            #     MDLabel:
-            #         font_style: 'H5'
-            #         text: 'Settings'
+                MDLabel:
+                  text: '出力音源数'
+                  size_hint_x: 1
 
-            MDSegmentedControl:
-                id: mode_control
-                radius: 0
-                segment_color: 1, 1, 1, .4
+                MDLabel:
+                  text: '推奨値: チャネル数'
+                  size_hint_x: 2
 
-                MDSegmentedControlItem:
-                    text: 'ILRMA'
+                FrogSeparateOptionTextField:
+                  id: ilrma_n_src
+                  size_hint_x: 2
+                  disabled: True
 
-                MDSegmentedControlItem:
-                    text: 'AuxIVA'
+              MDBoxLayout:
+                orientation: 'horizontal'
+                adaptive_height: True
 
-                MDSegmentedControlItem:
-                    text: 'FastMNMF'
+                MDLabel:
+                  text: '反復回数'
+                  size_hint_x: 1
 
-            ScreenManager:
-                id: screen_manager
-                transition: NoTransition()
+                MDLabel:
+                  text: '推奨値: 30'
+                  size_hint_x: 2
 
-                MDScreen:
-                    name: 'ilrma'
+                FrogSeparateOptionTextField:
+                  id: ilrma_n_iter
+                  size_hint_x: 2
+                  disabled: True
 
-                    MDStackLayout:
-                        orientation: 'tb-lr'
-                        padding: [dp(15), 0, dp(15), 0]
-                        spacing: dp(20)
+              MDBoxLayout:
+                orientation: 'horizontal'
+                adaptive_height: True
 
-                        FrogSeparateOptionTextField:
-                            id: ilrma_n_src
-                            text: '1'
-                            hint_text: 'number of sound source.'
-                            helper_text: 'default: number of channel'
+                MDLabel:
+                  text: '基底数'
+                  size_hint_x: 1
 
-                        FrogSeparateOptionTextField:
-                            id: ilrma_n_iter
-                            text: '30'
-                            hint_text: 'number of iteration.'
-                            helper_text: 'default: 30'
+                MDLabel:
+                  text: '推奨値: 4'
+                  size_hint_x: 2
 
-                        FrogSeparateOptionTextField:
-                            id: ilrma_n_components
-                            text: '4'
-                            hint_text: 'number of components in the non-negative spectrum.'
-                            helper_text: 'default: 4'
+                FrogSeparateOptionTextField:
+                  id: ilrma_n_components
+                  size_hint_x: 2
+                  disabled: True
 
-                MDScreen:
-                    name: 'auxiva'
+        MDScreen:
+          name: 'auxiva'
 
-                    MDStackLayout:
-                        orientation: 'tb-lr'
-                        padding: [dp(15), 0, dp(15), 0]
-                        spacing: dp(20)
+          ScrollView:
+            do_scroll: False
 
-                        FrogSeparateOptionTextField:
-                            id: auxiva_n_src
-                            text: '1'
-                            hint_text: 'number of sound source.'
-                            helper_text: 'default: number of channel'
+            MDBoxLayout:
+              orientation: 'vertical'
+              padding: [dp(15), dp(10)]
+              adaptive_height: True
 
-                        FrogSeparateOptionTextField:
-                            id: auxiva_n_iter
-                            text: '20'
-                            hint_text: 'number of iteration.'
-                            helper_text: 'default: 20'
+              MDBoxLayout:
+                orientation: 'horizontal'
+                adaptive_height: True
 
-                MDScreen:
-                    name: 'fastmnmf'
+                MDLabel:
+                  text: '出力音源数'
+                  size_hint_x: 1
 
-                    MDStackLayout:
-                        orientation: 'tb-lr'
-                        padding: [dp(15), 0, dp(15), 0]
-                        spacing: dp(20)
+                MDLabel:
+                  text: '推奨値: チャネル数'
+                  size_hint_x: 2
 
-                        FrogSeparateOptionTextField:
-                            id: fastmnmf_n_src
-                            text: '1'
-                            hint_text: 'number of sound source.'
-                            helper_text: 'default: number of channel'
+                FrogSeparateOptionTextField:
+                  id: auxiva_n_src
+                  size_hint_x: 2
+                  disabled: True
 
-                        FrogSeparateOptionTextField:
-                            id: fastmnmf_n_iter
-                            text: '30'
-                            hint_text: 'number of iteration.'
-                            helper_text: 'default: 30'
+              MDBoxLayout:
+                orientation: 'horizontal'
+                adaptive_height: True
 
-                        FrogSeparateOptionTextField:
-                            id: fastmnmf_n_components
-                            text: '4'
-                            hint_text: 'number of components in the non-negative spectrum.'
-                            helper_text: 'default: 4'
+                MDLabel:
+                  text: '反復回数'
+                  size_hint_x: 1
 
-        VSeparator:
+                MDLabel:
+                  text: '推奨値: 20'
+                  size_hint_x: 2
 
-        Button:
-            id: separate_button
-            size_hint_x: 1
-            text: 'separate'
-            on_press:
-                self.disabled = True
-                mode_control.disabled = True
-                root.separate()
+                FrogSeparateOptionTextField:
+                  id: auxiva_n_iter
+                  size_hint_x: 2
+                  disabled: True
+
+        MDScreen:
+          name: 'fastmnmf'
+
+          ScrollView:
+            do_scroll: False
+
+            MDBoxLayout:
+              orientation: 'vertical'
+              padding: [dp(15), dp(10)]
+              adaptive_height: True
+
+              MDBoxLayout:
+                orientation: 'horizontal'
+                adaptive_height: True
+
+                MDLabel:
+                  text: '出力音源数'
+                  size_hint_x: 1
+
+                MDLabel:
+                  text: '推奨値: チャネル数'
+                  size_hint_x: 2
+
+                FrogSeparateOptionTextField:
+                  id: fastmnmf_n_src
+                  size_hint_x: 2
+                  disabled: True
+
+              MDBoxLayout:
+                orientation: 'horizontal'
+                adaptive_height: True
+
+                MDLabel:
+                  text: '反復回数'
+                  size_hint_x: 1
+
+                MDLabel:
+                  text: '推奨値: 30'
+                  size_hint_x: 2
+
+                FrogSeparateOptionTextField:
+                  id: fastmnmf_n_iter
+                  size_hint_x: 2
+                  disabled: True
+
+              MDBoxLayout:
+                orientation: 'horizontal'
+                adaptive_height: True
+
+                MDLabel:
+                  text: '基底数'
+                  size_hint_x: 1
+
+                MDLabel:
+                  text: '推奨値: 4'
+                  size_hint_x: 2
+
+                FrogSeparateOptionTextField:
+                  id: fastmnmf_n_components
+                  size_hint_x: 2
+                  disabled: True
+
+    VSeparator:
+
+    Button:
+      id: separate_button
+      size_hint_x: 1
+      text: 'separate'
+      disabled: True
+      on_press:
+        self.disabled = bool(root.audio_dict)
+        mode_control.disabled = bool(root.audio_dict)
+        root.separate()
 
 <FrogSelect>:
-    BoxLayout:
-        orientation: 'horizontal'
-        size: root.size
+  BoxLayout:
+    orientation: 'horizontal'
+    size: root.size
 
-        MDStackLayout:
-            id: stack_sep
-            orientation: 'lr-tb'
-            size_hint_x: 2
-            md_bg_color: 1, 1, 1, .8
+    MDStackLayout:
+      id: stack_sep
+      orientation: 'lr-tb'
+      size_hint_x: 2
+      md_bg_color: 1, 1, 1, .8
 
-        Button:
-            size_hint_x: 1
-            text: 'select'
-            on_press:
-                root.select()
-                root.parent_tab.ids.screen_manager.current = 'analysis'
+    Button:
+      size_hint_x: 1
+      text: 'select'
+      on_press:
+        root.select()
+        root.parent_tab.ids.screen_manager.current = 'analysis'
 
 <FrogAnalysis>:
-    BoxLayout:
+  BoxLayout:
+    orientation: 'vertical'
+    size: root.size
+
+    ScrollView:
+      do_scroll_y: False
+
+      MDBoxLayout:
+        id: box_signals
+        orientation: 'horizontal'
+        size_hint_y: 1
+        adaptive_width: True
+        md_bg_color: 1, 1, 1, .8
+
+    MDBoxLayout:
+      size_hint_y: 2
+      orientation: 'horizontal'
+
+      MDBoxLayout:
+        id: box_hist
         orientation: 'vertical'
-        size: root.size
-
-        ScrollView:
-            do_scroll_y: False
-
-            MDBoxLayout:
-                id: box_signals
-                orientation: 'horizontal'
-                size_hint_y: 1
-                adaptive_width: True
-                md_bg_color: 1, 1, 1, .8
+        padding: dp(20), dp(10)
+        md_bg_color: 1, 1, 1, .8
 
         MDBoxLayout:
-            size_hint_y: 2
-            orientation: 'horizontal'
+          orientation: 'horizontal'
+          spacing: dp(15)
+          adaptive_height: True
 
-            MDBoxLayout:
-                id: box_hist
-                orientation: 'vertical'
-                padding: dp(20), dp(10)
-                md_bg_color: 1, 1, 1, .8
+          MDIcon:
+            icon: 'poll'
+            theme_text_color: 'ContrastParentBackground'
+            font_size: dp(25)
 
-                MDBoxLayout:
-                    orientation: 'horizontal'
-                    spacing: dp(15)
-                    adaptive_height: True
+          MDLabel:
+            font_style: 'H5'
+            theme_text_color: 'ContrastParentBackground'
+            text: 'ヒストグラム'
 
-                    MDIcon:
-                        icon: 'poll'
-                        theme_text_color: 'ContrastParentBackground'
-                        font_size: dp(25)
+      ScrollView:
+        do_scroll_x: False
 
-                    MDLabel:
-                        font_style: 'H5'
-                        theme_text_color: 'ContrastParentBackground'
-                        text: 'ヒストグラム'
-
-            ScrollView:
-                do_scroll_x: False
-
-                ScrollableTreeView:
-                    id: result_treeview
-                    root_options: {'text': 'combinations', 'font_size': '15sp'}
+        ScrollableTreeView:
+          id: result_treeview
+          root_options: {'text': 'combinations', 'font_size': '15sp'}

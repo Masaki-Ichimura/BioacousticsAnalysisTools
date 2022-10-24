@@ -173,8 +173,11 @@ class AudioTimeline(Container):
         self.ids.box_tl.add_widget(seekbar)
 
         audio_toolbar = self.parent.parent.ids.audio_toolbar
-
-        self.sound = SoundLoader.load(audio_path)
+        if self.sound is None:
+            self.sound = SoundLoader.load(audio_path)
+        else:
+            self.sound.unload()
+            self.sound.load(audio_path)
         self.sound.volume = audio_toolbar.ids.volume.value
 
         def on_value(instance, value):
@@ -410,8 +413,8 @@ class AudioMiniplot(FloatLayout):
         self.audio_data = kwargs.pop('data')
         self.audio_fs = kwargs.pop('fs')
         self.audio_path = kwargs.pop('path')
-
         self.figure = kwargs.pop('figure') if 'figure' in kwargs else None
+        self.sound = kwargs.pop('sound') if 'sound' in kwargs else None
 
         super().__init__(*args, **kwargs)
 
@@ -460,15 +463,19 @@ class AudioMiniplot(FloatLayout):
         self.add_widget(plot_widget)
 
     def set_others(self):
-        self.sound = SoundLoader.load(self.audio_path)
+        if self.sound is None:
+            self.sound = SoundLoader.load(self.audio_path)
 
         def play_button_clicked(x):
+            if self.sound.source != self.audio_path:
+                self.sound.unload()
+                self.sound.load(self.audio_path)
 
             def change_progressbar_value(dt):
                 self.dt_sum += dt
                 self.progressbar.value = min(self.dt_sum/self.sound.length*100, 100)
 
-                if self.progressbar.value == 100:
+                if self.progressbar.value == 100 or self.sound.source != self.audio_path:
                     self.progressbar.value, self.dt_sum = 0, 0
                     return False
 

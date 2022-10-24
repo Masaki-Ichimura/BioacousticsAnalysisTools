@@ -1,210 +1,210 @@
 #:kivy 2.1
 
 <PreprocessCheckbox@MDCheckbox>:
-    size: dp(48), dp(48)
-    size_hint: None, None
+  size: dp(48), dp(48)
+  size_hint: None, None
 
 <PreprocessOptionTextField@MDTextField>:
-    font_size: '15sp'
-    mode: 'line'
-    halign: 'center'
-    multiline: False
-    text_color_normal: app.theme_cls.text_color
-    line_color_normal: app.theme_cls.text_color
-    disabled_foreground_color: app.theme_cls.secondary_text_color
+  font_size: '15sp'
+  mode: 'line'
+  halign: 'center'
+  multiline: False
+  text_color_normal: app.theme_cls.text_color
+  line_color_normal: app.theme_cls.text_color
+  disabled_foreground_color: app.theme_cls.secondary_text_color
 
 <PreprocessedIconButton@MDIconButton>:
-    icon_size: '20sp'
+  icon_size: '20sp'
 
 <PreprocessedIconSeparator@MDLabel>:
-    text: '|'
-    font_size: '25sp'
-    theme_text_color: 'Secondary'
+  text: '|'
+  font_size: '25sp'
+  theme_text_color: 'Secondary'
 
 <PreprocessedTab>:
-    title: ''
-    icon: 'format-list-bulleted'
+  title: ''
+  icon: 'format-list-bulleted'
+
+  BoxLayout:
+    orientation: 'horizontal'
+    pos: root.pos
+    size: root.size
 
     BoxLayout:
-        orientation: 'horizontal'
-        pos: root.pos
-        size: root.size
+      orientation: 'vertical'
+      size_hint_x: 19
 
-        BoxLayout:
-            orientation: 'vertical'
-            size_hint_x: 19
-
-            ScrollView:
-                do_scroll_y: False
-                height: dp(54)
-                size_hint_y: None
-
-                MDBoxLayout:
-                    orientation: 'horizontal'
-                    padding: dp(5)
-                    adaptive_width: True
-
-                    PreprocessedIconButton:
-                        icon: 'file-remove-outline'
-                        on_press: root.remove_button_clicked(select=True)
-
-                    PreprocessedIconButton:
-                        icon: 'delete-forever-outline'
-                        on_press: root.remove_button_clicked(select=False)
-
-                    PreprocessedIconSeparator:
-
-                    PreprocessedIconButton:
-                        icon: 'sort-ascending'
-                        on_press: root.sort_button_clicked(value='duration', button=self)
-
-                    PreprocessedIconButton:
-                        icon: 'sort-alphabetical-ascending'
-                        on_press: root.sort_button_clicked(value='label', button=self)
-
-                    PreprocessedIconSeparator:
-
-                    PreprocessedIconButton:
-                        icon: 'content-save'
-                        on_press: root.save_button_clicked(select=True)
-
-                    PreprocessedIconButton:
-                        icon: 'content-save-all'
-                        on_press: root.save_button_clicked(select=False)
-
-
-            HSeparator:
-                rgba: 0.5, 0.5, 0.5, 1
-
-            ScrollView:
-                do_scroll_x: False
-
-                ScrollableTreeView:
-                    id: audio_treeview
-                    root_options: {'text': 'preprocessed audio data', 'font_size': '15sp'}
-
-        VSeparator:
+      ScrollView:
+        do_scroll_y: False
+        height: dp(54)
+        size_hint_y: None
 
         MDBoxLayout:
+          orientation: 'horizontal'
+          padding: dp(5)
+          adaptive_width: True
+
+          PreprocessedIconButton:
+            icon: 'file-remove-outline'
+            on_press: root.remove_button_clicked(select=True)
+
+          PreprocessedIconButton:
+            icon: 'delete-forever-outline'
+            on_press: root.remove_button_clicked(select=False)
+
+          PreprocessedIconSeparator:
+
+          PreprocessedIconButton:
+            icon: 'sort-ascending'
+            on_press: root.sort_button_clicked(value='duration', button=self)
+
+          PreprocessedIconButton:
+            icon: 'sort-alphabetical-ascending'
+            on_press: root.sort_button_clicked(value='label', button=self)
+
+          PreprocessedIconSeparator:
+
+          PreprocessedIconButton:
+            icon: 'content-save'
+            on_press: root.save_button_clicked(select=True)
+
+          PreprocessedIconButton:
+            icon: 'content-save-all'
+            on_press: root.save_button_clicked(select=False)
+
+
+      HSeparator:
+        rgba: 0.5, 0.5, 0.5, 1
+
+      ScrollView:
+        do_scroll_x: False
+
+        ScrollableTreeView:
+          id: audio_treeview
+          root_options: {'text': 'preprocessed audio data', 'font_size': '15sp'}
+
+    VSeparator:
+
+    MDBoxLayout:
+      orientation: 'horizontal'
+      size_hint_x: 41
+
+      ScrollView:
+        size_hint_x: 2
+        do_scroll: False
+
+        MDBoxLayout:
+          orientation: 'vertical'
+          padding: [dp(15), dp(10)]
+          adaptive_height: True
+
+          MDBoxLayout:
             orientation: 'horizontal'
-            size_hint_x: 41
+            adaptive_height: True
 
-            ScrollView:
-                size_hint_x: 2
-                do_scroll: False
+            PreprocessCheckbox:
+              id: silence_removal_checkbox
+              disabled: True
 
-                MDBoxLayout:
-                    orientation: 'vertical'
-                    padding: [dp(15), dp(10)]
-                    adaptive_height: True
+            MDLabel:
+              text: '無音区間除去'
 
-                    MDBoxLayout:
-                        orientation: 'horizontal'
-                        adaptive_height: True
+          MDBoxLayout:
+            adaptive_height: True
+            padding: [dp(30), 0, 0, 0]
 
-                        PreprocessCheckbox:
-                            id: silence_removal_checkbox
-                            disabled: True
+            Label:
+              text: '[u]無音区間除去タブから区間の設定が必要です[/u]'
+              markup: True
+              size: self.texture_size
+              size_hint: None, None
 
-                        MDLabel:
-                            text: '無音区間除去'
+          MDBoxLayout:
+            orientation: 'horizontal'
+            adaptive_height: True
 
-                    MDBoxLayout:
-                        adaptive_height: True
-                        padding: [dp(30), 0, 0, 0]
+            PreprocessCheckbox:
+              id: resample_checkbox
+              disabled: True
+              on_state:
+                resample_value.disabled = False if self.state == 'down' else True
 
-                        Label:
-                            text: '[u]無音区間除去タブから区間の設定が必要です[/u]'
-                            markup: True
-                            size: self.texture_size
-                            size_hint: None, None
+            MDLabel:
+              text: 'リサンプリング'
 
-                    MDBoxLayout:
-                        orientation: 'horizontal'
-                        adaptive_height: True
+          MDStackLayout:
+            orientation: 'lr-tb'
+            adaptive_height: True
+            padding: [dp(30), 0, 0, 0]
+            spacing: dp(5)
 
-                        PreprocessCheckbox:
-                            id: resample_checkbox
-                            disabled: True
-                            on_state:
-                                resample_value.disabled = False if self.state == 'down' else True
+            PreprocessOptionTextField:
+              id: resample_value
+              width: sp(80)
+              size_hint: None, None
+              disabled: True
 
-                        MDLabel:
-                            text: 'リサンプリング'
+            Label:
+              text: '(Hz)'
+              size: self.texture_size[0], resample_value.height
+              size_hint: None, None
 
-                    MDStackLayout:
-                        orientation: 'lr-tb'
-                        adaptive_height: True
-                        padding: [dp(30), 0, 0, 0]
-                        spacing: dp(5)
+          MDBoxLayout:
+            orientation: 'horizontal'
+            adaptive_height: True
 
-                        PreprocessOptionTextField:
-                            id: resample_value
-                            width: sp(80)
-                            size_hint: None, None
-                            disabled: True
+            PreprocessCheckbox:
+              id: freqfilter_checkbox
+              disabled: True
+              on_press:
+                freqfilter_min_value.disabled = False if self.state == 'down' else True
+                freqfilter_max_value.disabled = False if self.state == 'down' else True
 
-                        Label:
-                            text: '(Hz)'
-                            size: self.texture_size[0], resample_value.height
-                            size_hint: None, None
+            MDLabel:
+              text: '周波数フィルタ'
 
-                    MDBoxLayout:
-                        orientation: 'horizontal'
-                        adaptive_height: True
+          MDStackLayout:
+            orientation: 'lr-tb'
+            adaptive_height: True
+            padding: [dp(30), 0, 0, 0]
+            spacing: dp(5)
 
-                        PreprocessCheckbox:
-                            id: freqfilter_checkbox
-                            disabled: True
-                            on_press:
-                                freqfilter_min_value.disabled = False if self.state == 'down' else True
-                                freqfilter_max_value.disabled = False if self.state == 'down' else True
+            Label:
+              text: 'min:'
+              size: self.texture_size[0], freqfilter_min_value.height
+              size_hint: None, None
 
-                        MDLabel:
-                            text: '周波数フィルタ'
+            PreprocessOptionTextField:
+              id: freqfilter_min_value
+              width: sp(80)
+              size_hint: None, None
+              disabled: True
 
-                    MDStackLayout:
-                        orientation: 'lr-tb'
-                        adaptive_height: True
-                        padding: [dp(30), 0, 0, 0]
-                        spacing: dp(5)
+            Label:
+              text: '〜'
+              size: sp(40), freqfilter_max_value.height
+              size_hint: None, None
 
-                        Label:
-                            text: 'min:'
-                            size: self.texture_size[0], freqfilter_min_value.height
-                            size_hint: None, None
+            Label:
+              text: 'max:'
+              size: self.texture_size[0], freqfilter_max_value.height
+              size_hint: None, None
 
-                        PreprocessOptionTextField:
-                            id: freqfilter_min_value
-                            width: sp(80)
-                            size_hint: None, None
-                            disabled: True
+            PreprocessOptionTextField:
+              id: freqfilter_max_value
+              width: sp(80)
+              size_hint: None, None
+              disabled: True
 
-                        Label:
-                            text: '〜'
-                            size: sp(40), freqfilter_max_value.height
-                            size_hint: None, None
+            Label:
+              text: '(Hz)'
+              size: self.texture_size[0], freqfilter_max_value.height
+              size_hint: None, None
 
-                        Label:
-                            text: 'max:'
-                            size: self.texture_size[0], freqfilter_max_value.height
-                            size_hint: None, None
+      VSeparator:
 
-                        PreprocessOptionTextField:
-                            id: freqfilter_max_value
-                            width: sp(80)
-                            size_hint: None, None
-                            disabled: True
-
-                        Label:
-                            text: '(Hz)'
-                            size: self.texture_size[0], freqfilter_max_value.height
-                            size_hint: None, None
-
-            VSeparator:
-
-            Button:
-                size_hint_x: 1
-                text: 'OK'
-                on_press: root.ok_button_clicked()
+      Button:
+        size_hint_x: 1
+        text: 'OK'
+        on_press: root.ok_button_clicked()
 

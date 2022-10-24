@@ -6,6 +6,7 @@ from itertools import combinations
 
 from kivy.app import App
 from kivy.clock import Clock
+from kivy.core.audio import SoundLoader
 from kivy.lang import Builder
 from kivy.properties import DictProperty
 from kivy.uix.treeview import TreeViewLabel
@@ -50,19 +51,26 @@ class FrogSeparate(MDScreen):
 
         self.ids.mode_control.bind(current_active_segment=on_current_active_segment)
 
-        # これをやってもスイッチの位置が更新されないが，一応残しておく
-        default_segment = [
-            child for child in self.ids.mode_control.ids.segment_panel.children
-            if type(child) is MDSegmentedControlItem and child.text.lower() == self.mode
-        ][0]
-        self.ids.mode_control.on_press_segment(default_segment, default_segment)
+        def on_disabled(instance, value):
+            textfields = [
+                self.ids.ilrma_n_src, self.ids.ilrma_n_iter, self.ids.ilrma_n_components,
+                self.ids.auxiva_n_src, self.ids.auxiva_n_iter,
+                self.ids.fastmnmf_n_src, self.ids.fastmnmf_n_iter, self.ids.fastmnmf_n_components
+            ]
+            for textfield in textfields:
+                textfield.disabled = value
 
-        # init コードブロック内のクロックにより width の値が逐次更新されるため，こちらからスイッチの幅を変えるのは不可能
-        # kivyMD側の対応を待つしかない (特に報告はしてないが，コードを見る限り既にバグとして認知されてそうな雰囲気)
-        # 最悪，kivymd.uix.segmentedcontrol.MDSegmentedControl の init を書き換えれば何とかなりそうだが
-        # self.ids.mode_control.ids.segment_switch.width = self.ids.mode_control.ids.segment_panel.children[0].width
+        self.ids.separate_button.bind(disabled=on_disabled)
+
+        # これをやってもスイッチの位置が更新されないが，一応残しておく
+        # default_segment = [
+        #     child for child in self.ids.mode_control.ids.segment_panel.children
+        #     if type(child) is MDSegmentedControlItem and child.text.lower() == self.mode
+        # ][0]
+        # self.ids.mode_control.on_press_segment(default_segment, default_segment)
 
     def on_audio_dict(self, instance, value):
+        self.ids.separate_button.disabled = not (value and value['data'].size(0) > 1)
         self.init_separate_args()
 
     def get_func(self):
@@ -160,6 +168,7 @@ class FrogSeparate(MDScreen):
 class FrogSelect(MDScreen):
     audio_dict = DictProperty({})
     checkboxes = []
+    sound = None
 
     def on_audio_dict(self, instance, value):
         if self.audio_dict:
@@ -175,8 +184,12 @@ class FrogSelect(MDScreen):
             for ch, ch_data in enumerate(sep_data):
                 torchaudio.save(filepath=ch_path.format(ch), src=ch_data[None], sample_rate=sep_fs)
 
+                if self.sound is None:
+                    self.sound = SoundLoader.load('')
+
                 audio_miniplot = AudioMiniplot(
-                    data=ch_data, fs=sep_fs, path=ch_path.format(ch), size_hint=(1/3, 1/3)
+                    data=ch_data, fs=sep_fs, path=ch_path.format(ch), size_hint=(1/3, 1/3),
+                    sound=self.sound
                 )
 
                 checkbox_widget = MDCheckbox()

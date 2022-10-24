@@ -1,311 +1,348 @@
 #:kivy 2.1
 
 <SilenceRemovalOptionTextField@MDTextField>:
-    font_size: '15sp'
-    mode: 'line'
-    halign: 'center'
-    multiline: False
-    text_color_normal: app.theme_cls.text_color
-    line_color_normal: app.theme_cls.text_color
-    disabled_foreground_color: app.theme_cls.secondary_text_color
-
-<Mode@MDCheckbox>:
-    group: 'silence_removal_mode'
-    size_hint: None, None
-    size: dp(48), dp(48)
+  font_size: '15sp'
+  mode: 'line'
+  halign: 'center'
+  multiline: False
+  text_color_normal: app.theme_cls.text_color
+  line_color_normal: app.theme_cls.text_color
+  disabled_foreground_color: app.theme_cls.secondary_text_color
 
 <SilenceRemovalCheckbox@MDCheckbox>:
-    size: dp(48), dp(48)
-    size_hint: None, None
+  size: dp(48), dp(48)
+  size_hint: None, None
 
 <SilenceRemovalTab>:
-    title: '無音区間除去'
+  title: '無音区間除去'
 
-    MDBoxLayout:
+  ScreenManager:
+    id: screen_manager
+    # transition: NoTransition()
+
+    MDScreen:
+      name: 'simple'
+
+      MDBoxLayout:
         orientation: 'horizontal'
         pos: root.pos
         size: root.size
 
         ScrollView:
-            size_hint_x: 3
-            do_scroll: False
+          size_hint_x: 3
+          do_scroll: False
+
+          MDBoxLayout:
+            orientation: 'vertical'
+            padding: [dp(15), dp(5)]
+            adaptive_height: True
 
             MDBoxLayout:
-                orientation: 'vertical'
-                padding: [dp(15), dp(10)]
-                adaptive_height: True
+              orientation: 'horizontal'
+              padding: [dp(12), dp(5)]
+              adaptive_height: True
 
-                MDBoxLayout:
-                    adaptive_height: True
-                    padding: [dp(15), 0, 0, 0]
+              # MDIcon:
+              #   icon: 'checkbox-blank'
+              #   size: dp(48), label_value.height
+              #   size_hint: None, None
 
-                    MDLabel:
-                        text: 'ラベル'
+              MDLabel:
+                text: 'ラベル'
+                font_style: 'H6'
+                size: self.texture_size
 
-                    SilenceRemovalOptionTextField:
-                        id: label_value
-                        width: sp(250)
-                        halign: 'left'
-                        size_hint: None, None
+              SilenceRemovalOptionTextField:
+                id: label_value
+                halign: 'left'
+                width: sp(175)
+                size_hint: None, None
 
-                MDBoxLayout:
-                    orientation: 'horizontal'
-                    adaptive_height: True
+            MDBoxLayout:
+              orientation: 'horizontal'
+              adaptive_height: True
 
-                    SilenceRemovalCheckbox:
-                        id: freqfilter_checkbox
-                        disabled: True
-                        on_press:
-                            freqfilter_min_value.disabled = False if self.state == 'down' else True
-                            freqfilter_max_value.disabled = False if self.state == 'down' else True
+              SilenceRemovalCheckbox:
+                id: freqfilter_checkbox
+                disabled: True
+                on_press:
+                  freqfilter_min_value.disabled = False if self.state == 'down' else True
+                  freqfilter_max_value.disabled = False if self.state == 'down' else True
 
-                    MDLabel:
-                        text: '周波数フィルタ'
+              MDLabel:
+                text: '周波数フィルタ'
 
-                MDStackLayout:
-                    orientation: 'lr-tb'
-                    padding: [dp(30), 0, 0, 0]
-                    spacing: dp(5)
-                    adaptive_height: True
+            MDStackLayout:
+              orientation: 'lr-tb'
+              padding: [dp(30), 0, 0, 0]
+              spacing: dp(5)
+              adaptive_height: True
 
-                    Label:
-                        text: 'min:'
-                        size: self.texture_size[0], freqfilter_min_value.height
-                        size_hint: None, None
+              Label:
+                text: 'min:'
+                size: self.texture_size[0], freqfilter_min_value.height
+                size_hint: None, None
 
-                    SilenceRemovalOptionTextField:
-                        id: freqfilter_min_value
-                        width: sp(75)
-                        size_hint: None, None
-                        disabled: True
+              SilenceRemovalOptionTextField:
+                id: freqfilter_min_value
+                width: sp(75)
+                size_hint: None, None
+                disabled: True
 
-                    Label:
-                        text: '〜'
-                        size: sp(40), freqfilter_max_value.height
-                        size_hint: None, None
+              Label:
+                text: '〜'
+                size: sp(30), freqfilter_max_value.height
+                size_hint: None, None
 
-                    Label:
-                        text: 'max:'
-                        size: self.texture_size[0], freqfilter_max_value.height
-                        size_hint: None, None
+              Label:
+                text: 'max:'
+                size: self.texture_size[0], freqfilter_max_value.height
+                size_hint: None, None
 
-                    SilenceRemovalOptionTextField:
-                        id: freqfilter_max_value
-                        width: sp(75)
-                        size_hint: None, None
-                        disabled: True
+              SilenceRemovalOptionTextField:
+                id: freqfilter_max_value
+                width: sp(75)
+                size_hint: None, None
+                disabled: True
 
-                    Label:
-                        text: '(Hz)'
-                        size: self.texture_size[0], freqfilter_max_value.height
-                        size_hint: None, None
+              Label:
+                text: '(Hz)'
+                size: self.texture_size[0], freqfilter_max_value.height
+                size_hint: None, None
 
-                MDBoxLayout:
-                    orientation: 'horizontal'
-                    adaptive_height: True
+            MDBoxLayout:
+              orientation: 'horizontal'
+              adaptive_height: True
 
-                    SilenceRemovalCheckbox:
-                        id: minimum_nonsilence_checkbox
-                        disabled: True
-                        on_press:
-                            minimum_nonsilence_value.disabled = False if self.state == 'down' else True
+              SilenceRemovalCheckbox:
+                id: minimum_nonsilence_checkbox
+                disabled: True
+                on_press:
+                  minimum_nonsilence_value.disabled = False if self.state == 'down' else True
 
-                    MDLabel:
-                        text: '有音区間の最低長'
+              MDLabel:
+                text: '有音区間の最低長'
 
-                MDStackLayout:
-                    orientation: 'lr-tb'
-                    adaptive_height: True
-                    padding: [dp(30), 0, 0, 0]
+            MDStackLayout:
+              orientation: 'lr-tb'
+              adaptive_height: True
+              padding: [dp(30), 0, 0, 0]
 
-                    SilenceRemovalOptionTextField:
-                        id: minimum_nonsilence_value
-                        width: sp(75)
-                        size_hint: None, None
-                        disabled: True
+              SilenceRemovalOptionTextField:
+                id: minimum_nonsilence_value
+                width: sp(75)
+                size_hint: None, None
+                disabled: True
 
-                    Label:
-                        text: '(ms)'
-                        size: self.texture_size[0], minimum_nonsilence_value.height
-                        size_hint: None, None
+              Label:
+                text: '(ms)'
+                size: self.texture_size[0], minimum_nonsilence_value.height
+                size_hint: None, None
 
-                MDBoxLayout:
-                    orientation: 'horizontal'
-                    adaptive_height: True
+            MDBoxLayout:
+              orientation: 'horizontal'
+              adaptive_height: True
 
-                    SilenceRemovalCheckbox:
-                        id: broadened_nonsilence_checkbox
-                        disabled: True
-                        on_press:
-                            broadened_nonsilence_value.disabled = False if self.state == 'down' else True
+              SilenceRemovalCheckbox:
+                id: broadened_nonsilence_checkbox
+                disabled: True
+                on_press:
+                  broadened_nonsilence_value.disabled = False if self.state == 'down' else True
 
-                    MDLabel:
-                        text: '有音判定区間を前後に延長'
+              MDLabel:
+                text: '有音判定区間を前後に延長'
 
-                MDStackLayout:
-                    orientation: 'lr-tb'
-                    adaptive_height: True
-                    padding: [dp(30), 0, 0, 0]
+            MDStackLayout:
+              orientation: 'lr-tb'
+              adaptive_height: True
+              padding: [dp(30), 0, 0, 0]
 
-                    SilenceRemovalOptionTextField:
-                        id: broadened_nonsilence_value
-                        width: sp(75)
-                        size_hint: None, None
-                        disabled: True
+              SilenceRemovalOptionTextField:
+                id: broadened_nonsilence_value
+                width: sp(75)
+                size_hint: None, None
+                disabled: True
 
-                    Label:
-                        text: '(ms)'
-                        size: self.texture_size[0], broadened_nonsilence_value.height
-                        size_hint: None, None
+              Label:
+                text: '(ms)'
+                size: self.texture_size[0], broadened_nonsilence_value.height
+                size_hint: None, None
 
         VSeparator:
 
         ScrollView:
-            size_hint_x: 3
-            do_scroll: False
+          size_hint_x: 3
+          do_scroll: False
+
+          MDBoxLayout:
+            orientation: 'vertical'
+            padding: [dp(15), dp(10)]
+            adaptive_height: True
 
             MDBoxLayout:
-                orientation: 'vertical'
-                padding: [dp(15), dp(10)]
-                adaptive_height: True
+              adaptive_height: True
+              padding: [dp(15), 0, 0, 0]
 
-                MDBoxLayout:
-                    adaptive_height: True
-                    padding: [dp(15), 0, 0, 0]
+              MDLabel:
+                font_style: 'H6'
+                text: '高度なオプション'
+                size: self.texture_size
 
-                    MDLabel:
-                        font_style: 'H6'
-                        text: '高度なオプション'
+            MDBoxLayout:
+              orientation: 'horizontal'
+              adaptive_height: True
 
-                MDBoxLayout:
-                    orientation: 'horizontal'
-                    adaptive_height: True
+              SilenceRemovalCheckbox:
+                id: window_checkbox
+                disabled: True
+                height: window_value.height
+                on_press:
+                  window_value.disabled = False if self.state == 'down' else True
 
-                    SilenceRemovalCheckbox:
-                        id: window_checkbox
-                        disabled: True
-                        height: window_value.height
-                        on_press:
-                            window_value.disabled = False if self.state == 'down' else True
+              MDLabel:
+                text: '窓長'
 
-                    MDLabel:
-                        text: '窓長'
+              MDBoxLayout:
+                orientation: 'horizontal'
 
-                    MDBoxLayout:
-                        orientation: 'horizontal'
+                SilenceRemovalOptionTextField:
+                  id: window_value
+                  width: sp(75)
+                  disabled: True
 
-                        SilenceRemovalOptionTextField:
-                            id: window_value
-                            width: sp(75)
-                            disabled: True
+                Label:
+                  text: '(ms)'
 
-                        Label:
-                            text: '(ms)'
+            MDBoxLayout:
+              orientation: 'horizontal'
+              adaptive_height: True
 
-                MDBoxLayout:
-                    orientation: 'horizontal'
-                    adaptive_height: True
+              SilenceRemovalCheckbox:
+                id: hop_checkbox
+                disabled: True
+                on_press:
+                  hop_value.disabled = False if self.state == 'down' else True
 
-                    SilenceRemovalCheckbox:
-                        id: hop_checkbox
-                        disabled: True
-                        on_press:
-                            hop_value.disabled = False if self.state == 'down' else True
+              MDLabel:
+                text: 'ホップ長'
 
-                    MDLabel:
-                        text: 'ホップ長'
+              MDBoxLayout:
+                orientation: 'horizontal'
 
-                    MDBoxLayout:
-                        orientation: 'horizontal'
+                SilenceRemovalOptionTextField:
+                  id: hop_value
+                  width: sp(75)
+                  disabled: True
 
-                        SilenceRemovalOptionTextField:
-                            id: hop_value
-                            width: sp(75)
-                            disabled: True
+                Label:
+                  text: '(ms)'
 
-                        Label:
-                            text: '(ms)'
+            MDBoxLayout:
+              orientation: 'horizontal'
+              adaptive_height: True
 
-                MDBoxLayout:
-                    orientation: 'horizontal'
-                    adaptive_height: True
+              SilenceRemovalCheckbox:
+                id: weight_checkbox
+                disabled: True
+                on_press:
+                  weight_value.disabled = False if self.state == 'down' else True
 
-                    SilenceRemovalCheckbox:
-                        id: weight_checkbox
-                        disabled: True
-                        on_press:
-                            weight_value.disabled = False if self.state == 'down' else True
+              MDLabel:
+                text: '重み (0-1)'
 
-                    MDLabel:
-                        text: '重み (0-1)'
+              MDBoxLayout:
+                orientation: 'horizontal'
 
-                    MDBoxLayout:
-                        orientation: 'horizontal'
+                SilenceRemovalOptionTextField:
+                  id: weight_value
+                  width: sp(75)
+                  disabled: True
 
-                        SilenceRemovalOptionTextField:
-                            id: weight_value
-                            width: sp(75)
-                            disabled: True
+                Widget:
 
-                        Widget:
+            MDBoxLayout:
+              orientation: 'horizontal'
+              adaptive_height: True
 
-                MDBoxLayout:
-                    orientation: 'horizontal'
-                    adaptive_height: True
+              SilenceRemovalCheckbox:
+                id: smooth_window_checkbox
+                disabled: True
+                on_press:
+                  smooth_window_value.disabled = False if self.state == 'down' else True
 
-                    SilenceRemovalCheckbox:
-                        id: smooth_window_checkbox
-                        disabled: True
-                        on_press:
-                            smooth_window_value.disabled = False if self.state == 'down' else True
+              MDLabel:
+                text: 'スムージング長'
 
-                    MDLabel:
-                        text: 'スムージング長'
+              MDBoxLayout:
+                orientation: 'horizontal'
 
-                    MDBoxLayout:
-                        orientation: 'horizontal'
+                SilenceRemovalOptionTextField:
+                  id: smooth_window_value
+                  width: sp(75)
+                  disabled: True
 
-                        SilenceRemovalOptionTextField:
-                            id: smooth_window_value
-                            width: sp(75)
-                            disabled: True
-
-                        Label:
-                            text: '(ms)'
+                Label:
+                  text: '(ms)'
 
         VSeparator:
 
         BoxLayout:
-            orientation: 'vertical'
-            size_hint_x: 2
+          orientation: 'vertical'
+          size_hint_x: 2
+
+          Button:
+            text: '区間プロット'
+            on_press: root.plot_button_clicked()
+
+          BoxLayout:
+            orientation: 'horizontal'
 
             Button:
-                text: '区間プロット'
-                on_press: root.plot_button_clicked()
-
-            BoxLayout:
-                orientation: 'horizontal'
-
-                Button:
-                    text: '-0.01'
-                    on_press: root.change_threshold_button_clicked('-0.01')
-
-                Button:
-                    text: '-0.1'
-                    on_press: root.change_threshold_button_clicked('-0.1')
-
-                Button:
-                    text: '0.5'
-                    on_press: root.change_threshold_button_clicked('0.5')
-
-                Button:
-                    text: '+0.1'
-                    on_press: root.change_threshold_button_clicked('+0.1')
-
-                Button:
-                    text: '+0.01'
-                    on_press: root.change_threshold_button_clicked('+0.01')
+              text: '-0.01'
+              on_press: root.change_threshold_button_clicked('-0.01')
 
             Button:
-                text: '再プロット'
-                on_press: root.replot_button_clicked()
+              text: '-0.1'
+              on_press: root.change_threshold_button_clicked('-0.1')
+
+            Button:
+              text: '0.5'
+              on_press: root.change_threshold_button_clicked('0.5')
+
+            Button:
+              text: '+0.1'
+              on_press: root.change_threshold_button_clicked('+0.1')
+
+            Button:
+              text: '+0.01'
+              on_press: root.change_threshold_button_clicked('+0.01')
+
+          Button:
+            text: '再プロット'
+            on_press: root.replot_button_clicked()
+
+          Button:
+            text: '詳細設定'
+            on_press: screen_manager.current = 'detail'
+
+    MDScreen:
+      name: 'detail'
+
+      MDBoxLayout:
+        orientation: 'horizontal'
+        pos: root.pos
+        size: root.size
+
+        MDBoxLayout:
+          size_hint_x: 3
+
+          Button:
+
+        VSeparator:
+
+        MDBoxLayout:
+          size_hint_x: 1
+
+          Button:
+            text: '簡易設定'
+            on_press: screen_manager.current = 'simple'

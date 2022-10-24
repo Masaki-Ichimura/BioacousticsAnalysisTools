@@ -1,12 +1,285 @@
 #:kivy 2.1
 
+<GeneralDrawerItem@MDNavigationDrawerItem>:
+  icon_color: app.theme_cls.text_color
+  theme_text_color: 'Custom'
+  text_color: app.theme_cls.text_color
+  selected_color: app.theme_cls.secondary_text_color
+
+<GeneralSeparateOptionTextField@MDTextField>:
+  font_size: '15sp'
+  mode: 'line'
+  halign: 'center'
+  multiline: False
+  text_color_normal: app.theme_cls.text_color
+  line_color_normal: app.theme_cls.text_color
+  disabled_foreground_color: app.theme_cls.secondary_text_color
+
 <GeneralTab>:
-    title: '一般'
+  title: '一般'
 
-    BoxLayout:
-        orientation: 'horizontal'
-        size: root.size
+  BoxLayout:
+    # orientation: 'horizontal'
+    size: root.size
+    pos: root.pos
+
+    MDNavigationLayout:
+
+      ScreenManager:
+        id: screen_manager
+
+        GeneralSeparate:
+          id: separate
+          name: 'separate'
+          parent_tab: root
+
+        GeneralLocalize:
+          id: localize
+          name: 'localize'
+          parent_tab: root
+
+      MDNavigationDrawer:
+        id: nav_drawer
+        type: 'standard'
         pos: root.pos
+        width: root.width*.25
 
-        Button:
-            text: '- 生物全般で使用？\n- 分離/定位の機能を想定`'
+        MDNavigationDrawerMenu:
+
+          GeneralDrawerItem:
+            icon: 'call-split'
+            text: '音源分離'
+            on_press:
+              screen_manager.current = 'separate'
+
+          MDNavigationDrawerDivider:
+
+          GeneralDrawerItem:
+            icon: 'radar'
+            text: '音源定位'
+            on_press:
+              screen_manager.current = 'localize'
+
+<GeneralSeparate>:
+  BoxLayout:
+    orientation: 'horizontal'
+    size: root.size
+
+    MDBoxLayout:
+      orientation: 'vertical'
+      size_hint_x: 2
+      spacing: dp(10)
+      adaptive_width: True
+
+      MDProgressBar:
+        id: progressbar
+        orientation: 'horizontal'
+        size_hint_y: None
+
+      MDSegmentedControl:
+        id: mode_control
+        radius: 0
+        segment_color: 1, 1, 1, .4
+
+        MDSegmentedControlItem:
+          text: 'ILRMA'
+
+        MDSegmentedControlItem:
+          text: 'AuxIVA'
+
+        MDSegmentedControlItem:
+          text: 'FastMNMF'
+
+      ScreenManager:
+        id: screen_manager
+        transition: NoTransition()
+
+        MDScreen:
+          name: 'ilrma'
+
+          ScrollView:
+            do_scroll: False
+
+            MDBoxLayout:
+              orientation: 'vertical'
+              padding: [dp(15), dp(10)]
+              adaptive_height: True
+
+              MDBoxLayout:
+                orientation: 'horizontal'
+                adaptive_height: True
+
+                MDLabel:
+                  text: '出力音源数'
+                  size_hint_x: 1
+
+                MDLabel:
+                  text: '推奨値: チャネル数'
+                  size_hint_x: 2
+
+                FrogSeparateOptionTextField:
+                  id: ilrma_n_src
+                  size_hint_x: 2
+                  disabled: True
+
+              MDBoxLayout:
+                orientation: 'horizontal'
+                adaptive_height: True
+
+                MDLabel:
+                  text: '反復回数'
+                  size_hint_x: 1
+
+                MDLabel:
+                  text: '推奨値: 30'
+                  size_hint_x: 2
+
+                FrogSeparateOptionTextField:
+                  id: ilrma_n_iter
+                  size_hint_x: 2
+                  disabled: True
+
+              MDBoxLayout:
+                orientation: 'horizontal'
+                adaptive_height: True
+
+                MDLabel:
+                  text: '基底数'
+                  size_hint_x: 1
+
+                MDLabel:
+                  text: '推奨値: 4'
+                  size_hint_x: 2
+
+                FrogSeparateOptionTextField:
+                  id: ilrma_n_components
+                  size_hint_x: 2
+                  disabled: True
+
+        MDScreen:
+          name: 'auxiva'
+
+          ScrollView:
+            do_scroll: False
+
+            MDBoxLayout:
+              orientation: 'vertical'
+              padding: [dp(15), dp(10)]
+              adaptive_height: True
+
+              MDBoxLayout:
+                orientation: 'horizontal'
+                adaptive_height: True
+
+                MDLabel:
+                  text: '出力音源数'
+                  size_hint_x: 1
+
+                MDLabel:
+                  text: '推奨値: チャネル数'
+                  size_hint_x: 2
+
+                FrogSeparateOptionTextField:
+                  id: auxiva_n_src
+                  size_hint_x: 2
+                  disabled: True
+
+              MDBoxLayout:
+                orientation: 'horizontal'
+                adaptive_height: True
+
+                MDLabel:
+                  text: '反復回数'
+                  size_hint_x: 1
+
+                MDLabel:
+                  text: '推奨値: 20'
+                  size_hint_x: 2
+
+                FrogSeparateOptionTextField:
+                  id: auxiva_n_iter
+                  size_hint_x: 2
+                  disabled: True
+
+        MDScreen:
+          name: 'fastmnmf'
+
+          ScrollView:
+            do_scroll: False
+
+            MDBoxLayout:
+              orientation: 'vertical'
+              padding: [dp(15), dp(10)]
+              adaptive_height: True
+
+              MDBoxLayout:
+                orientation: 'horizontal'
+                adaptive_height: True
+
+                MDLabel:
+                  text: '出力音源数'
+                  size_hint_x: 1
+
+                MDLabel:
+                  text: '推奨値: チャネル数'
+                  size_hint_x: 2
+
+                FrogSeparateOptionTextField:
+                  id: fastmnmf_n_src
+                  size_hint_x: 2
+                  disabled: True
+
+              MDBoxLayout:
+                orientation: 'horizontal'
+                adaptive_height: True
+
+                MDLabel:
+                  text: '反復回数'
+                  size_hint_x: 1
+
+                MDLabel:
+                  text: '推奨値: 30'
+                  size_hint_x: 2
+
+                FrogSeparateOptionTextField:
+                  id: fastmnmf_n_iter
+                  size_hint_x: 2
+                  disabled: True
+
+              MDBoxLayout:
+                orientation: 'horizontal'
+                adaptive_height: True
+
+                MDLabel:
+                  text: '基底数'
+                  size_hint_x: 1
+
+                MDLabel:
+                  text: '推奨値: 4'
+                  size_hint_x: 2
+
+                FrogSeparateOptionTextField:
+                  id: fastmnmf_n_components
+                  size_hint_x: 2
+                  disabled: True
+
+
+    VSeparator:
+
+    Button:
+      id: separate_button
+      size_hint_x: 1
+      text: 'separate'
+      disabled: True
+      on_press:
+        self.disabled = bool(root.audio_dict)
+        mode_control.disabled = bool(root.audio_dict)
+        root.separate()
+
+<GeneralLocalize>:
+  BoxLayout:
+    orientation: 'horizontal'
+    size: root.size
+
+    Button:
+      text: '未実装'

@@ -242,12 +242,7 @@ class SilenceRemovalTab(SubTab):
         prob_dict = self.prob_dict
 
         if prob_dict:
-            if val[0] == '+':
-                prob_dict['threshold'] += float(val[1:])
-            elif val[0] == '-':
-                prob_dict['threshold'] -= float(val[1:])
-            else:
-                prob_dict['threshold'] = float(val)
+            prob_dict['threshold'] = prob_dict['threshold'] + eval(val)
 
         self.replot_button_clicked()
 
@@ -270,13 +265,3 @@ class SilenceRemovalTab(SubTab):
                 ))
 
             return extracted_dicts
-
-        # else:
-
-        #     audio_detail = self.parent.parent.parent.parent.parent.parent
-        #     preprocessed = audio_detail.ids.preprocessed
-
-        #     preprocessed.audio_dicts.extend(extracted_dicts)
-
-        #     tabs = audio_detail.ids.tabs
-        #     tabs.switch_tab('format-list-bulleted', search_by='icon')
