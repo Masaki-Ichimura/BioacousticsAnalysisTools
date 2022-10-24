@@ -1,45 +1,45 @@
 #:kivy 2.1
 
 <EditTab>:
-    MDBoxLayout:
-        orientation: 'horizontal'
-        pos: root.pos
-        size: root.size
-        md_bg_color: app.theme_cls.bg_light
+  MDBoxLayout:
+    orientation: 'horizontal'
+    pos: root.pos
+    size: root.size
+    md_bg_color: app.theme_cls.bg_light
 
-        EditSidebar:
-            id: sidebar
-            parent_tab: root
-            size_hint_x: 1
+    EditSidebar:
+      id: sidebar
+      parent_tab: root
+      size_hint_x: 1
 
-        EditWorkingContainer:
-            id: working_container
-            parent_tab: root
-            size_hint_x: 3
+    EditWorkingContainer:
+      id: working_container
+      parent_tab: root
+      size_hint_x: 3
 
 <OffprocessTab>:
-    MDBoxLayout:
-        orientation: 'horizontal'
-        pos: root.pos
-        size: root.size
-        md_bg_color: app.theme_cls.bg_light
+  MDBoxLayout:
+    orientation: 'horizontal'
+    pos: root.pos
+    size: root.size
+    md_bg_color: app.theme_cls.bg_light
 
-        OffprocessSidebar:
-            id: sidebar
-            parent_tab: root
-            size_hint_x: 1
+    OffprocessSidebar:
+      id: sidebar
+      parent_tab: root
+      size_hint_x: 1
 
-        OffprocessWorkingContainer:
-            id: working_container
-            psarent_tab: root
-            size_hint_x: 3
+    OffprocessWorkingContainer:
+      id: working_container
+      psarent_tab: root
+      size_hint_x: 3
 
 <ConfigTab>:
-    MDBoxLayout:
-        pos: root.pos
-        size: root.size
-        md_bg_color: app.theme_cls.bg_light
+  MDBoxLayout:
+    pos: root.pos
+    size: root.size
+    md_bg_color: app.theme_cls.bg_light
 
-        ConfigWorkingContainer:
-            id: working_container
-            parent_tab: root
+    ConfigWorkingContainer:
+      id: working_container
+      parent_tab: root

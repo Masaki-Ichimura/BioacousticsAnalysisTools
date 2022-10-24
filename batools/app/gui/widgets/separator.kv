@@ -3,21 +3,21 @@
 # This code is from https://gist.github.com/kived/3f6a638fc4827957f933463954524de5
 
 Separator:
-    rgba: 0.7, 0.7, 0.7, 1
+  rgba: 0.7, 0.7, 0.7, 1
 
 <Separator@Widget>:
-    rgba: 1, 1, 1, 1
-    canvas:
-        Color:
-            rgba: self.rgba
-        Rectangle:
-            pos: self.pos
-            size: self.size
+  rgba: 1, 1, 1, 1
+  canvas:
+    Color:
+      rgba: self.rgba
+    Rectangle:
+      pos: self.pos
+      size: self.size
 
 <HSeparator@Separator>:
-    size_hint_y: None
-    height: dp(1)
+  size_hint_y: None
+  height: dp(1)
 
 <VSeparator@Separator>:
-    size_hint_x: None
-    width: dp(1)
+  size_hint_x: None
+  width: dp(1)

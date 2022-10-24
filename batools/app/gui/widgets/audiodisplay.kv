@@ -1,127 +1,127 @@
 #:kivy 2.1
 
 <AudioTimeline>:
-    canvas.before:
-        Color:
-            rgba: 1, 1, 1, .8
-        Rectangle:
-            pos: self.pos
-            size: self.size
+  canvas.before:
+    Color:
+      rgba: 1, 1, 1, .8
+    Rectangle:
+      pos: self.pos
+      size: self.size
+
+  BoxLayout:
+    orientation: 'horizontal'
+    pos: root.pos
+    size: root.size
+    padding: 0, 5
 
     BoxLayout:
-        orientation: 'horizontal'
-        pos: root.pos
-        size: root.size
-        padding: 0, 5
+      id: box_yaxis
+      orientation: 'vertical'
+      size_hint_x: 1
 
-        BoxLayout:
-            id: box_yaxis
-            orientation: 'vertical'
-            size_hint_x: 1
+    ScrollView:
+      id: scroll_tl
+      do_scroll_y: False
+      size_hint_x: 20
+      scroll_type: ['bars', 'content']
+      scroll_distance: 40
 
-        ScrollView:
-            id: scroll_tl
-            do_scroll_y: False
-            size_hint_x: 20
-            scroll_type: ['bars', 'content']
-            scroll_distance: 40
-
-            MDBoxLayout:
-                id: box_tl
-                orientation: 'vertical'
-                adaptive_width: True
-
-                Widget:
-                    id: seekbar
-                    height: 0
-                    size_hint_y: None
-
-                    canvas:
-                        Color:
-                            rgba: 0, 1, 0, 1
-                        Rectangle:
-                            size: (5, scroll_tl.height)
-
-<AudioToolbarIconButton@MDIconButton>
-    icon_size: '20sp'
-
-<AudioToolbarIcon@MDIconButton>
-    font_size: '20sp'
-
-<AudioToolbar>:
-    height: dp(54)
-
-    MDBoxLayout:
-        id: box
-        orientation: 'horizontal'
-        pos: root.pos
-        width: root.width
-        padding: 10
-        spacing: 20
-
-        MDBoxLayout:
-            orientation: 'horizontal'
-            adaptive_height: True
-
-            AudioToolbarIconButton:
-                id: play
-                icon: 'play'
-                on_press: root.play()
-
-            AudioToolbarIconButton:
-                id: pause
-                icon: 'pause'
-                on_press: root.pause()
-
-            AudioToolbarIconButton:
-                id: stop
-                icon: 'stop'
-                on_press: root.stop()
-
-            AudioToolbarIconButton:
-                id: magnify_plus
-                icon: 'magnify-plus-outline'
-                on_press: root.magnify(mode='plus')
-
-            AudioToolbarIconButton:
-                id: magnify_minus
-                icon: 'magnify-minus-outline'
-                on_press: root.magnify(mode='minus')
-
-            MDDropDownItem:
-                id: ch
-                pos_hint: {'center_x': .5, 'center_y': .5}
-                text: '00ch'
-                on_press: root.ch_window_menu.open()
+      MDBoxLayout:
+        id: box_tl
+        orientation: 'vertical'
+        adaptive_width: True
 
         Widget:
+          id: seekbar
+          height: 0
+          size_hint_y: None
 
-        MDBoxLayout:
-            orientation: 'horizontal'
-            width: dp(250)
-            size_hint_x: None
+          canvas:
+            Color:
+              rgba: 0, 1, 0, 1
+            Rectangle:
+              size: (5, scroll_tl.height)
 
-            AudioToolbarIcon:
-                icon: 'volume-low'
-                pos_hint: {'center_x': .5, 'center_y': .5}
+<AudioToolbarIconButton@MDIconButton>
+  icon_size: '20sp'
 
-            MDSlider:
-                id: volume
-                min: 0.
-                max: 1.
-                value: 1.
-                hint: False
+<AudioToolbarIcon@MDIconButton>
+  font_size: '20sp'
 
-            AudioToolbarIcon:
-                icon: 'volume-high'
-                pos_hint: {'center_x': .5, 'center_y': .5}
+<AudioToolbar>:
+  height: dp(54)
 
-        # AudioToolbarIconButton:
-        #     id: expand
-        #     icon: 'arrow-expand'
-        #     # on_press: root.expand()
+  MDBoxLayout:
+    id: box
+    orientation: 'horizontal'
+    pos: root.pos
+    width: root.width
+    padding: 10
+    spacing: 20
 
-        AudioToolbarIconButton:
-            id: close
-            icon: 'close'
-            on_press: root.close()
+    MDBoxLayout:
+      orientation: 'horizontal'
+      adaptive_height: True
+
+      AudioToolbarIconButton:
+        id: play
+        icon: 'play'
+        on_press: root.play()
+
+      AudioToolbarIconButton:
+        id: pause
+        icon: 'pause'
+        on_press: root.pause()
+
+      AudioToolbarIconButton:
+        id: stop
+        icon: 'stop'
+        on_press: root.stop()
+
+      AudioToolbarIconButton:
+        id: magnify_plus
+        icon: 'magnify-plus-outline'
+        on_press: root.magnify(mode='plus')
+
+      AudioToolbarIconButton:
+        id: magnify_minus
+        icon: 'magnify-minus-outline'
+        on_press: root.magnify(mode='minus')
+
+      MDDropDownItem:
+        id: ch
+        pos_hint: {'center_x': .5, 'center_y': .5}
+        text: '00ch'
+        on_press: root.ch_window_menu.open()
+
+    Widget:
+
+    MDBoxLayout:
+      orientation: 'horizontal'
+      width: dp(250)
+      size_hint_x: None
+
+      AudioToolbarIcon:
+        icon: 'volume-low'
+        pos_hint: {'center_x': .5, 'center_y': .5}
+
+      MDSlider:
+        id: volume
+        min: 0.
+        max: 1.
+        value: 1.
+        hint: False
+
+      AudioToolbarIcon:
+        icon: 'volume-high'
+        pos_hint: {'center_x': .5, 'center_y': .5}
+
+    # AudioToolbarIconButton:
+    #   id: expand
+    #   icon: 'arrow-expand'
+    #   # on_press: root.expand()
+
+    AudioToolbarIconButton:
+      id: close
+      icon: 'close'
+      on_press: root.close()

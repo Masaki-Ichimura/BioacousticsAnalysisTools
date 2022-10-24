@@ -1,54 +1,54 @@
 #:kivy 2.1
 
 <OffprocessWorkingContainer>:
-    BoxLayout:
-        orientation: 'vertical'
-        pos: root.pos
-        size: root.size
+  BoxLayout:
+    orientation: 'vertical'
+    pos: root.pos
+    size: root.size
 
-        OffprocessAudioDisplay:
-            id: audio_display
-            size_hint_y: 2
+    OffprocessAudioDisplay:
+      id: audio_display
+      size_hint_y: 2
 
-        OffprocessAudioDetail:
-            id: audio_detail
-            size_hint_y: 3
+    OffprocessAudioDetail:
+      id: audio_detail
+      size_hint_y: 3
 
 <OffprocessAudioDisplay>:
-    BoxLayout:
-        orientation: 'vertical'
-        pos: root.pos
-        size: root.size
+  BoxLayout:
+    orientation: 'vertical'
+    pos: root.pos
+    size: root.size
 
-        AudioToolbar:
-            id: audio_toolbar
-            size_hint_y: None
+    AudioToolbar:
+      id: audio_toolbar
+      size_hint_y: None
 
-        HSeparator:
-            rgba: 0.5, 0.5, 0.5, 1
+    HSeparator:
+      rgba: 0.5, 0.5, 0.5, 1
 
-        AudioTimeline:
-            id: audio_timeline
+    AudioTimeline:
+      id: audio_timeline
 
-        HSeparator:
-            height: dp(2)
+    HSeparator:
+      height: dp(2)
 
 <OffprocessAudioDetail>:
-    BoxLayout:
-        orientation: 'horizontal'
-        pos: root.pos
-        size: root.size
+  BoxLayout:
+    orientation: 'horizontal'
+    pos: root.pos
+    size: root.size
 
-        MDTabs:
-            id: tabs
-            tab_bar_height: dp(54)
-            background_color: (1, 1, 1, .2)
+    MDTabs:
+      id: tabs
+      tab_bar_height: dp(54)
+      background_color: (1, 1, 1, .2)
 
-            TargetTab:
-                id: target
+      TargetTab:
+        id: target
 
-            GeneralTab:
-                id: general
+      GeneralTab:
+        id: general
 
-            FrogTab:
-                id: frog
+      FrogTab:
+        id: frog

@@ -1,157 +1,157 @@
 #:kivy 2.1
 
 <EditSidebarIconButton@MDIconButton>:
-    icon_size: '20sp'
+  icon_size: '20sp'
 
 <EditSidebarIconSeparator@MDLabel>:
-    text: '|'
-    font_size: '25sp'
-    theme_text_color: 'Secondary'
+  text: '|'
+  font_size: '25sp'
+  theme_text_color: 'Secondary'
 
 <EditSidebarButton@Button>:
-    font_size: '15sp'
+  font_size: '15sp'
 
 <EditSidebar>:
+  BoxLayout:
+    orientation: 'horizontal'
+    pos: root.pos
+    size: root.size
+
     BoxLayout:
-        orientation: 'horizontal'
-        pos: root.pos
-        size: root.size
+      orientation: 'vertical'
+      size_hint_x: 19
+
+      BoxLayout:
+        orientation: 'vertical'
+        size_hint_y: 2
+
+        ScrollView:
+          do_scroll_y: False
+          height: dp(54)
+          size_hint_y: None
+
+          MDBoxLayout:
+            id: choosed_bar
+            orientation: 'horizontal'
+            padding: dp(5)
+            adaptive_width: True
+
+            EditSidebarIconButton:
+              icon: 'file-plus-outline'
+              on_press: root.choose_button_clicked()
+
+            EditSidebarIconSeparator:
+
+            EditSidebarIconButton:
+              icon: 'file-remove-outline'
+              on_press: root.remove_button_clicked(mode='choosed', select=True)
+
+            EditSidebarIconButton:
+              icon: 'delete-forever-outline'
+              on_press: root.remove_button_clicked(mode='choosed', select=False)
+
+            EditSidebarIconSeparator:
+
+            EditSidebarIconButton:
+              icon: 'sort-ascending'
+              on_press: root.sort_button_clicked(mode='choosed', value='duration', button=self)
+
+            EditSidebarIconButton:
+              icon: 'sort-alphabetical-ascending'
+              on_press: root.sort_button_clicked(mode='choosed', value='label', button=self)
+
+        HSeparator:
+          rgba: 0.5, 0.5, 0.5, 1
+
+        ScrollView:
+          do_scroll_x: False
+
+          ScrollableTreeView:
+            id: choosed_audio_treeview
+            root_options: {'text': 'choosed audio data', 'font_size': '15sp'}
+
+      HSeparator:
+        rgba: 0.5, 0.5, 0.5, 1
+
+      BoxLayout:
+        orientation: 'vertical'
+        size_hint_y: 3
 
         BoxLayout:
-            orientation: 'vertical'
-            size_hint_x: 19
+          orientation: 'horizontal'
+          size_hint_y: None
+          height: dp(54)
 
-            BoxLayout:
-                orientation: 'vertical'
-                size_hint_y: 2
+          EditSidebarButton:
+            text: '▽ 選択 ▽'
+            on_press: root.move_button_clicked(select=True)
 
-                ScrollView:
-                    do_scroll_y: False
-                    height: dp(54)
-                    size_hint_y: None
+          EditSidebarButton:
+            text: '▼ 一括 ▼'
+            on_press: root.move_button_clicked(select=False)
 
-                    MDBoxLayout:
-                        id: choosed_bar
-                        orientation: 'horizontal'
-                        padding: dp(5)
-                        adaptive_width: True
+        ScrollView:
+          do_scroll_y: False
+          height: dp(54)
+          size_hint_y: None
 
-                        EditSidebarIconButton:
-                            icon: 'file-plus-outline'
-                            on_press: root.choose_button_clicked()
+          MDBoxLayout:
+            orientation: 'horizontal'
+            padding: dp(5)
+            adaptive_width: True
 
-                        EditSidebarIconSeparator:
+            EditSidebarIconButton:
+              icon: 'file-remove-outline'
+              on_press: root.remove_button_clicked(mode='target', select=True)
 
-                        EditSidebarIconButton:
-                            icon: 'file-remove-outline'
-                            on_press: root.remove_button_clicked(mode='choosed', select=True)
+            EditSidebarIconButton:
+              icon: 'delete-forever-outline'
+              on_press: root.remove_button_clicked(mode='target', select=False)
 
-                        EditSidebarIconButton:
-                            icon: 'delete-forever-outline'
-                            on_press: root.remove_button_clicked(mode='choosed', select=False)
+            EditSidebarIconSeparator:
 
-                        EditSidebarIconSeparator:
+            EditSidebarIconButton:
+              icon: 'sort-ascending'
+              on_press: root.sort_button_clicked(mode='target', value='duration', button=self)
 
-                        EditSidebarIconButton:
-                            icon: 'sort-ascending'
-                            on_press: root.sort_button_clicked(mode='choosed', value='duration', button=self)
+            EditSidebarIconButton:
+              icon: 'sort-alphabetical-ascending'
+              on_press: root.sort_button_clicked(mode='target', value='label', button=self)
 
-                        EditSidebarIconButton:
-                            icon: 'sort-alphabetical-ascending'
-                            on_press: root.sort_button_clicked(mode='choosed', value='label', button=self)
+        HSeparator:
+          rgba: 0.5, 0.5, 0.5, 1
 
-                HSeparator:
-                    rgba: 0.5, 0.5, 0.5, 1
+        ScrollView:
+          do_scroll_x: False
 
-                ScrollView:
-                    do_scroll_x: False
+          ScrollableTreeView:
+            id: target_audio_treeview
+            root_options: {'text': 'target audio data', 'font_size': '15sp'}
 
-                    ScrollableTreeView:
-                        id: choosed_audio_treeview
-                        root_options: {'text': 'choosed audio data', 'font_size': '15sp'}
+    BoxLayout:
+      orientation: 'vertical'
+      size_hint_x: 1
 
-            HSeparator:
-                rgba: 0.5, 0.5, 0.5, 1
+      EditSidebarButton:
+        id: select
+        size_hint_y: 2
+        text: '▷'
+        on_press: root.select_button_clicked()
 
-            BoxLayout:
-                orientation: 'vertical'
-                size_hint_y: 3
+      BoxLayout:
+        orientation: 'vertical'
+        size_hint_y: 3
 
-                BoxLayout:
-                    orientation: 'horizontal'
-                    size_hint_y: None
-                    height: dp(54)
+        Widget:
+          height: dp(54)
+          size_hint_y: None
 
-                    EditSidebarButton:
-                        text: '▽ 選択 ▽'
-                        on_press: root.move_button_clicked(select=True)
+        EditSidebarButton:
+          id: fetch
+          text: '◁'
+          on_press: root.fetch_button_clicked(select=True)
 
-                    EditSidebarButton:
-                        text: '▼ 一括 ▼'
-                        on_press: root.move_button_clicked(select=False)
-
-                ScrollView:
-                    do_scroll_y: False
-                    height: dp(54)
-                    size_hint_y: None
-
-                    MDBoxLayout:
-                        orientation: 'horizontal'
-                        padding: dp(5)
-                        adaptive_width: True
-
-                        EditSidebarIconButton:
-                            icon: 'file-remove-outline'
-                            on_press: root.remove_button_clicked(mode='target', select=True)
-
-                        EditSidebarIconButton:
-                            icon: 'delete-forever-outline'
-                            on_press: root.remove_button_clicked(mode='target', select=False)
-
-                        EditSidebarIconSeparator:
-
-                        EditSidebarIconButton:
-                            icon: 'sort-ascending'
-                            on_press: root.sort_button_clicked(mode='target', value='duration', button=self)
-
-                        EditSidebarIconButton:
-                            icon: 'sort-alphabetical-ascending'
-                            on_press: root.sort_button_clicked(mode='target', value='label', button=self)
-
-                HSeparator:
-                    rgba: 0.5, 0.5, 0.5, 1
-
-                ScrollView:
-                    do_scroll_x: False
-
-                    ScrollableTreeView:
-                        id: target_audio_treeview
-                        root_options: {'text': 'target audio data', 'font_size': '15sp'}
-
-        BoxLayout:
-            orientation: 'vertical'
-            size_hint_x: 1
-
-            EditSidebarButton:
-                id: select
-                size_hint_y: 2
-                text: '▷'
-                on_press: root.select_button_clicked()
-
-            BoxLayout:
-                orientation: 'vertical'
-                size_hint_y: 3
-
-                Widget:
-                    height: dp(54)
-                    size_hint_y: None
-
-                EditSidebarButton:
-                    id: fetch
-                    text: '◁'
-                    on_press: root.fetch_button_clicked(select=True)
-
-                EditSidebarButton:
-                    id: fetch_full
-                    text: '◀'
-                    on_press: root.fetch_button_clicked(select=False)
+        EditSidebarButton:
+          id: fetch_full
+          text: '◀'
+          on_press: root.fetch_button_clicked(select=False)
