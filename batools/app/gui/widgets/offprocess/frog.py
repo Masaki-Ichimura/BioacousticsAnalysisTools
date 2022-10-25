@@ -6,7 +6,8 @@ from itertools import combinations
 
 from kivy.app import App
 from kivy.clock import Clock
-from kivy.core.audio import SoundLoader
+# from kivy.core.audio import SoundLoader, Sound
+from kivy.core.audio.audio_ffpyplayer import SoundFFPy
 from kivy.lang import Builder
 from kivy.properties import DictProperty
 from kivy.uix.treeview import TreeViewLabel
@@ -185,7 +186,7 @@ class FrogSelect(MDScreen):
                 torchaudio.save(filepath=ch_path.format(ch), src=ch_data[None], sample_rate=sep_fs)
 
                 if self.sound is None:
-                    self.sound = SoundLoader.load('')
+                    self.sound = SoundFFPy()
 
                 audio_miniplot = AudioMiniplot(
                     data=ch_data, fs=sep_fs, path=ch_path.format(ch), size_hint=(1/3, 1/3),

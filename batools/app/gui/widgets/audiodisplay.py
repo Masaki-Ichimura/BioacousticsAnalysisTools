@@ -11,6 +11,7 @@ from kivy.uix.floatlayout import FloatLayout
 from kivy.garden.matplotlib import FigureCanvasKivyAgg
 from kivy.clock import Clock
 from kivy.core.audio import SoundLoader
+from kivy.core.audio.audio_ffpyplayer import SoundFFPy
 from kivymd.uix.menu import MDDropdownMenu
 from kivymd.uix.progressbar.progressbar import MDProgressBar
 from kivymd.uix.button.button import MDFloatingActionButton
@@ -34,7 +35,7 @@ class AudioTimeline(Container):
     timeline_t_unit = NumericProperty(1.)
     timeline_width = NumericProperty(1000)
 
-    sound = ObjectProperty(None)
+    sound = None
     audio_pos = NumericProperty(0)
 
     check_dt = .05
@@ -173,11 +174,13 @@ class AudioTimeline(Container):
         self.ids.box_tl.add_widget(seekbar)
 
         audio_toolbar = self.parent.parent.ids.audio_toolbar
+
         if self.sound is None:
             self.sound = SoundLoader.load(audio_path)
-        else:
-            self.sound.unload()
-            self.sound.load(audio_path)
+        elif self.sound.source != audio_path:
+            self.sound.source = audio_path
+            self.sound.load()
+
         self.sound.volume = audio_toolbar.ids.volume.value
 
         def on_value(instance, value):
@@ -281,7 +284,9 @@ class AudioTimeline(Container):
     def on_audio_pos(self, instance, value):
         seekbar = self.ids.seekbar
         bar = seekbar.canvas.children[-1]
-        bar.pos = (self.ids.box_tl.width*(self.audio_pos/self.sound.length), bar.pos[1])
+
+        if self.sound.length:
+            bar.pos = (self.ids.box_tl.width*(self.audio_pos/self.sound.length), bar.pos[1])
 
     def init_timeline(self):
         _ = [fig.clear() for fig in [self.fig_wave, self.fig_spec]]
@@ -468,8 +473,8 @@ class AudioMiniplot(FloatLayout):
 
         def play_button_clicked(x):
             if self.sound.source != self.audio_path:
-                self.sound.unload()
-                self.sound.load(self.audio_path)
+                self.sound.source = self.audio_path
+                self.sound.load()
 
             def change_progressbar_value(dt):
                 self.dt_sum += dt
