@@ -6,7 +6,6 @@ from itertools import combinations
 
 from kivy.app import App
 from kivy.clock import Clock
-# from kivy.core.audio import SoundLoader, Sound
 from kivy.core.audio.audio_ffpyplayer import SoundFFPy
 from kivy.lang import Builder
 from kivy.properties import DictProperty

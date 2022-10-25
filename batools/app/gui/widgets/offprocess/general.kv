@@ -33,6 +33,11 @@
           name: 'separate'
           parent_tab: root
 
+        GeneralSepout:
+          id: sepout
+          name: 'sepout'
+          parent_tab: root
+
         GeneralLocalize:
           id: localize
           name: 'localize'
@@ -51,6 +56,16 @@
             text: '音源分離'
             on_press:
               screen_manager.current = 'separate'
+
+          MDNavigationDrawerLabel:
+            text: '▽'
+            padding: [dp(40), dp(5), 0, dp(5)]
+
+          GeneralDrawerItem:
+            icon: 'waveform'
+            text: '分離信号出力'
+            on_press:
+              screen_manager.current = 'sepout'
 
           MDNavigationDrawerDivider:
 
@@ -275,6 +290,25 @@
         self.disabled = bool(root.audio_dict)
         mode_control.disabled = bool(root.audio_dict)
         root.separate()
+
+<GeneralSepout>:
+  BoxLayout:
+    orientation: 'horizontal'
+    size: root.size
+
+    MDStackLayout:
+      id: stack_sep
+      orientation: 'lr-tb'
+      size_hint_x: 2
+      md_bg_color: 1, 1, 1, .8
+
+    Button:
+      size_hint_x: 1
+      text: 'save'
+      on_press:
+        root.save()
+        # root.parent_tab.ids.screen_manager.current = 'analysis'
+
 
 <GeneralLocalize>:
   BoxLayout:

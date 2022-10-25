@@ -1,12 +1,18 @@
+import torchaudio
 import threading
+from plyer import filechooser
 
 from kivy.app import App
 from kivy.clock import Clock
+from kivy.core.audio.audio_ffpyplayer import SoundFFPy
 from kivy.lang import Builder
 from kivy.properties import DictProperty
+from kivymd.color_definitions import colors
 from kivymd.uix.screen import MDScreen
+from kivymd.uix.selectioncontrol.selectioncontrol import MDCheckbox
 
 from batools.app.gui.widgets.sub_tab import SubTab
+from batools.app.gui.widgets.audiodisplay import AudioMiniplot
 from batools.utils.audio.bss.auxiva import AuxIVA
 from batools.utils.audio.bss.fastmnmf import FastMNMF
 from batools.utils.audio.bss.ilrma import ILRMA
@@ -135,14 +141,68 @@ class GeneralSeparate(MDScreen):
                 Clock.schedule_once(update_process)
 
             def update_process(dt):
-                # self.parent_tab.ids.select.audio_dict = self.sep_dict
-                # self.parent_tab.ids.screen_manager.current = 'select'
+                self.parent_tab.ids.sepout.audio_dict = self.sep_dict
+                self.parent_tab.ids.screen_manager.current = 'sepout'
                 self.ids.separate_button.disabled = False
                 self.ids.mode_control.disabled = False
                 self.ids.progressbar.value = 0
 
             thread = threading.Thread(target=separate_process)
             thread.start()
+
+class GeneralSepout(MDScreen):
+    audio_dict = DictProperty({})
+    checkboxes = []
+    sound = None
+
+    def on_audio_dict(self, instance, value):
+        if self.audio_dict:
+            sep_data, sep_fs = self.audio_dict['data'], self.audio_dict['fs']
+            sep_path = self.audio_dict['cache']
+            dot_idx = -sep_path[::-1].index('.')-1
+            ch_path = sep_path[:dot_idx]+'_ch{:02d}'+sep_path[dot_idx:]
+
+            _ = [child.reset() for child in self.ids.stack_sep.children]
+            self.ids.stack_sep.clear_widgets()
+
+            checkboxes = []
+            for ch, ch_data in enumerate(sep_data):
+                torchaudio.save(filepath=ch_path.format(ch), src=ch_data[None], sample_rate=sep_fs)
+
+                if self.sound is None:
+                    self.sound = SoundFFPy()
+
+                audio_miniplot = AudioMiniplot(
+                    data=ch_data, fs=sep_fs, path=ch_path.format(ch), size_hint=(1/3, 1/3),
+                    sound=self.sound
+                )
+
+                checkbox_widget = MDCheckbox()
+                checkbox_widget.selected_color = checkbox_widget.unselected_color = colors['Blue']['A400']
+                checkbox_widget.pos_hint = {'x': .0, 'top': .4}
+                checkbox_widget.size_hint = (.25, None)
+
+                audio_miniplot.add_widget(checkbox_widget)
+                checkboxes.append(checkbox_widget)
+
+                self.ids.stack_sep.add_widget(audio_miniplot)
+
+            self.checkboxes = checkboxes
+
+    def save(self):
+        indices = [checkbox.active for checkbox in self.checkboxes]
+        if self.audio_dict and any(indices):
+
+            sct_data, sct_fs = self.audio_dict['data'][indices], self.audio_dict['fs']
+
+            selections = filechooser.save_file(
+                title='save selected audio file', filters=[('audio file', '*.wav')],
+            )
+
+            if selections:
+                sct_path = selections[0]
+                torchaudio.save(filepath=sct_path, src=sct_data, sample_rate=sct_fs)
+
 
 class GeneralLocalize(MDScreen):
     pass
