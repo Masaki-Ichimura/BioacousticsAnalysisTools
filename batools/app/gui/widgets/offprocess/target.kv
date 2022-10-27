@@ -10,3 +10,24 @@
 
     Button:
       text: '- 上の信号の詳細を表示するなど'
+      on_press:
+        root.show_test_dialog()
+
+<TargetAudioDisplay>:
+  orientation: 'vertical'
+  pos: root.pos
+  size_hint: None, None
+  size: dp(1024), dp(320)
+
+  AudioToolbar:
+    id: audio_toolbar
+    audio_timeline: audio_timeline
+    height: dp(54)
+    size_hint_y: None
+
+  HSeparator:
+    rgba: 0.5, 0.5, 0.5, 1
+
+  AudioTimeline:
+    id: audio_timeline
+    audio_toolbar: audio_toolbar

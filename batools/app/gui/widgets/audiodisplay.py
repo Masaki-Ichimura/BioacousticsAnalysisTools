@@ -28,6 +28,7 @@ class AudioTimeline(Container):
     audio_data_org = TorchTensorProperty(torch.zeros(1))
     audio_data = TorchTensorProperty(torch.zeros(1))
     audio_fs = None
+    audio_toolbar = None
 
     fig_wave = ObjectProperty(None)
     fig_spec = ObjectProperty(None)
@@ -86,32 +87,31 @@ class AudioTimeline(Container):
         if audio_dict:
             chs = list(range(-1, value.size(0))) if value.size(0) > 1 else [0]
 
-            audio_toolbar = self.parent.parent.ids.audio_toolbar
-
-            items = [
-                dict(
-                    viewclass='OneLineListItem',
-                    text=f'{ch:02d}ch' if ch >= 0 else 'mean',
-                    height=dp(54),
-                    on_release=lambda x=ch: audio_toolbar.set_ch(x)
+            if self.audio_toolbar:
+                items = [
+                    dict(
+                        viewclass='OneLineListItem',
+                        text=f'{ch:02d}ch' if ch >= 0 else 'mean',
+                        height=dp(54),
+                        on_release=lambda x=ch: self.audio_toolbar.set_ch(x)
+                    )
+                    for ch in chs
+                ]
+                self.audio_toolbar.ch_window_menu = MDDropdownMenu(
+                    caller=self.audio_toolbar.ids.ch, width_mult=4, items=items
                 )
-                for ch in chs
-            ]
-            audio_toolbar.ch_window_menu = MDDropdownMenu(
-                caller=audio_toolbar.ids.ch, width_mult=4, items=items
-            )
-            def on_text(instance, value):
-                if audio_dict:
-                    if value[:2].isdigit():
-                        audio_dict['ch'] = int(value[:2])
-                    else:
-                        audio_dict['ch'] = -1
+                def on_text(instance, value):
+                    if audio_dict:
+                        if value[:2].isdigit():
+                            audio_dict['ch'] = int(value[:2])
+                        else:
+                            audio_dict['ch'] = -1
 
-            audio_toolbar.ids.ch.bind(text=on_text)
-            if audio_dict['ch'] == -1:
-                audio_toolbar.ids.ch.text = items[0]['text']
-            else:
-                audio_toolbar.ids.ch.text = f'{audio_dict["ch"]:02d}ch'
+                self.audio_toolbar.ids.ch.bind(text=on_text)
+                if audio_dict['ch'] == -1:
+                    self.audio_toolbar.ids.ch.text = items[0]['text']
+                else:
+                    self.audio_toolbar.ids.ch.text = f'{audio_dict["ch"]:02d}ch'
 
     def on_audio_data(self, instance, value):
         audio_data, audio_fs = self.audio_data, self.audio_fs
@@ -173,21 +173,20 @@ class AudioTimeline(Container):
         self.ids.box_tl.add_widget(spec_widget)
         self.ids.box_tl.add_widget(seekbar)
 
-        audio_toolbar = self.parent.parent.ids.audio_toolbar
-
         if self.sound is None:
             self.sound = SoundLoader.load(audio_path)
         elif self.sound.source != audio_path:
             self.sound.source = audio_path
             self.sound.load()
 
-        self.sound.volume = audio_toolbar.ids.volume.value
+        if self.audio_toolbar:
+            self.sound.volume = self.audio_toolbar.ids.volume.value
 
-        def on_value(instance, value):
-            self.sound.volume = value
+            def on_value(instance, value):
+                self.sound.volume = value
 
-        audio_toolbar.ids.volume.unbind()
-        audio_toolbar.ids.volume.bind(value=on_value)
+            self.audio_toolbar.ids.volume.unbind()
+            self.audio_toolbar.ids.volume.bind(value=on_value)
 
         self.on_audio_pos(None, None)
         gc.collect()
@@ -311,6 +310,7 @@ class AudioTimeline(Container):
 class AudioToolbar(Container):
     check_pos = None
     root_audio_dict_container = None
+    audio_timeline = None
 
     def on_kv_post(self, *arg, **kwargs):
         self.ch_window_menu = MDDropdownMenu(
@@ -325,82 +325,82 @@ class AudioToolbar(Container):
         )
 
     def set_ch(self, ch: int):
-        audio_timeline = self.parent.parent.ids.audio_timeline
-        if audio_timeline.audio_dict:
-            if ch >= 0:
-                self.ids.ch.text = f'{ch:02d}ch'
-            else:
-                self.ids.ch.text = 'mean'
-        self.ch_window_menu.dismiss()
+        if self.audio_timeline:
+            if self.audio_timeline.audio_dict:
+                if ch >= 0:
+                    self.ids.ch.text = f'{ch:02d}ch'
+                else:
+                    self.ids.ch.text = 'mean'
+            self.ch_window_menu.dismiss()
 
     def play(self):
-        audio_timeline = self.parent.parent.ids.audio_timeline
-        sound = audio_timeline.sound
+        if self.audio_timeline:
+            sound = self.audio_timeline.sound
 
-        if sound and sound.state == 'stop':
-            sound.seek(audio_timeline.audio_pos)
-            sound.play()
-            self.check_pos = Clock.schedule_interval(
-                lambda dt: self.position(), audio_timeline.check_dt
-            )
+            if sound and sound.state == 'stop':
+                sound.seek(self.audio_timeline.audio_pos)
+                sound.play()
+                self.check_pos = Clock.schedule_interval(
+                    lambda dt: self.position(), self.audio_timeline.check_dt
+                )
 
     def pause(self):
-        audio_timeline = self.parent.parent.ids.audio_timeline
-        sound = audio_timeline.sound
+        if self.audio_timeline:
+            sound = self.audio_timeline.sound
 
-        if sound and sound.state == 'play':
-            sound.stop()
-            Clock.unschedule(self.check_pos)
-            self.check_pos = None
+            if sound and sound.state == 'play':
+                sound.stop()
+                Clock.unschedule(self.check_pos)
+                self.check_pos = None
 
     def stop(self):
-        audio_timeline = self.parent.parent.ids.audio_timeline
-        sound = audio_timeline.sound
+        if self.audio_timeline:
+            sound = self.audio_timeline.sound
 
-        if sound:
-            sound.stop()
-            self.position(0)
-            Clock.unschedule(self.check_pos)
-            self.check_pos = None
-        else:
-            self.position(0)
+            if sound:
+                sound.stop()
+                self.position(0)
+                Clock.unschedule(self.check_pos)
+                self.check_pos = None
+            else:
+                self.position(0)
 
     def position(self, pos=None):
-        audio_timeline = self.parent.parent.ids.audio_timeline
-        sound = audio_timeline.sound
+        if self.audio_timeline:
+            sound = self.audio_timeline.sound
 
-        if pos is None:
-            audio_timeline.audio_pos = sound.get_pos()
-        else:
-            audio_timeline.audio_pos = pos
+            if pos is None:
+                self.audio_timeline.audio_pos = sound.get_pos()
+            else:
+                self.audio_timeline.audio_pos = pos
 
-        if self.check_pos:
-            if sound.length - audio_timeline.audio_pos <= 4*audio_timeline.check_dt:
-                audio_timeline.audio_pos = 0
-                return False
+            if self.check_pos:
+                if sound.length - self.audio_timeline.audio_pos <= 4*self.audio_timeline.check_dt:
+                    self.audio_timeline.audio_pos = 0
+                    return False
 
     def magnify(self, mode='plus'):
-        audio_timeline = self.parent.parent.ids.audio_timeline
-        seekbar = audio_timeline.ids.seekbar
-        bar = seekbar.canvas.children[-1]
-        bar_x = [bar.pos[0]][0]
+        if self.audio_timeline:
+            seekbar = self.audio_timeline.ids.seekbar
+            bar = seekbar.canvas.children[-1]
+            bar_x = [bar.pos[0]][0]
 
-        if not audio_timeline.audio_dict:
-            return None
+            if not self.audio_timeline.audio_dict:
+                return None
 
-        # グラフの width の変化から拾ってほしいが，そっちだと上手く反映されないため，
-        # 手動でバーの設定を行う
-        if mode == 'plus':
-            audio_timeline.timeline_width *= 2
-            audio_timeline.timeline_t_unit /= 2
+            # グラフの width の変化から拾ってほしいが，そっちだと上手く反映されないため，
+            # 手動でバーの設定を行う
+            if mode == 'plus':
+                self.audio_timeline.timeline_width *= 2
+                self.audio_timeline.timeline_t_unit /= 2
 
-            bar.pos = (bar_x*2, bar.pos[1])
+                bar.pos = (bar_x*2, bar.pos[1])
 
-        elif mode == 'minus':
-            audio_timeline.timeline_width /= 2
-            audio_timeline.timeline_t_unit *= 2
+            elif mode == 'minus':
+                self.audio_timeline.timeline_width /= 2
+                self.audio_timeline.timeline_t_unit *= 2
 
-            bar.pos = (bar_x/2, bar.pos[1])
+                bar.pos = (bar_x/2, bar.pos[1])
 
     def close(self):
         if self.root_audio_dict_container:

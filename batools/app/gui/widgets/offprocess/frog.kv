@@ -361,3 +361,23 @@
         ScrollableTreeView:
           id: result_treeview
           root_options: {'text': 'combinations', 'font_size': '15sp'}
+
+
+<FrogAudioDisplay>:
+  orientation: 'vertical'
+  pos: root.pos
+  size_hint: None, None
+  size: dp(1024), dp(320)
+
+  AudioToolbar:
+    id: audio_toolbar
+    audio_timeline: audio_timeline
+    height: dp(54)
+    size_hint_y: None
+
+  HSeparator:
+    rgba: 0.5, 0.5, 0.5, 1
+
+  AudioTimeline:
+    id: audio_timeline
+    audio_toolbar: audio_toolbar
