@@ -308,12 +308,23 @@
       size_hint_x: 2
       md_bg_color: 1, 1, 1, .8
 
-    Button:
+    BoxLayout:
+      orientation: 'vertical'
       size_hint_x: 1
-      text: 'select'
-      on_press:
-        root.select()
-        root.parent_tab.ids.screen_manager.current = 'analysis'
+
+      Button:
+        text: 'forward'
+        on_press:
+          root.forward()
+          audio_detail = app.links['offprocess_tab'].ids.working_container.ids.audio_detail
+          audio_detail.ids.tabs.switch_tab('一般')
+          audio_detail.ids.general.ids.screen_manager.current = 'sepout'
+
+      Button:
+        text: 'select'
+        on_press:
+          root.select()
+          root.parent_tab.ids.screen_manager.current = 'analysis'
 
 <FrogAnalysis>:
   BoxLayout:

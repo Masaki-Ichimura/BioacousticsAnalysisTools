@@ -1,3 +1,4 @@
+from turtle import forward
 import torch
 import torchaudio
 import threading
@@ -253,6 +254,14 @@ class FrogSelect(MDScreen):
             )
 
             self.parent_tab.ids.analysis.audio_dict = sct_dict
+
+    def forward(self):
+        if self.audio_dict:
+            app = App.get_running_app()
+            audio_detail = app.links['offprocess_tab'].ids.working_container.ids.audio_detail
+            general = audio_detail.ids.general
+
+            general.ids.sepout.audio_dict = self.audio_dict
 
 class FrogAnalysis(MDScreen):
     audio_dict = DictProperty({})
