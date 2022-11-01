@@ -347,6 +347,7 @@
 
       MDBoxLayout:
         id: box_hist
+        size_hint_x: 1
         orientation: 'vertical'
         padding: dp(20), dp(10)
         md_bg_color: 1, 1, 1, .8
@@ -368,11 +369,29 @@
 
       ScrollView:
         do_scroll_x: False
+        size_hint_x: 1
 
         ScrollableTreeView:
           id: result_treeview
           root_options: {'text': 'combinations', 'font_size': '15sp'}
 
+      # AnchorLayout:
+      #   size_hint_x: 0
+      #   anchor_x: 'right'
+      #   anchor_y: 'bottom'
+      #   padding: dp(10)
+
+    FloatLayout:
+      size_hint_y: None
+      height: 0
+
+      MDFloatingActionButton:
+        # id: save_button
+        icon: 'content-save'
+        type: 'small'
+        pos: (root.width-(self.width+dp(20)), dp(20))
+        on_press:
+          root.save()
 
 <FrogAudioDisplay>:
   orientation: 'vertical'

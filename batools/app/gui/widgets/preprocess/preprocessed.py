@@ -79,6 +79,7 @@ class PreprocessedTab(SubTab):
 
                 selections = filechooser.save_file(
                     title='save selected audio file', filters=[('audio file', '*.wav')],
+                    use_extensions=True
                 )
 
                 if selections:
@@ -89,7 +90,8 @@ class PreprocessedTab(SubTab):
         else:
             if self.audio_labels:
                 selections = filechooser.choose_dir(
-                    title='save audio file', filters=[('audio file', '*.wav')]
+                    title='save audio file', filters=[('audio file', '*.wav')],
+                    use_extensions=True
                 )
 
                 if selections:

@@ -20,7 +20,7 @@ class EditSidebar(Sidebar):
     def choose_button_clicked(self):
         selections = filechooser.open_file(
             title='pick audio files', filters=[('audio file', '*.wav')],
-            multiple=True
+            use_extensions=True, multiple=True
         )
         if selections:
             cache_dir = self.parent_tab.app.tmp_dir
@@ -28,6 +28,7 @@ class EditSidebar(Sidebar):
             add_dicts = []
             for selection in selections:
                 audio_label = selection.split('/')[-1]
+                audio_label = audio_label[-audio_label[::-1].index('.'):]
                 audio_path, audio_cache = selection, f'{cache_dir.name}/org_{audio_label}.wav'
                 audio_data, audio_fs, audio_ch = None, None, -1
 

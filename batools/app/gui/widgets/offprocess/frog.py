@@ -1,16 +1,18 @@
-from turtle import forward
+import pandas as pd
+import pathlib
 import torch
 import torchaudio
 import threading
 import matplotlib.pyplot as plt
-from itertools import combinations
 from functools import partial
+from itertools import combinations
+from plyer import filechooser
 
 from kivy.app import App
 from kivy.clock import Clock
 from kivy.core.audio.audio_ffpyplayer import SoundFFPy
 from kivy.lang import Builder
-from kivy.metrics import dp, sp
+from kivy.metrics import dp
 from kivy.properties import DictProperty
 from kivy.uix.treeview import TreeViewLabel
 from kivy.garden.matplotlib import FigureCanvasKivyAgg
@@ -265,6 +267,8 @@ class FrogSelect(MDScreen):
 
 class FrogAnalysis(MDScreen):
     audio_dict = DictProperty({})
+    peaks = None
+    results = None
 
     def on_kv_post(self, *args, **kwargs):
         self.fig_hist = plt.figure()
@@ -309,7 +313,7 @@ class FrogAnalysis(MDScreen):
                     mp.add_widget(i_widget)
                     self.ids.box_signals.add_widget(mp)
 
-                peaks_tmp, results = {}, {}
+                peaks, results = {}, {}
                 for comb in combs:
                     A_idx, B_idx = comb
                     At = self.ids.box_signals.children[-A_idx-1].audio_data
@@ -320,10 +324,12 @@ class FrogAnalysis(MDScreen):
 
                     results[str(comb)] = result
 
-                    if A_idx not in peaks_tmp:
-                        peaks_tmp[A_idx] = peaks_dict['A']
-                    if B_idx not in peaks_tmp:
-                        peaks_tmp[B_idx] = peaks_dict['B']
+                    if A_idx not in peaks:
+                        peaks[A_idx] = peaks_dict['A']
+                    if B_idx not in peaks:
+                        peaks[B_idx] = peaks_dict['B']
+
+                self.peaks, self.results = peaks, results
 
                 result_treeview = self.ids.result_treeview
 
@@ -342,8 +348,8 @@ class FrogAnalysis(MDScreen):
                     ]
 
                 def on_selected_node(instance, value):
-                    if value.text in results:
-                        result = results[value.text]
+                    if value.text in self.results:
+                        result = self.results[value.text]
 
                         fig_hist = self.fig_hist
                         fig_hist.clear()
@@ -373,7 +379,7 @@ class FrogAnalysis(MDScreen):
                 self.treeview_callback = on_selected_node
                 self.ids.result_treeview.bind(selected_node=self.treeview_callback)
 
-                for idx, peaks in peaks_tmp.items():
+                for idx, peaks_val in peaks.items():
                     audio_miniplot = self.ids.box_signals.children[-idx-1]
                     audio_data, audio_fs = audio_miniplot.audio_data, ana_fs
 
@@ -382,7 +388,7 @@ class FrogAnalysis(MDScreen):
 
                     show_wave(audio_data, audio_fs, ax=ax_wave, color='b')
                     ax_wave.plot(
-                        peaks/audio_fs, audio_data[peaks], marker='x', color='yellow', linewidth=0
+                        peaks_val/audio_fs, audio_data[peaks_val], marker='x', color='yellow', linewidth=0
                     )
 
                     ax_wave.set_xlim(0, audio_data.size(-1)/audio_fs)
@@ -404,6 +410,33 @@ class FrogAnalysis(MDScreen):
                     for i, node in enumerate(self.ids.result_treeview.iterate_all_nodes())
                     if i == 1
                 ]
+
+    def save(self):
+        if self.audio_dict and self.results and self.peaks:
+            selections = filechooser.choose_dir(use_extensions=True)
+
+            if selections:
+                path = pathlib.Path(selections[0])
+                audio_fs = self.audio_dict['fs']
+
+                peak_df_index = ['frog_index', 'peak_time']
+                peak_df_rows = []
+                _ = [
+                    [peak_df_rows.append([k, t]) for t in (v/audio_fs).tolist()]
+                    for k, v in self.peaks.items()
+                ]
+                peak_df = pd.DataFrame(peak_df_rows, columns=peak_df_index)
+
+                phi_df_index = ['combination', 'phi']
+                phi_df_rows = []
+                _ = [
+                    [phi_df_rows.append([k, p]) for p in v['phis'].tolist()]
+                    for k, v in self.results.items()
+                ]
+                phi_df = pd.DataFrame(phi_df_rows, columns=phi_df_index)
+
+                peak_df.to_csv(str(path/f'{self.audio_dict["label"]}_peak.csv'), sep='\t', index=False)
+                phi_df.to_csv(str(path/f'{self.audio_dict["label"]}_phi.csv'), sep='\t', index=False)
 
 class FrogAudioDisplay(MDBoxLayout):
     audio_dict = DictProperty({})

@@ -1,13 +1,18 @@
 import torchaudio
 import threading
 from plyer import filechooser
+from functools import partial
 
 from kivy.app import App
 from kivy.clock import Clock
 from kivy.core.audio.audio_ffpyplayer import SoundFFPy
 from kivy.lang import Builder
+from kivy.metrics import dp
 from kivy.properties import DictProperty
 from kivymd.color_definitions import colors
+from kivymd.uix.boxlayout import MDBoxLayout
+from kivymd.uix.button import MDIconButton
+from kivymd.uix.dialog import MDDialog
 from kivymd.uix.screen import MDScreen
 from kivymd.uix.selectioncontrol.selectioncontrol import MDCheckbox
 
@@ -153,6 +158,7 @@ class GeneralSeparate(MDScreen):
 class GeneralSepout(MDScreen):
     audio_dict = DictProperty({})
     checkboxes = []
+    dialog = None
     sound = None
 
     def on_audio_dict(self, instance, value):
@@ -182,12 +188,41 @@ class GeneralSepout(MDScreen):
                 checkbox_widget.pos_hint = {'x': .0, 'top': .4}
                 checkbox_widget.size_hint = (.25, None)
 
+                audio_dict = dict(
+                    data=ch_data[None], fs=sep_fs, ch=-1, path=ch_path.format(ch), cache=None
+                )
+
+                press = lambda *args, **kwargs: self.show_audio_display(kwargs['audio_dict'])
+
+                show_button_widget = MDIconButton(
+                    icon='arrow-expand',
+                    theme_icon_color='ContrastParentBackground',
+                    on_press=partial(press, audio_dict=audio_dict),
+                    pos_hint={'x': .75, 'top': 1.},
+                    size_hint = (.25, None)
+                )
+
                 audio_miniplot.add_widget(checkbox_widget)
+                audio_miniplot.add_widget(show_button_widget)
                 checkboxes.append(checkbox_widget)
 
                 self.ids.stack_sep.add_widget(audio_miniplot)
 
             self.checkboxes = checkboxes
+
+    def show_audio_display(self, audio_dict):
+        if self.dialog is None:
+            audio_display = GeneralAudioDisplay()
+            self.dialog = MDDialog(
+                title='Figure',
+                type="custom",
+                content_cls=audio_display,
+                size_hint=(None, None),
+                size=(audio_display.width+dp(24)*2, audio_display.height)
+            )
+
+        self.dialog.content_cls.audio_dict = audio_dict
+        self.dialog.open()
 
     def save(self):
         indices = [checkbox.active for checkbox in self.checkboxes]
@@ -197,12 +232,19 @@ class GeneralSepout(MDScreen):
 
             selections = filechooser.save_file(
                 title='save selected audio file', filters=[('audio file', '*.wav')],
+                use_extensions=True
             )
 
             if selections:
                 sct_path = selections[0]
                 torchaudio.save(filepath=sct_path, src=sct_data, sample_rate=sct_fs)
 
+class GeneralAudioDisplay(MDBoxLayout):
+    audio_dict = DictProperty({})
+
+    def on_audio_dict(self, instance, value):
+        audio_timeline, audio_toolbar = self.ids.audio_timeline, self.ids.audio_toolbar
+        audio_timeline.audio_dict = audio_toolbar.audio_dict = value
 
 class GeneralLocalize(MDScreen):
     pass
