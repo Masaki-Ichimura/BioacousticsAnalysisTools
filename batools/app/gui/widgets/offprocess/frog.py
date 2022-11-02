@@ -1,4 +1,4 @@
-import pandas as pd
+import csv
 import pathlib
 import torch
 import torchaudio
@@ -418,25 +418,25 @@ class FrogAnalysis(MDScreen):
             if selections:
                 path = pathlib.Path(selections[0])
                 audio_fs = self.audio_dict['fs']
+                audio_label = self.audio_dict['label']
 
-                peak_df_index = ['frog_index', 'peak_time']
-                peak_df_rows = []
+                peak_csv = [['frog_index', 'peak_time']]
                 _ = [
-                    [peak_df_rows.append([k, t]) for t in (v/audio_fs).tolist()]
+                    [peak_csv.append([k, t]) for t in (v/audio_fs).tolist()]
                     for k, v in self.peaks.items()
                 ]
-                peak_df = pd.DataFrame(peak_df_rows, columns=peak_df_index)
+                with open(str(path/f'{audio_label}_peak.csv'), 'w') as peak_f:
+                    writer = csv.writer(peak_f, delimiter='\t')
+                    writer.writerows(peak_csv)
 
-                phi_df_index = ['combination', 'phi']
-                phi_df_rows = []
+                phi_csv = [['combination', 'phi']]
                 _ = [
-                    [phi_df_rows.append([k, p]) for p in v['phis'].tolist()]
+                    [phi_csv.append([k, p]) for p in v['phis'].tolist()]
                     for k, v in self.results.items()
                 ]
-                phi_df = pd.DataFrame(phi_df_rows, columns=phi_df_index)
-
-                peak_df.to_csv(str(path/f'{self.audio_dict["label"]}_peak.csv'), sep='\t', index=False)
-                phi_df.to_csv(str(path/f'{self.audio_dict["label"]}_phi.csv'), sep='\t', index=False)
+                with open(str(path/f'{audio_label}_phi.csv'), 'w') as phi_f:
+                    writer = csv.writer(phi_f, delimiter='\t')
+                    writer.writerows(phi_csv)
 
 class FrogAudioDisplay(MDBoxLayout):
     audio_dict = DictProperty({})
