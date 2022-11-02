@@ -28,7 +28,7 @@ class EditSidebar(Sidebar):
             add_dicts = []
             for selection in selections:
                 audio_label = selection.split('/')[-1]
-                audio_label = audio_label[-audio_label[::-1].index('.'):]
+                audio_label = audio_label[:-audio_label[::-1].index('.')-1]
                 audio_path, audio_cache = selection, f'{cache_dir.name}/org_{audio_label}.wav'
                 audio_data, audio_fs, audio_ch = None, None, -1
 
