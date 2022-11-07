@@ -1,11 +1,12 @@
 """
-    This module is based on Pyroomacoustics (MIT Licence)
-        - https://pyroomacoustics.readthedocs.io/en/pypi-release/pyroomacoustics.bss.html
-
-    NOTE:
-        n_src, n_iter 以外の引数をデフォルト値から変えたことはないので，
-        その辺り適用したらエラー出るかも
+    This module is based on Pyroomacoustics
+        - License :
+            - MIT License
+            - https://github.com/LCAV/pyroomacoustics/blob/pypi-release/LICENSE
+        - Original @ fakufaku, jazcarretao, mori97 :
+            - https://github.com/LCAV/pyroomacoustics/blob/master/pyroomacoustics/bss/auxiva.py
 """
+
 import torch
 from tqdm import trange
 

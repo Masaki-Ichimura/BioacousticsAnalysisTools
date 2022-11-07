@@ -1,7 +1,12 @@
 """
-    This module is based on Pyroomacoustics (MIT Licence)
-        - https://pyroomacoustics.readthedocs.io/en/pypi-release/pyroomacoustics.bss.html
+    This module is based on Pyroomacoustics
+        - License:
+            - MIT License
+            - https://github.com/LCAV/pyroomacoustics/blob/pypi-release/LICENSE
+        - Original @ fakufaku, jazcarretao, mori97 :
+            - https://github.com/LCAV/pyroomacoustics/blob/master/pyroomacoustics/bss/ilrma.py
 """
+
 import torch
 from tqdm import trange
 

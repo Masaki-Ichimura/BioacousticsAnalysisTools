@@ -1,7 +1,12 @@
 """
-    This module is based on Pyroomacoustics (MIT Licence)
-        - https://pyroomacoustics.readthedocs.io/en/pypi-release/pyroomacoustics.bss.html
+    This module is based on Pyroomacoustics
+        - License:
+            - MIT License
+            - https://github.com/LCAV/pyroomacoustics/blob/pypi-release/LICENSE
+        - Original @ fakufaku, sekiguchi92 :
+            - https://github.com/LCAV/pyroomacoustics/blob/master/pyroomacoustics/bss/fastmnmf.py
 """
+
 import torch
 from tqdm import trange
 

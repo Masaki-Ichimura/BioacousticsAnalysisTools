@@ -1,7 +1,12 @@
 """
-    This module is based on Pyroomacoustics (MIT Licence)
-        - https://pyroomacoustics.readthedocs.io/en/pypi-release/pyroomacoustics.doa.html
+    This module is based on Pyroomacoustics
+        - License:
+            - MIT License
+            - https://github.com/LCAV/pyroomacoustics/blob/pypi-release/LICENSE
+        - Original @ fakufaku, 4bian, Womac :
+            - https://github.com/LCAV/pyroomacoustics/blob/master/pyroomacoustics/doa/music.py
 """
+
 import torch
 from .doa import DOA
 

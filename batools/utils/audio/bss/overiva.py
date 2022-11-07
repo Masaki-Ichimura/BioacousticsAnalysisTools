@@ -1,10 +1,14 @@
 """
-    This module is based on overiva by fakufaku (MIT Licence)
-        - https://github.com/onolab-tmu/overiva/blob/master/overiva.py
+    This module is based on overiva by fakufaku
+        - License:
+            - Apache Licence 2.0
+            - https://github.com/onolab-tmu/overiva/blob/master/LICENSE
+        - Original @ fakufaku :
+            - https://github.com/onolab-tmu/overiva/blob/master/overiva.py
 
-    NOTE:
-        - Over determined IVA
-        - This is NOT debugged using GPU tensor yet.
+        - NOTE:
+            - This model returns ONE source
+            - This is NOT debugged using GPU tensor yet.
 """
 
 import torch
