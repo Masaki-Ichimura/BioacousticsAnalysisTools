@@ -10,5 +10,5 @@ pushd venv/bin
 source activate
 popd
 
-pip install -U pip
+pip install -U pip setuptools wheel
 pip install -I .

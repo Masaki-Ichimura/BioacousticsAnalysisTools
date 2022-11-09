@@ -3,7 +3,7 @@
         - License :
             - Apache Licence 2.0
             - https://github.com/tyiannak/pyAudioAnalysis/blob/master/LICENSE.md
-        - Original :
+        - Original @ tyiannak, dsgou, XiaonuoGantan, timgates42, flache, DerekChia, lobracost, RyanBuchner:
             - https://github.com/tyiannak/pyAudioAnalysis/blob/master/pyAudioAnalysis/audioSegmentation.py
             - https://github.com/tyiannak/pyAudioAnalysis/blob/master/pyAudioAnalysis/ShortTermFeatures.py
 """
@@ -248,8 +248,9 @@ def segmentation(
             [max(0, sec[0]-broaden_section_num), sec[1]+broaden_section_num]
             for sec in nonsilent_sections
         ]
-        tmp = []
-        if enable_merge:
+
+        if enable_merge and len(broaden_sections) > 1:
+            tmp = []
             p = broaden_sections.pop(0)
             while 1:
                 if broaden_sections:
@@ -265,8 +266,9 @@ def segmentation(
                     else:
                         tmp.append(q)
                     break
-
-        nonsilent_sections = tmp
+            nonsilent_sections = tmp
+        else:
+            nonsilent_sections = broaden_sections
 
     if min_duration_num:
         nonsilent_sections = [

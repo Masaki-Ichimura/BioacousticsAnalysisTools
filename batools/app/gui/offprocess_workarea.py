@@ -41,8 +41,7 @@ class OffprocessAudioDetail(Container):
     audio_dict = DictProperty({})
 
     def on_audio_dict(self, instance, value):
-        target = self.ids.target
         frog = self.ids.frog
         general = self.ids.general
 
-        target.audio_dict = frog.audio_dict = general.audio_dict = value
+        frog.audio_dict = general.audio_dict = value

@@ -4,7 +4,7 @@ from kivy.app import App
 from kivy.lang import Builder
 from kivy.properties import DictProperty, ListProperty
 
-from batools.utils.audio.silence_pyaudioanalysis import silence_removal, segmentation
+from batools.utils.audio.silence_removal import silence_removal, segmentation
 from batools.utils.audio.transform import apply_freq_mask, extract_from_section
 from batools.app.gui.widgets.sub_tab import SubTab
 
@@ -139,7 +139,7 @@ class SilenceRemovalTab(SubTab):
         return func_args
 
     def clear(self):
-        audio_detail = self.parent.parent.parent.parent.parent.parent
+        audio_detail = self.parent_tab
         working_container = audio_detail.parent.parent
         audio_timeline = working_container.ids.audio_display.ids.audio_timeline
         fig_wave = audio_timeline.fig_wave
@@ -189,7 +189,7 @@ class SilenceRemovalTab(SubTab):
         audio_data, audio_fs = self.audio_dict['data'], self.audio_dict['fs']
 
         if audio_data is not None:
-            audio_detail = self.parent.parent.parent.parent.parent.parent
+            audio_detail = self.parent_tab
             working_container = audio_detail.parent.parent
             audio_timeline = working_container.ids.audio_display.ids.audio_timeline
 

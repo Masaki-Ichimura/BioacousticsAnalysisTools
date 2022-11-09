@@ -1,20 +1,23 @@
 APP_NAME=BAGUI
 
 if [ -e kivy-sdk-packager ]; then
-    rm -rf kivy-sdk-packager/osx/$APP_NAME.{app,dmg}
+    cd kivy-sdk-packager
+    git pull
+    rm -rf osx/$APP_NAME.{app,dmg}
 else
     git clone https://github.com/kivy/kivy-sdk-packager.git
-    curl -L https://github.com/kivy/kivy/releases/download/2.1.0/Kivy.dmg -o kivy-sdk-packager/osx/Kivy.dmg
+    cd kivy-sdk-packager
+    curl -L https://github.com/kivy/kivy/releases/download/2.1.0/Kivy.dmg -o osx/Kivy.dmg
 fi
 
-cd kivy-sdk-packager/osx
+cd osx
 
 hdiutil attach Kivy.dmg -mountroot .
 
 cp -R Kivy/Kivy.app $APP_NAME.app
 diskutil unmount Kivy
 
-./fix-bundle-metadata.sh $APP_NAME.app -n $APP_NAME -v "0.0.1" -a "Masaki-Ichimura" -o "ou.klab.myapp"
+./fix-bundle-metadata.sh $APP_NAME.app -n $APP_NAME -v "0.0.1" -a "Masaki-Ichimura" -o "ou.k-lab.bagui"
 
 pushd $APP_NAME.app/Contents/Resources/venv/bin
 source activate

@@ -136,7 +136,12 @@ class PreprocessedTab(SubTab):
             audio_dicts = silence_removal.extract()
         else:
             app = App.get_running_app()
-            audio_dicts = [app.links['edit_tab'].ids.working_container.audio_dict]
+            audio_dict = app.links['edit_tab'].ids.working_container.audio_dict
+
+            audio_dicts = [{
+                k: v if k != 'label' else f'{v}_preprocessed'
+                for k, v in audio_dict.items()
+            }]
 
         if any(audio_dicts):
             effects = []

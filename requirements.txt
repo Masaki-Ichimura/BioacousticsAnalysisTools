@@ -16,6 +16,7 @@ torchnmf
 scikit-learn
 librosa
 pyobjus
+tqdm
 
 # 音声再生ライブラリ
 ffpyplayer
