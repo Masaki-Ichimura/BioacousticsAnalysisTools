@@ -54,10 +54,19 @@ class tf_bss_model_base(torch.nn.Module):
 
     def forward(self, xnt, **separate_args):
         Xnkl = self.stft(xnt)
-        Ynkl = self.separate(Xnkl, **separate_args)
+        ret_val = self.separate(Xnkl, **separate_args)
+
+        if type(ret_val) is tuple:
+            Ynkl, W = ret_val
+        else:
+            Ynkl, W = ret_val, None
+
         ynt = self.istft(Ynkl, xnt.shape[-1])
 
-        return ynt
+        if W is None:
+            return ynt
+        else:
+            return ynt, W
 
     def separate(self, Xnkl):
         raise NotImplementedError
