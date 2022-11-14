@@ -15,6 +15,10 @@
   line_color_normal: app.theme_cls.text_color
   disabled_foreground_color: app.theme_cls.secondary_text_color
 
+<GeneralCheckbox@MDCheckbox>:
+  size: dp(48), dp(48)
+  size_hint: None, None
+
 <GeneralTab>:
   title: '一般'
 
@@ -119,6 +123,16 @@
               orientation: 'vertical'
               padding: [dp(15), dp(10)]
               adaptive_height: True
+
+              MDBoxLayout:
+                orientation: 'horizontal'
+                adaptive_height: True
+
+                GeneralCheckbox:
+                  id: ilrma_wpe
+
+                MDLabel:
+                  text: '分離処理の前に残響除去を行う'
 
               MDBoxLayout:
                 orientation: 'horizontal'

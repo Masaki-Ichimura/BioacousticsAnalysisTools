@@ -1,25 +1,29 @@
-# GUI ライブラリ
+# GUI
 kivy
-kivymd
-git+https://github.com/kivy/plyer
 kivy-garden
 japanize-kivy
+git+https://github.com/kivy/plyer
+pyobjus
+kivymd
 
-# 計算ライブラリ
-# pytorch関連
+# 音声再生
+ffpyplayer
+
+# グラフ描画
+matplotlib
+
+# pytorch
 torch
 torchaudio
 torchnmf
-# asteroid
+
+# 科学計算
+scikit-learn
+scipy
+
+# 音声信号処理
+librosa
+nara_wpe
 
 # etc
-scikit-learn
-librosa
-pyobjus
 tqdm
-
-# 音声再生ライブラリ
-ffpyplayer
-
-# 描画ライブラリ
-matplotlib

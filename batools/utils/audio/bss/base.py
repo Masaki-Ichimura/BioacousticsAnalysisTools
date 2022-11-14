@@ -1,5 +1,6 @@
 import torch
 import torchaudio
+from nara_wpe import torch_wpe
 from collections import ChainMap
 from tqdm import trange
 
@@ -54,6 +55,13 @@ class tf_bss_model_base(torch.nn.Module):
 
     def forward(self, xnt, **separate_args):
         Xnkl = self.stft(xnt)
+
+        wpe = separate_args.pop('wpe') if 'wpe' in separate_args else False
+
+        if wpe:
+            print('dereverbed')
+            Xnkl = torch_wpe.wpe_v6(Xnkl.permute(1, 0, 2)).permute(1, 0, 2)
+
         ret_val = self.separate(Xnkl, **separate_args)
 
         if type(ret_val) is tuple:
