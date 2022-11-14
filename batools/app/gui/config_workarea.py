@@ -54,3 +54,12 @@ class ConfigWorkingContainer(Container):
 
         args = dict(n_fft=n_fft, hop_length=hop_length, window=window)
         return args
+
+    def get_notify(self, subject):
+        if subject == 'separate':
+            checkbox = self.ids.separate_notify
+
+        if checkbox.state == 'down':
+            return True
+        else:
+            return False

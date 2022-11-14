@@ -1,7 +1,7 @@
-import torchaudio
 import threading
-from plyer import filechooser
 from functools import partial
+
+import torchaudio
 
 from kivy.app import App
 from kivy.clock import Clock
@@ -9,6 +9,8 @@ from kivy.core.audio.audio_ffpyplayer import SoundFFPy
 from kivy.lang import Builder
 from kivy.metrics import dp
 from kivy.properties import DictProperty
+from kivy.utils import platform
+from plyer import filechooser, notification
 from kivymd.color_definitions import colors
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.button import MDIconButton
@@ -21,6 +23,7 @@ from batools.app.gui.widgets.audiodisplay import AudioMiniplot
 from batools.utils.audio.bss.auxiva import AuxIVA
 from batools.utils.audio.bss.fastmnmf import FastMNMF
 from batools.utils.audio.bss.ilrma import ILRMA
+from batools.utils.audio.wave import save_wave
 
 Builder.load_file(__file__[:-3]+'.kv')
 
@@ -50,7 +53,7 @@ class GeneralSeparate(MDScreen):
 
         def on_disabled(instance, value):
             textfields = [
-                self.ids.ilrma_n_src, self.ids.ilrma_n_iter, self.ids.ilrma_n_components,
+                self.ids.ilrma_n_iter, self.ids.ilrma_n_components,
                 self.ids.auxiva_n_src, self.ids.auxiva_n_iter,
                 self.ids.fastmnmf_n_src, self.ids.fastmnmf_n_iter, self.ids.fastmnmf_n_components
             ]
@@ -79,8 +82,10 @@ class GeneralSeparate(MDScreen):
 
     def init_separate_args(self):
         n_src = 1 if not self.audio_dict else self.audio_dict['data'].size(0)
+        wpe = 'normal'
 
         # ILRMA
+        self.ids.ilrma_wpe.state = 'normal'
         self.ids.ilrma_n_src.text = str(n_src)
         self.ids.ilrma_n_iter.text = '30'
         self.ids.ilrma_n_components.text = '4'
@@ -97,6 +102,7 @@ class GeneralSeparate(MDScreen):
     def get_separate_args(self):
         if self.mode == 'ilrma':
             args = dict(
+                wpe=True if self.ids.ilrma_wpe.state == 'down' else False,
                 n_src=int(self.ids.ilrma_n_src.text),
                 n_iter=int(self.ids.ilrma_n_iter.text),
                 n_components=int(self.ids.ilrma_n_components.text)
@@ -143,6 +149,14 @@ class GeneralSeparate(MDScreen):
                 self.sep_dict = dict(
                     label=sep_label, path=None, cache=sep_cache, data=sep_data, fs=sep_fs, ch=-1
                 )
+
+                config_tab = app.links['config_tab']
+                if config_tab.ids.working_container.get_notify('separate'):
+                    title = app.title
+                    message = '音源分離プロセスが終了しました'
+
+                    notification.notify(title=title, message=message)
+
                 Clock.schedule_once(update_process)
 
             def update_process(dt):
@@ -173,7 +187,7 @@ class GeneralSepout(MDScreen):
 
             checkboxes = []
             for ch, ch_data in enumerate(sep_data):
-                torchaudio.save(filepath=ch_path.format(ch), src=ch_data[None], sample_rate=sep_fs)
+                save_wave(ch_path.format(ch), ch_data[None], sep_fs, normalize=True)
 
                 if self.sound is None:
                     self.sound = SoundFFPy()
@@ -237,7 +251,7 @@ class GeneralSepout(MDScreen):
 
             if selections:
                 sct_path = selections[0]
-                torchaudio.save(filepath=sct_path, src=sct_data, sample_rate=sct_fs)
+                save_wave(sct_path, sct_data, sct_fs, normalize=False)
 
 class GeneralAudioDisplay(MDBoxLayout):
     audio_dict = DictProperty({})

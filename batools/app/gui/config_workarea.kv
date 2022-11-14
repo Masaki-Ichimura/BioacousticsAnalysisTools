@@ -17,6 +17,10 @@
   line_color_normal: app.theme_cls.text_color
   disabled_foreground_color: app.theme_cls.secondary_text_color
 
+<ConfigCheckbox@MDCheckbox>:
+  size: dp(48), dp(48)
+  size_hint: None, None
+
 <ConfigOptionLabel@MDLabel>:
   halign: 'left'
 
@@ -27,6 +31,35 @@
 
     ScreenManager:
       id: screen_manager
+
+      MDScreen:
+        name: 'general'
+
+        ScrollView:
+          do_scroll: False
+
+          MDBoxLayout:
+            orientation: 'vertical'
+            padding: [dp(15), dp(5)]
+            adaptive_height: True
+
+            MDBoxLayout:
+              adaptive_height: True
+
+              ConfigOptionLabel:
+                font_style: 'H6'
+                text: '通知(試験機能)'
+
+            MDBoxLayout:
+              orientation: 'horizontal'
+              padding: [dp(50), dp(5)]
+              adaptive_height: True
+
+              ConfigCheckbox:
+                id: separate_notify
+
+              ConfigOptionLabel:
+                text: '音源分離完了時'
 
       MDScreen:
         name: 'spec'
@@ -113,6 +146,12 @@
       width: root.width*.25
 
       MDNavigationDrawerMenu:
+
+        ConfigDrawerItem:
+          icon: 'cog-outline'
+          text: '全般'
+          on_press:
+            screen_manager.current = 'general'
 
         ConfigDrawerItem:
           icon: 'cog-outline'

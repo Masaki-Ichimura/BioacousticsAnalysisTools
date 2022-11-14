@@ -1,12 +1,13 @@
 import csv
 import pathlib
-import torch
-import torchaudio
 import threading
-import matplotlib.pyplot as plt
 from functools import partial
 from itertools import combinations
-from plyer import filechooser
+
+import torch
+import torchaudio
+import matplotlib.pyplot as plt
+from scipy.stats import kurtosis
 
 from kivy.app import App
 from kivy.clock import Clock
@@ -16,6 +17,7 @@ from kivy.metrics import dp
 from kivy.properties import DictProperty
 from kivy.uix.treeview import TreeViewLabel
 from kivy.garden.matplotlib import FigureCanvasKivyAgg
+from plyer import filechooser
 from kivymd.color_definitions import colors
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.button import MDIconButton
@@ -31,6 +33,7 @@ from batools.utils.audio.bss.auxiva import AuxIVA
 from batools.utils.audio.bss.fastmnmf import FastMNMF
 from batools.utils.audio.bss.ilrma import ILRMA
 from batools.utils.audio.plot import show_wave
+from batools.utils.audio.wave import save_wave
 
 Builder.load_file(__file__[:-3]+'.kv')
 
@@ -154,12 +157,26 @@ class FrogSeparate(MDScreen):
 
             def separate_process():
                 sep_data = sep_fn(self.audio_dict['data'], **self.get_separate_args())
+                 # 尖度の大きい順に並び替え(小->雑音)
+                indices_sorted_by_kurtosis = torch.tensor(
+                    [kurtosis(ch_data) for ch_data in sep_data]
+                ).sort(descending=True).indices
+                sep_data = sep_data[indices_sorted_by_kurtosis]
+
                 sep_fs = self.audio_dict['fs']
                 sep_label = f'bss_{self.mode}_{self.audio_dict["label"]}'
                 sep_cache = f'{cache_dir.name}/{sep_label}.wav'
                 self.sep_dict = dict(
                     label=sep_label, path=None, cache=sep_cache, data=sep_data, fs=sep_fs, ch=-1
                 )
+
+                config_tab = app.links['config_tab']
+                if config_tab.ids.working_container.get_notify('separate'):
+                    title = app.title
+                    message = '音源分離プロセスが終了しました'
+
+                    # notification.notify(title=title, message=message)
+
                 Clock.schedule_once(update_process)
 
             def update_process(dt):
@@ -190,7 +207,7 @@ class FrogSelect(MDScreen):
 
             checkboxes = []
             for ch, ch_data in enumerate(sep_data):
-                torchaudio.save(filepath=ch_path.format(ch), src=ch_data[None], sample_rate=sep_fs)
+                save_wave(ch_path.format(ch), ch_data[None], sep_fs, normalize=True)
 
                 if self.sound is None:
                     self.sound = SoundFFPy()
