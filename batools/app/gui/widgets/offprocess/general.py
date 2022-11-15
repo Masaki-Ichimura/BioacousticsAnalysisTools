@@ -187,7 +187,7 @@ class GeneralSepout(MDScreen):
 
             checkboxes = []
             for ch, ch_data in enumerate(sep_data):
-                save_wave(ch_path.format(ch), ch_data[None], sep_fs, normalize=True)
+                save_wave(ch_path.format(ch), ch_data[None], sep_fs, normalization=True)
 
                 if self.sound is None:
                     self.sound = SoundFFPy()
@@ -251,7 +251,15 @@ class GeneralSepout(MDScreen):
 
             if selections:
                 sct_path = selections[0]
-                save_wave(sct_path, sct_data, sct_fs, normalize=False)
+
+                app = App.get_running_app()
+                config_tab = app.links['config_tab']
+                save_args = config_tab.ids.working_container.get_save_args()
+
+                if save_args['normalization']:
+                    save_args['normalization'] = 'ch'
+
+                save_wave(sct_path, sct_data, sct_fs, **save_args)
 
 class GeneralAudioDisplay(MDBoxLayout):
     audio_dict = DictProperty({})

@@ -53,6 +53,17 @@ class ConfigWorkingContainer(Container):
             window = None
 
         args = dict(n_fft=n_fft, hop_length=hop_length, window=window)
+
+        return args
+
+    def get_save_args(self):
+        if self.ids.save_normalization.state == 'down':
+            normalization = True
+        else:
+            normalization = None
+
+        args = dict(normalization=normalization)
+
         return args
 
     def get_notify(self, subject):

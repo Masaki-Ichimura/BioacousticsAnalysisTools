@@ -48,7 +48,25 @@
 
               ConfigOptionLabel:
                 font_style: 'H6'
-                text: '通知(試験機能)'
+                text: '音声ファイル書き出し'
+
+            MDBoxLayout:
+              orientation: 'horizontal'
+              padding: [dp(50), dp(5)]
+              adaptive_height: True
+
+              ConfigCheckbox:
+                id: save_normalization
+
+              ConfigOptionLabel:
+                text: '書き出し時に音量を正規化する'
+
+            MDBoxLayout:
+              adaptive_height: True
+
+              ConfigOptionLabel:
+                font_style: 'H6'
+                text: '通知 (試験機能)'
 
             MDBoxLayout:
               orientation: 'horizontal'
@@ -91,15 +109,20 @@
 
             MDBoxLayout:
               orientation: 'horizontal'
-              padding: [dp(50), dp(5), dp(150), dp(5)]
+              padding: dp(50), dp(5)
               adaptive_height: True
 
               ConfigOptionLabel:
+                size_hint_x: 1
                 text: 'デフォルト：1024(pt)'
 
               ConfigOptionTextField:
                 id: stft_n_fft
+                size_hint_x: 1
                 text: '1024'
+
+              Widget:
+                size_hint_x: 2
 
             MDBoxLayout:
               adaptive_height: True
@@ -110,15 +133,20 @@
 
             MDBoxLayout:
               orientation: 'horizontal'
-              padding: [dp(50), dp(5), dp(150), dp(5)]
+              padding: dp(50), dp(5)
               adaptive_height: True
 
               ConfigOptionLabel:
+                size_hint_x: 1
                 text: 'デフォルト：256(pt)'
 
               ConfigOptionTextField:
                 id: stft_hop_length
+                size_hint_x: 1
                 text: '256'
+
+              Widget:
+                size_hint_x: 2
 
             MDBoxLayout:
               adaptive_height: True
@@ -129,16 +157,21 @@
 
             MDBoxLayout:
               orientation: 'horizontal'
-              padding: [dp(50), dp(5), dp(150), dp(5)]
+              padding: dp(50), dp(5)
               adaptive_height: True
 
               ConfigOptionLabel:
+                size_hint_x: 1
                 text: 'デフォルト：hann'
 
               ConfigOptionTextField:
                 id: stft_window
+                size_hint_x: 1
                 text: 'hann'
                 on_focus: if self.focus: root.stft_window_menu.open()
+
+              Widget:
+                size_hint_x: 2
 
     MDNavigationDrawer:
       id: nav_drawer

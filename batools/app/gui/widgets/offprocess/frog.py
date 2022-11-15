@@ -207,7 +207,7 @@ class FrogSelect(MDScreen):
 
             checkboxes = []
             for ch, ch_data in enumerate(sep_data):
-                save_wave(ch_path.format(ch), ch_data[None], sep_fs, normalize=True)
+                save_wave(ch_path.format(ch), ch_data[None], sep_fs, normaliztion=True)
 
                 if self.sound is None:
                     self.sound = SoundFFPy()

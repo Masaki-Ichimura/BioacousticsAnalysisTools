@@ -1,16 +1,18 @@
 import datetime
 import gc
 import pathlib
+
 import torchaudio
-from plyer import filechooser
 from torchaudio.sox_effects import apply_effects_tensor
 
 from kivy.app import App
 from kivy.lang import Builder
 from kivy.properties import ListProperty, ObjectProperty
+from plyer import filechooser
 
 from batools.app.gui.widgets.sub_tab import SubTab
 from batools.app.gui.widgets.scrollable_treeview import AudioTreeViewLabel
+from batools.utils.audio.wave import save_wave
 
 Builder.load_file(__file__[:-3]+'.kv')
 
@@ -65,6 +67,10 @@ class PreprocessedTab(SubTab):
     def save_button_clicked(self, select):
         audio_dicts, audio_labels = self.audio_dicts, self.audio_labels
 
+        app = App.get_running_app()
+        config_tab = app.links['config_tab']
+        save_args = config_tab.ids.working_container.get_save_args()
+
         if select:
             selected_node = self.ids.audio_treeview.selected_node
 
@@ -85,7 +91,8 @@ class PreprocessedTab(SubTab):
                 if selections:
                     audio_path = selections[0]
                     audio_data, audio_fs = audio_dict['data'], audio_dict['fs']
-                    torchaudio.save(filepath=audio_path, src=audio_data, sample_rate=audio_fs)
+
+                    save_wave(audio_path, audio_data, audio_fs, **save_args)
 
         else:
             if self.audio_labels:
@@ -97,9 +104,8 @@ class PreprocessedTab(SubTab):
                 if selections:
                     audio_dir = pathlib.Path(selections[0])
                     _ = [
-                        torchaudio.save(
-                            filepath=str(audio_dir/f'{ad["label"]}.wav'),
-                            src=ad['data'], sample_rate=ad['fs']
+                        save_wave(
+                            str(audio_dir/f'{ad["label"]}.wav'), ad['data'], ad['fs'], **save_args
                         )
                         for ad in audio_dicts
                     ]

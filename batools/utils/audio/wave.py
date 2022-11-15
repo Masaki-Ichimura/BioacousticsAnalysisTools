@@ -1,6 +1,7 @@
 import torch
 import torchaudio
 from torchaudio.sox_effects import apply_effects_tensor
+from typing import Union
 
 
 def load_wave(file_name: str):
@@ -14,10 +15,23 @@ def metadata_wave(file_name: str):
     ]
     return {param: getattr(metadata, param) for param in params}
 
-def save_wave(file_name: str, src: torch.Tensor, sample_rate: int, normalize: bool=True):
-    if normalize:
-        src, sample_rate = apply_effects_tensor(
-            src, sample_rate, [['gain', '-n']], channels_first=True
-        )
+def save_wave(
+    file_name: str, src: torch.Tensor, sample_rate: int, normalization: Union[str, bool]=False
+):
+    if normalization:
+        if normalization == 'ch':
+            src = torch.cat(
+                [
+                    apply_effects_tensor(
+                        ch_sig[None], sample_rate, [['gain', '-n']], channels_first=True
+                    )[0]
+                    for ch_sig in src
+                ],
+                dim=0
+            )
+        else:
+            src, _ = apply_effects_tensor(
+                src, sample_rate, [['gain', '-n']], channels_first=True
+            )
 
     torchaudio.save(file_name, src, sample_rate, channels_first=True)
