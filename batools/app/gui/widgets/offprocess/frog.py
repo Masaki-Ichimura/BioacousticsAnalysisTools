@@ -1,5 +1,6 @@
 import csv
 import pathlib
+import subprocess
 import threading
 from functools import partial
 from itertools import combinations
@@ -16,8 +17,10 @@ from kivy.lang import Builder
 from kivy.metrics import dp
 from kivy.properties import DictProperty
 from kivy.uix.treeview import TreeViewLabel
+from kivy.utils import platform
 from kivy.garden.matplotlib import FigureCanvasKivyAgg
 from plyer import filechooser
+from plyer import notification
 from kivymd.color_definitions import colors
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.button import MDIconButton
@@ -175,7 +178,12 @@ class FrogSeparate(MDScreen):
                     title = app.title
                     message = '音源分離プロセスが終了しました'
 
-                    # notification.notify(title=title, message=message)
+                    try:
+                        notification.notify(title=title, message=message)
+                    except Exception:
+                        if platform == 'macosx':
+                            sh = f'osascript -e \'display notification "{message}" with title "{title}" sound name "Crystal"\''
+                            subprocess.run(sh, shell=True)
 
                 Clock.schedule_once(update_process)
 
@@ -207,7 +215,7 @@ class FrogSelect(MDScreen):
 
             checkboxes = []
             for ch, ch_data in enumerate(sep_data):
-                save_wave(ch_path.format(ch), ch_data[None], sep_fs, normaliztion=True)
+                save_wave(ch_path.format(ch), ch_data[None], sep_fs, normalization=True)
 
                 if self.sound is None:
                     self.sound = SoundFFPy()

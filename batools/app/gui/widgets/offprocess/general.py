@@ -1,7 +1,6 @@
+import subprocess
 import threading
 from functools import partial
-
-import torchaudio
 
 from kivy.app import App
 from kivy.clock import Clock
@@ -10,13 +9,13 @@ from kivy.lang import Builder
 from kivy.metrics import dp
 from kivy.properties import DictProperty
 from kivy.utils import platform
-from plyer import filechooser, notification
 from kivymd.color_definitions import colors
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.button import MDIconButton
 from kivymd.uix.dialog import MDDialog
 from kivymd.uix.screen import MDScreen
 from kivymd.uix.selectioncontrol.selectioncontrol import MDCheckbox
+from plyer import filechooser, notification
 
 from batools.app.gui.widgets.sub_tab import SubTab
 from batools.app.gui.widgets.audiodisplay import AudioMiniplot
@@ -116,7 +115,8 @@ class GeneralSeparate(MDScreen):
             args = dict(
                 n_src=int(self.ids.fastmnmf_n_src.text),
                 n_iter=int(self.ids.fastmnmf_n_iter.text),
-                n_components=int(self.ids.fastmnmf_n_components.text)
+                n_components=int(self.ids.fastmnmf_n_components.text),
+                initialize_ilrma=True
             )
 
         return args
@@ -155,7 +155,13 @@ class GeneralSeparate(MDScreen):
                     title = app.title
                     message = '音源分離プロセスが終了しました'
 
-                    notification.notify(title=title, message=message)
+                    try:
+                        notification.notify(title=title, message=message)
+                    except Exception:
+                        if platform == 'macosx':
+                            sh = f'osascript -e \'display notification "{message}" with title "{title}" sound name "Crystal"\''
+                            subprocess.run(sh, shell=True)
+
 
                 Clock.schedule_once(update_process)
 
