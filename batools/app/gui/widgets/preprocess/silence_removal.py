@@ -17,19 +17,11 @@ class SilenceRemovalTab(SubTab):
     nonsilent_sections = ListProperty([])
 
     def on_audio_dict(self, instance, value):
-        if value:
-            label = value['label']
-            if '.' in label:
-                label = label[:-label[::-1].index('.')-1]
-        else:
-            label = ''
-
         option_names = [
             'freqfilter', 'minimum_nonsilence', 'broadened_nonsilence',
             'window', 'hop', 'weight', 'smooth_window'
         ]
         option_values = {
-            'label': label,
             'freqfilter_min': f'{"" if not value else 0}',
             'freqfilter_max': f'{"" if not value else value["fs"]//2}',
             'minimum_nonsilence': f'{200}',
@@ -246,7 +238,7 @@ class SilenceRemovalTab(SubTab):
 
         self.replot_button_clicked()
 
-    def extract(self):
+    def extract(self, label):
         nonsilent_sections = self.nonsilent_sections
         audio_data, audio_fs = self.audio_dict['data'], self.audio_dict['fs']
 
@@ -255,7 +247,7 @@ class SilenceRemovalTab(SubTab):
             cache_dir = app.tmp_dir
             extracted_dicts = []
             for section in nonsilent_sections:
-                audio_label = f'{self.ids.label_value.text}_{section[0]}-{section[1]}'
+                audio_label = f'{label}_{section[0]}-{section[1]}'
                 audio_cache = f'{cache_dir.name}/tmp_{audio_label}.wav'
 
                 extracted_dicts.append(dict(

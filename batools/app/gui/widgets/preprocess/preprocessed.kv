@@ -105,19 +105,37 @@
             PreprocessCheckbox:
               id: silence_removal_checkbox
               disabled: True
+              on_state:
+                label_value.disabled = False if self.state == 'down' else True
 
             MDLabel:
               text: '無音区間除去'
 
           MDBoxLayout:
+            orientation: 'vertical'
             adaptive_height: True
-            padding: [dp(30), 0, 0, 0]
+            padding: [dp(30), 0]
 
             Label:
               text: '[u]無音区間除去タブから区間の設定が必要です[/u]'
               markup: True
               size: self.texture_size
               size_hint: None, None
+
+            MDBoxLayout:
+              orientation: 'horizontal'
+              adaptive_height: True
+              spacing: dp(30)
+
+              Label:
+                text: 'ラベル:'
+                size: self.texture_size
+                size_hint_x: None
+
+              PreprocessOptionTextField:
+                id: label_value
+                halign: 'left'
+                disabled: True
 
           MDBoxLayout:
             orientation: 'horizontal'

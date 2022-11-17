@@ -38,11 +38,16 @@ class EditAudioDetail(Container):
         silence_removal.audio_dict = value
 
         if value:
+            label = value['label']
+            label = label if '.' not in label else label[:-label[::-1].index('.')-1]
+
             fs_org = value['fs']
             resample, freqfilter_min, freqfilter_max = map(str, [fs_org, 0, fs_org//2])
         else:
+            label = ''
             resample, freqfilter_min, freqfilter_max = '', '', ''
 
+        preprocessed.ids.label_value.text = label
         preprocessed.ids.resample_value.text = resample
         preprocessed.ids.freqfilter_min_value.text = freqfilter_min
         preprocessed.ids.freqfilter_max_value.text = freqfilter_max

@@ -139,7 +139,7 @@ class PreprocessedTab(SubTab):
     def ok_button_clicked(self):
         if self.ids.silence_removal_checkbox.state == 'down':
             silence_removal = self.parent_tab.ids.silence_removal
-            audio_dicts = silence_removal.extract()
+            audio_dicts = silence_removal.extract(self.ids.label_value.text)
         else:
             app = App.get_running_app()
             audio_dict = app.links['edit_tab'].ids.working_container.audio_dict
