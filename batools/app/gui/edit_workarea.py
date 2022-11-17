@@ -51,3 +51,7 @@ class EditAudioDetail(Container):
             setattr(getattr(preprocessed.ids, f'{name}_checkbox'), 'disabled', not value)
             for name in ['resample', 'freqfilter']
         ]
+        _ = [
+            setattr(getattr(preprocessed.ids, f'{name}_checkbox'), 'state', 'normal')
+            for name in ['silence_removal', 'resample', 'freqfilter']
+        ]
