@@ -42,86 +42,107 @@
             Rectangle:
               size: (5, scroll_tl.height)
 
-<AudioToolbarIconButton@MDIconButton>
+<AudioToolbarIconButton@MDIconButton>:
   icon_size: '20sp'
 
-<AudioToolbarIcon@MDIconButton>
+<AudioToolbarIcon@MDIcon>:
   font_size: '20sp'
 
 <AudioToolbar>:
   height: dp(54)
 
-  MDBoxLayout:
-    id: box
-    orientation: 'horizontal'
+  ScrollView:
+    do_scroll: False
     pos: root.pos
-    width: root.width
-    padding: 10
-    spacing: 20
+    size: root.size
 
     MDBoxLayout:
+      id: box
       orientation: 'horizontal'
-      adaptive_height: True
+      padding: dp(5), 0
+      spacing: dp(10)
 
-      AudioToolbarIconButton:
-        id: play
-        icon: 'play'
-        on_press: root.play()
+      MDBoxLayout:
+        orientation: 'horizontal'
+        height: root.height
+        size_hint_y: None
+        adaptive_width: True
 
-      AudioToolbarIconButton:
-        id: pause
-        icon: 'pause'
-        on_press: root.pause()
+        AudioToolbarIconButton:
+          id: play
+          icon: 'play'
+          pos_hint: {'center_y': .5}
+          on_press: root.play()
 
-      AudioToolbarIconButton:
-        id: stop
-        icon: 'stop'
-        on_press: root.stop()
+        AudioToolbarIconButton:
+          id: pause
+          icon: 'pause'
+          pos_hint: {'center_y': .5}
+          on_press: root.pause()
 
-      AudioToolbarIconButton:
-        id: magnify_plus
-        icon: 'magnify-plus-outline'
-        on_press: root.magnify(mode='plus')
+        AudioToolbarIconButton:
+          id: stop
+          icon: 'stop'
+          pos_hint: {'center_y': .5}
+          on_press: root.stop()
 
-      AudioToolbarIconButton:
-        id: magnify_minus
-        icon: 'magnify-minus-outline'
-        on_press: root.magnify(mode='minus')
+        AudioToolbarIconButton:
+          id: magnify_plus
+          icon: 'magnify-plus-outline'
+          pos_hint: {'center_y': .5}
+          on_press: root.magnify(mode='plus')
 
-      MDDropDownItem:
-        id: ch
-        pos_hint: {'center_x': .5, 'center_y': .5}
-        text: '00ch'
-        on_press: root.ch_window_menu.open()
+        AudioToolbarIconButton:
+          id: magnify_minus
+          icon: 'magnify-minus-outline'
+          pos_hint: {'center_y': .5}
+          on_press: root.magnify(mode='minus')
 
-    Widget:
+      MDBoxLayout:
+        height: root.height
+        size_hint_y: None
+        adaptive_width: True
 
-    MDBoxLayout:
-      orientation: 'horizontal'
-      width: dp(250)
-      size_hint_x: None
+        MDDropDownItem:
+          id: ch
+          pos_hint: {'center_y': .55}
+          text: '00ch'
+          on_press: root.ch_window_menu.open()
 
-      AudioToolbarIcon:
-        icon: 'volume-low'
-        pos_hint: {'center_x': .5, 'center_y': .5}
+      Widget:
 
-      MDSlider:
-        id: volume
-        min: 0.
-        max: 1.
-        value: 1.
-        hint: False
+      MDBoxLayout:
+        orientation: 'horizontal'
+        height: root.height
+        spacing: dp(10)
+        size_hint_y: None
+        adaptive_width: True
 
-      AudioToolbarIcon:
-        icon: 'volume-high'
-        pos_hint: {'center_x': .5, 'center_y': .5}
+        AudioToolbarIcon:
+          icon: 'volume-low'
+          pos_hint: {'center_y': .5}
 
-    # AudioToolbarIconButton:
-    #   id: expand
-    #   icon: 'arrow-expand'
-    #   # on_press: root.expand()
+        MDSlider:
+          id: volume
+          width: dp(150)
+          size_hint_x: None
+          pos_hint: {'center_y': .5}
+          min: 0.
+          max: 1.
+          value: 1.
+          hint: False
 
-    AudioToolbarIconButton:
-      id: close
-      icon: 'close'
-      on_press: root.close()
+        AudioToolbarIcon:
+          icon: 'volume-high'
+          pos_hint: {'center_y': .5}
+
+      MDBoxLayout:
+        height: root.height
+        size_hint_y: None
+        adaptive_width: True
+
+        AudioToolbarIconButton:
+          id: close
+          icon: 'close'
+          pos_hint: {'center_y': .5}
+          on_press: root.close()
