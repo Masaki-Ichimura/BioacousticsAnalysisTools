@@ -1,9 +1,10 @@
 import datetime
 import gc
-from plyer import filechooser
 
+from kivy.core.window import Window
 from kivy.lang import Builder
 from kivy.properties import ListProperty, ObjectProperty
+from plyer import filechooser
 
 from batools.app.gui.widgets.sidebar import Sidebar
 from batools.app.gui.widgets.scrollable_treeview import AudioTreeViewLabel
@@ -17,27 +18,45 @@ class EditSidebar(Sidebar):
     target_audio_dicts = ListProperty([])
     target_audio_labels = ObjectProperty(set())
 
+    def on_kv_post(self, *args, **kwargs):
+        def on_drop_file(instance, value, x, y, *args):
+            audio_path = value.decode()
+            audio_dict = self.audio_path2dict(audio_path)
+
+            choosed_labels = [ad['label'] for ad in self.choosed_audio_dicts]
+
+            if audio_dict['label'] not in choosed_labels:
+                self.choosed_audio_dicts.append(audio_dict)
+
+        Window.bind(on_drop_file=on_drop_file)
+
+    def audio_path2dict(self, audio_path):
+        audio_label = audio_path.split('/')[-1]
+        audio_label = audio_label[:-audio_label[::-1].index('.')-1]
+        cache_dir = self.parent_tab.app.tmp_dir
+        audio_cache = f'{cache_dir.name}/org_{audio_label}.wav'
+        audio_data, audio_fs, audio_ch = None, None, -1
+
+        audio_dict = dict(
+            label=audio_label, path=audio_path, cache=audio_cache,
+            data=audio_data, fs=audio_fs, ch=audio_ch
+        )
+        return audio_dict
+
     def choose_button_clicked(self):
         selections = filechooser.open_file(
             title='pick audio files', filters=[('audio file', '*.wav')],
             use_extensions=True, multiple=True
         )
         if selections:
-            cache_dir = self.parent_tab.app.tmp_dir
             choosed_labels = [ad['label'] for ad in self.choosed_audio_dicts]
             add_dicts = []
-            for selection in selections:
-                audio_label = selection.split('/')[-1]
-                audio_label = audio_label[:-audio_label[::-1].index('.')-1]
-                audio_path, audio_cache = selection, f'{cache_dir.name}/org_{audio_label}.wav'
-                audio_data, audio_fs, audio_ch = None, None, -1
+            for audio_path in selections:
+                audio_dict = self.audio_path2dict(audio_path)
 
-                if audio_label not in choosed_labels:
-                    add_dicts.append(dict(
-                        label=audio_label,
-                        path=audio_path, cache=audio_cache,
-                        data=audio_data, fs=audio_fs, ch=audio_ch
-                    ))
+                if audio_dict['label'] not in choosed_labels:
+                    add_dicts.append(audio_dict)
+
             self.choosed_audio_dicts.extend(add_dicts)
 
     def move_button_clicked(self, select):
