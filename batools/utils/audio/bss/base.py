@@ -51,7 +51,7 @@ class tf_bss_model_base(torch.nn.Module):
 
         self.stft_args = dict(ChainMap(spec_args, ispec_args))
 
-        self.pbar = trange(1)
+        self.pbar = trange(0)
 
     def forward(self, xnt, **separate_args):
         Xnkl = self.stft(xnt)
@@ -64,17 +64,14 @@ class tf_bss_model_base(torch.nn.Module):
 
         ret_val = self.separate(Xnkl, **separate_args)
 
-        if type(ret_val) is tuple:
-            Ynkl, W = ret_val
-        else:
-            Ynkl, W = ret_val, None
-
+        Ynkl = ret_val['signals']
         ynt = self.istft(Ynkl, xnt.shape[-1])
 
-        if W is None:
+        if len(ret_val) == 1:
             return ynt
         else:
-            return ynt, W
+            ret_val['signals'] = ynt
+            return ret_val
 
     def separate(self, Xnkl):
         raise NotImplementedError

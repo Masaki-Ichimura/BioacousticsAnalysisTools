@@ -1,10 +1,8 @@
 """
-    This module is based on Pyroomacoustics
-        - License:
+    These modules are based on Pyroomacoustics
+        - License :
             - MIT License
             - https://github.com/LCAV/pyroomacoustics/blob/pypi-release/LICENSE
-        - Original @ fakufaku, sekiguchi92 :
-            - https://github.com/LCAV/pyroomacoustics/blob/master/pyroomacoustics/bss/fastmnmf.py
 """
 
 import torch
@@ -12,7 +10,14 @@ from tqdm import trange
 
 from .base import tf_bss_model_base
 
+EPS =  1e-6
+G_EPS = 5e-2
 
+
+"""
+    - Original code @ fakufaku, sekiguchi92 :
+        - https://github.com/LCAV/pyroomacoustics/blob/master/pyroomacoustics/bss/fastmnmf.py
+"""
 class FastMNMF(tf_bss_model_base):
     def __init__(self, **stft_args):
         super().__init__(**stft_args)
@@ -22,158 +27,315 @@ class FastMNMF(tf_bss_model_base):
         Xnkl,
         n_src=None,
         n_iter=30,
-        W0=None,
-        n_components=4,
-        callback=None,
+        n_components=8,
         mic_index=0,
-        interval_update_Q=1,
-        interval_normalize=10,
-        initialize_ilrma=False,
+        W0=None,
+        accelerate=True,
+        callback=None,
+        return_scms=False,
     ):
 
-        eps = 1e-7
-
-        n_chan, n_freq, n_frames = Xnkl.shape
+        interval_update_Q = 1  # 2 may work as well and is faster
+        interval_normalize = 10
+        TYPE_FLOAT = Xnkl.real.dtype
+        TYPE_COMPLEX = Xnkl.dtype
 
         # initialize parameter
         X_FTM = Xnkl.permute(1, 2, 0)
-        dtype, device = Xnkl.dtype, Xnkl.device
-
-        XX_FTMM = torch.matmul(X_FTM[:, :, :, None], X_FTM[:, :, None, :].conj())
+        n_freq, n_frames, n_chan = X_FTM.size()
+        XX_FTMM = torch.einsum('ftm,ftn->ftmn', X_FTM, X_FTM.conj())
         if n_src is None:
-            n_src = X_FTM.shape[
-                2
-            ]  # determined case (the number of source = the number of microphone)
+            n_src = X_FTM.size(2)
 
-        if initialize_ilrma:  # initialize by using ILRMA
-            from .ilrma import ILRMA
-
-            ilrma = ILRMA(**self.stft_args).to(device)
-
-            Y_TFM, W = ilrma.separate(
-                Xnkl, n_iter=10, n_components=2, proj_back=False, return_filters=True
-            )
-            Q_FMM = W
-            sep_power_M = Y_TFM.abs().mean(dim=(0, 1))
-            g_NFM = torch.ones((n_src, n_freq, n_chan), device=device) * 1e-2
-            for n in range(n_src):
-                g_NFM[n, :, sep_power_M.argmax()] = 1
-                sep_power_M[sep_power_M.argmax()] = 0
-        elif W0 != None:  # initialize by W0
+        if W0 is not None:
             Q_FMM = W0
-            g_NFM = torch.ones((n_src, n_freq, n_chan), device=device) * 1e-2
-            for m in range(n_chan):
-                g_NFM[m % n_src, :, m] = 1
-        else:  # initialize by using observed signals
-            Q_FMM = torch.tile(
-                torch.eye(n_chan, dtype=dtype, device=device), (n_freq, 1, 1)
-            )
-            g_NFM = torch.ones((n_src, n_freq, n_chan), device=device) * 1e-2
-            for m in range(n_chan):
-                g_NFM[m % n_src, :, m] = 1
+        else:
+            Q_FMM = torch.eye(n_chan, dtype=TYPE_COMPLEX).tile(n_freq, 1, 1)
+
+        G_NFM = torch.ones((n_src, n_freq, n_chan), dtype=TYPE_FLOAT) * G_EPS
+        for m in range(n_chan):
+            G_NFM[m % n_src, :, m] = 1
 
         for m in range(n_chan):
-            mu_F = (Q_FMM[:, m] * Q_FMM[:, m].conj()).real.sum(dim=1)
-            Q_FMM[:, m] = Q_FMM[:, m] / torch.sqrt(mu_F[:, None])
-        H_NKT = torch.rand(n_src, n_components, n_frames, device=device)
-        W_NFK = torch.rand(n_src, n_freq, n_components, device=device)
-        lambda_NFT = torch.matmul(W_NFK, H_NKT)
-        Qx_power_FTM = (
-            torch.matmul(Q_FMM[:, None], X_FTM[:, :, :, None])[:, :, :, 0].abs() ** 2
-        )
-        Y_FTM = (lambda_NFT[..., None] * g_NFM[:, :, None]).sum(dim=0)
+            mu_F = (Q_FMM[:, m] * Q_FMM[:, m].conj()).sum(1).real
+            Q_FMM[:, m] /= mu_F[:, None].sqrt()
 
-        separated_spec = torch.zeros([n_src, n_freq, n_frames], device=device, dtype=dtype)
+        H_NKT = torch.rand((n_src, n_components, n_frames), dtype=TYPE_FLOAT)
+        W_NFK = torch.rand((n_src, n_freq, n_components), dtype=TYPE_FLOAT)
+        E_FMM = torch.eye(n_src, dtype=TYPE_COMPLEX).tile(n_freq, 1, 1)
+        lambda_NFT = W_NFK @ H_NKT + EPS
+        Qx_power_FTM = torch.einsum('fij,ftj->fti', Q_FMM, X_FTM).abs()**2
+        Y_FTM = torch.einsum('nft,nfm->ftm', lambda_NFT, G_NFM)
 
         def separate():
-            Qx_FTM = (Q_FMM[:, None] * X_FTM[:, :, None]).sum(dim=3)
-            diagonalizer_inv_FMM = torch.linalg.inv(Q_FMM)
-            tmp_NFTM = lambda_NFT[..., None] * g_NFM[:, :, None]
-            for n in range(n_src):
-                tmp = (
-                    torch.matmul(
-                        diagonalizer_inv_FMM[:, None],
-                        (Qx_FTM * (tmp_NFTM[n] / (tmp_NFTM).sum(dim=0)))[..., None],
-                    )
-                )[:, :, mic_index, 0]
-                separated_spec[n] = tmp
-            return separated_spec
+            Qx_FTM = torch.einsum('fij,ftj->fti', Q_FMM, X_FTM)
+            try:
+                Qinv_FMM = Q_FMM.inverse()
+            except torch.linalg.LinAlgError:
+                # If Gaussian elimination fails due to a singlular matrix, we
+                # switch to the pseudo-inverse solution
+                import warnings
+                warnings.warn("Singular matrix encountered in separate, switching to pseudo-inverse")
+
+                Qinv_FMM = Q_FMM.pinverse()
+            Y_NFTM = torch.einsum('nft,nfm->nftm', lambda_NFT, G_NFM)
+
+            if mic_index == "all":
+                signals = torch.einsum(
+                    'fij,ftj,nftj->itfn', Qinv_FMM, Qx_FTM/Y_NFTM.sum(0), Y_NFTM.type(TYPE_COMPLEX)
+                ).permute(3, 0, 2, 1)
+            elif type(mic_index) is int:
+                signals = torch.einsum(
+                    'fj,ftj,nftj->tfn', Qinv_FMM[:, mic_index], Qx_FTM/Y_NFTM.sum(0), Y_NFTM.type(TYPE_COMPLEX)
+                ).permute(2, 1, 0)
+            else:
+                raise ValueError("mic_index should be int or 'all'")
+
+            if return_scms:
+                scms = ((X_FTM.mT[None] * lambda_NFT[:, :, None].reciprocal()) @ X_FTM.conj()) / n_frames
+                return {'signals': signals, 'scms': scms}
+            else:
+                return signals
+
+        self.pbar = trange(n_iter)
+        # update parameters
+        for epoch in self.pbar:
+            if callback is not None and epoch % 10 == 0:
+                if return_scms:
+                    callback(separate()['signals'])
+                else:
+                    callback(separate())
+
+            # update W and H (basis and activation of NMF)
+            tmp1_NFT = torch.einsum('nfm,ftm->nft', G_NFM, Qx_power_FTM/Y_FTM.square())
+            tmp2_NFT = torch.einsum('nfm,ftm->nft', G_NFM, Y_FTM.reciprocal())
+
+            numerator = torch.einsum('nkt,nft->nfk', H_NKT, tmp1_NFT)
+            denominator = torch.einsum('nkt,nft->nfk', H_NKT, tmp2_NFT) + EPS
+            W_NFK *= (numerator / denominator).sqrt()
+
+            if not accelerate:
+                lambda_NFT = W_NFK @ H_NKT + EPS
+                Y_FTM = torch.einsum('nft,nfm->ftm', lambda_NFT, G_NFM)
+                tmp1_NFT = torch.einsum('nfm,ftm->nft', G_NFM, Qx_power_FTM/Y_FTM.square())
+                tmp2_NFT = torch.einsum('nfm,ftm->nft', G_NFM, Y_FTM.reciprocal())
+
+            numerator = torch.einsum('nfk,nft->nkt', W_NFK, tmp1_NFT)
+            denominator = torch.einsum('nfk,nft->nkt', W_NFK, tmp2_NFT) + EPS
+            H_NKT *= (numerator / denominator).sqrt()
+
+            lambda_NFT = W_NFK @ H_NKT + EPS
+            Y_FTM = torch.einsum('nft,nfm->ftm', lambda_NFT, G_NFM)
+
+            # update G_NFM (diagonal element of spatial covariance matrices)
+            numerator = torch.einsum( 'nft,ftm->nfm', lambda_NFT, Qx_power_FTM/Y_FTM.square())
+            denominator = torch.einsum('nft,ftm->nfm', lambda_NFT, Y_FTM.reciprocal()) + EPS
+            G_NFM *= (numerator / denominator).sqrt()
+            Y_FTM = torch.einsum('nft,nfm->ftm', lambda_NFT, G_NFM)
+
+            # udpate Q (matrix for joint diagonalization)
+            if (interval_update_Q <= 0) or (epoch % interval_update_Q == 0):
+                for m in range(n_chan):
+                    V_FMM = torch.einsum('ftij,ft->fij', XX_FTMM, Y_FTM[..., m].reciprocal().type(TYPE_COMPLEX)) / n_frames
+                    QV = Q_FMM @ V_FMM
+
+                    try:
+                        tmp_FM = torch.linalg.solve(QV, E_FMM[..., m])
+                    except torch.linalg.LinAlgError:
+                        # If Gaussian elimination fails due to a singlular matrix, we
+                        # switch to the pseudo-inverse solution
+                        import warnings
+                        warnings.warn("Singular matrix encountered, switching to pseudo-inverse")
+
+                        tmp_FM = (QV.pinverse() @ E_FMM[..., [m]])[..., 0]
+
+                    Q_FMM[:, m] = (
+                        tmp_FM / (
+                            torch.einsum('fi,fij,fj->f', tmp_FM.conj(), V_FMM, tmp_FM).sqrt()[:, None]
+                            + EPS
+                        )
+                    ).conj()
+                    Qx_power_FTM = torch.einsum('fij,ftj->fti', Q_FMM, X_FTM).abs() ** 2
+
+            # normalize
+            if (interval_normalize <= 0) or (epoch % interval_normalize == 0):
+                phi_F = torch.einsum('fij,fij->f', Q_FMM, Q_FMM.conj()).real / n_chan
+                Q_FMM /= phi_F.sqrt()[:, None, None]
+                G_NFM /= phi_F[None, :, None]
+
+                mu_NF = G_NFM.sum(2)
+                G_NFM /= mu_NF[..., None]
+                W_NFK *= mu_NF[..., None]
+
+                nu_NK = W_NFK.sum(1)
+                W_NFK /= nu_NK[:, None]
+                H_NKT *= nu_NK[:, :, None]
+
+                lambda_NFT = W_NFK @ H_NKT + EPS
+                Qx_power_FTM = torch.einsum('fij,ftj->fti', Q_FMM, X_FTM).abs()**2
+                Y_FTM = torch.einsum('nft,nfm->ftm', lambda_NFT, G_NFM)
+
+        return separate()
+
+"""
+    - Original code @ sekiguchi92 :
+        - https://github.com/LCAV/pyroomacoustics/blob/master/pyroomacoustics/bss/fastmnmf2.py
+"""
+class FastMNMF2(tf_bss_model_base):
+    def __init__(self, **stft_args):
+        super().__init__(**stft_args)
+
+    def separate(
+        self,
+        Xnkl,
+        n_src=None,
+        n_iter=30,
+        n_components=8,
+        mic_index=0,
+        W0=None,
+        accelerate=True,
+        callback=None,
+        return_scms=False,
+    ):
+        interval_update_Q = 1  # 2 may work as well and is faster
+        interval_normalize = 10
+        TYPE_FLOAT = Xnkl.real.dtype
+        TYPE_COMPLEX = Xnkl.dtype
+
+        # initialize parameter
+        X_FTM = Xnkl.permute(1, 2, 0)
+        n_freq, n_frames, n_chan = X_FTM.size()
+        XX_FTMM = torch.einsum('ftm,ftn->ftmn', X_FTM, X_FTM.conj())
+        if n_src is None:
+            n_src = X_FTM.size(2)
+
+        if W0 is not None:
+            Q_FMM = W0
+        else:
+            Q_FMM = torch.eye(n_chan, dtype=TYPE_COMPLEX).tile(n_freq, 1, 1)
+
+        g_NM = torch.ones((n_src, n_chan), dtype=TYPE_FLOAT) * G_EPS
+        for m in range(n_chan):
+            g_NM[m % n_src, m] = 1
+
+        for m in range(n_chan):
+            mu_F = (Q_FMM[:, m] * Q_FMM[:, m].conj()).sum(1).real
+            Q_FMM[:, m] /= mu_F[:, None].sqrt()
+
+        H_NKT = torch.rand((n_src, n_components, n_frames), dtype=TYPE_FLOAT)
+        W_NFK = torch.rand((n_src, n_freq, n_components), dtype=TYPE_FLOAT)
+        E_FMM = torch.eye(n_src, dtype=TYPE_COMPLEX).tile(n_freq, 1, 1)
+        lambda_NFT = W_NFK @ H_NKT
+        Qx_power_FTM = torch.einsum('fij,ftj->fti', Q_FMM, X_FTM).abs()**2
+        Y_FTM = torch.einsum('nft,nm->ftm', lambda_NFT, g_NM)
+
+        def separate():
+            Qx_FTM = torch.einsum('fij,ftj->fti', Q_FMM, X_FTM)
+            try:
+                Qinv_FMM = Q_FMM.inverse()
+            except torch.linalg.LinAlgError:
+                # If Gaussian elimination fails due to a singlular matrix, we
+                # switch to the pseudo-inverse solution
+                import warnings
+                warnings.warn("Singular matrix encountered in separate, switching to pseudo-inverse")
+
+                Qinv_FMM = Q_FMM.pinverse()
+            Y_NFTM = torch.einsum('nft,nm->nftm', lambda_NFT, g_NM)
+
+            if mic_index == "all":
+                signals = torch.einsum(
+                    'fij,ftj,nftj->itfn', Qinv_FMM, Qx_FTM/Y_NFTM.sum(0), Y_NFTM.type(TYPE_COMPLEX)
+                ).permute(3, 0, 2, 1)
+            elif type(mic_index) is int:
+                signals = torch.einsum(
+                    'fj,ftj,nftj->tfn', Qinv_FMM[:, mic_index], Qx_FTM/Y_NFTM.sum(0), Y_NFTM.type(TYPE_COMPLEX)
+                ).permute(2, 1, 0)
+            else:
+                raise ValueError("mic_index should be int or 'all'")
+
+            if return_scms:
+                # (X:imj->1imj,rR:nij->ni1j)->nimj,XmT:ijm=>H:nimm
+                scms = ((X_FTM.mT[None] * lambda_NFT[:, :, None].reciprocal()) @ X_FTM.conj()) / n_frames
+                return {'signals': signals, 'scms': scms}
+            else:
+                return signals
 
         self.pbar = trange(n_iter)
 
         # update parameters
         for epoch in self.pbar:
             if callback is not None and epoch % 10 == 0:
-                callback(separate())
+                if return_scms:
+                    callback(separate()['signals'])
+                else:
+                    callback(separate())
 
-            # update_WH (basis and activation of NMF)
-            tmp_yb1 = (
-                g_NFM[:, :, None] * (Qx_power_FTM / (Y_FTM ** 2))[None]
-            ).sum(dim=3) # [N, F, T]
-            tmp_yb2 = (g_NFM[:, :, None] / Y_FTM[None]).sum(dim=3)  # [N, F, T]
-            a_1 = (H_NKT[:, None, :, :] * tmp_yb1[:, :, None]).sum(dim=3)  # [N, F, K]
-            b_1 = (H_NKT[:, None, :, :] * tmp_yb2[:, :, None]).sum(dim=3)  # [N, F, K]
-            W_NFK *= torch.sqrt(a_1 / b_1)
+            # update W and H (basis and activation of NMF)
+            tmp1_NFT = torch.einsum('nm,ftm->nft', g_NM, Qx_power_FTM/Y_FTM.square())
+            tmp2_NFT = torch.einsum('nm,ftm->nft', g_NM, Y_FTM.reciprocal())
 
-            a_1 = (W_NFK[:, :, :, None] * tmp_yb1[:, :, None]).sum(dim=1)  # [N, K, T]
-            b_1 = (W_NFK[:, :, :, None] * tmp_yb2[:, :, None]).sum(dim=1)  # [N, F, K]
-            H_NKT *= torch.sqrt(a_1 / b_1)
+            numerator = torch.einsum('nkt,nft->nfk', H_NKT, tmp1_NFT)
+            denominator = torch.einsum('nkt,nft->nfk', H_NKT, tmp2_NFT)
+            W_NFK *= (numerator / denominator).sqrt()
 
-            lambda_NFT = torch.matmul(W_NFK, H_NKT)
-            lambda_NFT = lambda_NFT.clip(eps)
-            Y_FTM = (lambda_NFT[..., None] * g_NFM[:, :, None]).sum(dim=0)
+            if not accelerate:
+                tmp1_NFT = torch.einsum('nm,ftm->nft', g_NM, Qx_power_FTM/Y_FTM.square())
+                tmp2_NFT = torch.einsum('nm,ftm->nft', g_NM, Y_FTM.reciprocal())
+                lambda_NFT = W_NFK @ H_NKT + EPS
+                Y_FTM = torch.einsum('nft,nm->ftm', lambda_NFT, g_NM) + EPS
 
-            # update diagonal element of spatial covariance matrix
-            a_1 = (
-                lambda_NFT[..., None] * (Qx_power_FTM / (Y_FTM ** 2))[None]
-            ).sum(dim=2) # N F T M
-            b_1 = (lambda_NFT[..., None] / Y_FTM[None]).sum(dim=2)
-            g_NFM *= torch.sqrt(a_1 / b_1)
-            Y_FTM = (lambda_NFT[..., None] * g_NFM[:, :, None]).sum(dim=0)
+            numerator = torch.einsum('nfk,nft->nkt', W_NFK, tmp1_NFT)
+            denominator = torch.einsum('nfk,nft->nkt', W_NFK, tmp2_NFT)
+            H_NKT *= (numerator / denominator).sqrt()
 
-            # udpate Diagonalizer which jointly diagonalize spatial covariance matrix
-            if (interval_update_Q <= 0) or ((epoch + 1) % interval_update_Q == 0):
+            lambda_NFT = W_NFK @ H_NKT + EPS
+            Y_FTM = torch.einsum('nft,nm->ftm', lambda_NFT, g_NM) + EPS
+
+            # update g_NM (diagonal element of spatial covariance matrices)
+            numerator = torch.einsum('nft,ftm->nm', lambda_NFT, Qx_power_FTM/Y_FTM.square())
+            denominator = torch.einsum('nft,ftm->nm', lambda_NFT, Y_FTM.reciprocal())
+            g_NM *= (numerator / denominator).sqrt()
+            Y_FTM = torch.einsum('nft,nm->ftm', lambda_NFT, g_NM) + EPS
+
+            # udpate Q (joint diagonalizer)
+            if (interval_update_Q <= 0) or (epoch % interval_update_Q == 0):
                 for m in range(n_chan):
-                    V_FMM = (XX_FTMM / Y_FTM[:, :, m, None, None]).mean(dim=1)
-                    tmp_FM = torch.linalg.solve(
-                        torch.matmul(Q_FMM, V_FMM),
-                        torch.eye(n_chan, dtype=dtype, device=device)[m]
-                    )
+                    V_FMM = torch.einsum('ftij,ft->fij', XX_FTMM, Y_FTM[..., m].reciprocal().type(TYPE_COMPLEX)) / n_frames
+                    QV = Q_FMM @ V_FMM
+
+                    try:
+                        tmp_FM = torch.linalg.solve(QV, E_FMM[..., m])
+                    except torch.linalg.LinAlgError:
+                        # If Gaussian elimination fails due to a singlular matrix, we
+                        # switch to the pseudo-inverse solution
+                        import warnings
+                        warnings.warn("Singular matrix encountered, switching to pseudo-inverse")
+
+                        tmp_FM = (QV.pinverse() @ E_FMM[..., [m]])[..., 0]
+
                     Q_FMM[:, m] = (
-                        tmp_FM
-                        / torch.sqrt(
-                            (
-                                (tmp_FM.conj()[:, :, None] * V_FMM).sum(dim=1)*tmp_FM
-                            ).sum(dim=1)
-                        )[:, None]
+                        tmp_FM / (
+                            torch.einsum('fi,fij,fj->f', tmp_FM.conj(), V_FMM, tmp_FM).sqrt()[:, None] + EPS
+                        )
                     ).conj()
-                Qx_power_FTM = (
-                    torch.matmul(
-                        Q_FMM[:, None], X_FTM[:, :, :, None]
-                    )[:, :, :, 0].abs() ** 2
-                )
+                    Qx_power_FTM = torch.einsum('fij,ftj->fti', Q_FMM, X_FTM).abs() ** 2
 
             # normalize
             if (interval_normalize <= 0) or (epoch % interval_normalize == 0):
-                phi_F = torch.sum(Q_FMM * Q_FMM.conj(), dim=(1, 2)).real / n_chan
-                Q_FMM /= torch.sqrt(phi_F)[:, None, None]
-                g_NFM /= phi_F[None, :, None]
+                phi_F = torch.einsum('fij,fij->f', Q_FMM, Q_FMM.conj()).real / n_chan
+                Q_FMM /= phi_F.sqrt()[:, None, None]
+                W_NFK /= phi_F[None, :, None]
 
-                mu_NF = (g_NFM).sum(dim=2)
-                g_NFM /= mu_NF[:, :, None]
-                W_NFK *= mu_NF[:, :, None]
+                mu_N = g_NM.sum(1)
+                g_NM /= mu_N[:, None]
+                W_NFK *= mu_N[:, None, None]
 
-                mu_NK = W_NFK.sum(dim=1)
-                W_NFK /= mu_NK[:, None]
-                H_NKT *= mu_NK[:, :, None]
-                lambda_NFT = torch.matmul(W_NFK, H_NKT)
-                lambda_NFT = lambda_NFT.clip(1e-10)
+                nu_NK = W_NFK.sum(1)
+                W_NFK /= nu_NK[:, None]
+                H_NKT *= nu_NK[:, :, None]
 
-                Qx_power_FTM = (
-                    torch.matmul(
-                        Q_FMM[:, None], X_FTM[:, :, :, None]
-                    )[:, :, :, 0].abs() ** 2
-                )
-                Y_FTM = (lambda_NFT[..., None] * g_NFM[:, :, None]).sum(dim=0)
+                lambda_NFT = W_NFK @ H_NKT + EPS
+                Qx_power_FTM = torch.einsum('fij,ftj->fti', Q_FMM, X_FTM).abs()**2
+                Y_FTM = torch.einsum('nft,nm->ftm', lambda_NFT, g_NM) + EPS
 
         return separate()

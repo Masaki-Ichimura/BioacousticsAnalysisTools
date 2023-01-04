@@ -3,7 +3,7 @@
         - License :
             - MIT License
             - https://github.com/LCAV/pyroomacoustics/blob/pypi-release/LICENSE
-        - Original @ fakufaku, jazcarretao, mori97 :
+        - Original code @ fakufaku, jazcarretao, mori97 :
             - https://github.com/LCAV/pyroomacoustics/blob/master/pyroomacoustics/bss/auxiva.py
 """
 
@@ -27,6 +27,7 @@ class AuxIVA(tf_bss_model_base):
         W0=None,
         model="laplace",
         init_eig=False,
+        return_filters=False,
         callback=None
     ):
 
@@ -38,9 +39,7 @@ class AuxIVA(tf_bss_model_base):
         if n_src is None:
             n_src = n_chan
 
-        assert (
-            n_src <= n_chan
-        ), "The number of sources cannot be more than the number of channels."
+        assert n_src <= n_chan, "The number of sources cannot be more than the number of channels."
 
         if model not in ["laplace", "gauss"]:
             raise ValueError("Model should be either " "laplace" " or " "gauss" ".")
@@ -161,4 +160,9 @@ class AuxIVA(tf_bss_model_base):
 
         Ynkl = Y.permute(2, 1, 0)
 
-        return Ynkl
+        ret_val = {'signals': Ynkl}
+
+        if return_filters:
+            ret_val['filters'] = W
+
+        return ret_val

@@ -1,6 +1,6 @@
 """
     This module is based on Pyroomacoustics
-        - License:
+        - License :
             - MIT License
             - https://github.com/LCAV/pyroomacoustics/blob/pypi-release/LICENSE
         - Original @ fakufaku, jazcarretao :
@@ -27,7 +27,6 @@ def projection_back(Y, ref, clip_up=None, clip_down=None):
         I = torch.logical_and(c.abs() < clip_down, c.abs() > 0)
         c[I] *= clip_down / c[I].abs()
     return c
-
 
 def sparir(
     G,
