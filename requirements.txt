@@ -2,7 +2,8 @@
 kivy
 kivy-garden
 japanize-kivy
-git+https://github.com/kivy/plyer
+#git+https://github.com/kivy/plyer
+plyer
 pyobjus
 kivymd
 
@@ -23,6 +24,7 @@ scipy
 
 # 音声信号処理
 librosa
+pyroomacoustics
 nara_wpe
 
 # etc
