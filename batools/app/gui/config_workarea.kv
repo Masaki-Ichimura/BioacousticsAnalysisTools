@@ -173,6 +173,113 @@
               Widget:
                 size_hint_x: 2
 
+      MDScreen:
+        name: 'ssl'
+
+        ScrollView:
+          do_scroll: False
+
+          MDBoxLayout:
+            orientation: 'vertical'
+            padding: [dp(15), dp(5)]
+            adaptive_height: True
+
+            MDBoxLayout:
+              adaptive_height: True
+
+              ConfigOptionLabel:
+                font_style: 'H6'
+                text: 'インパルス応答'
+
+            MDBoxLayout:
+              padding: [dp(15), 0]
+              adaptive_height: True
+
+              ConfigOptionLabel:
+                font_style: 'Subtitle1'
+                text: 'マイクロホンの形状から幾何的に計算'
+
+            MDBoxLayout:
+              orientation: 'horizontal'
+              padding: dp(50), dp(5)
+              adaptive_height: True
+
+              ConfigCheckbox:
+                id: ssl_circ_checkbox
+                group: 'ssl_impulse'
+                pos_hint: {'center_y': .5}
+                active: True
+
+              ConfigOptionLabel:
+                size_hint_x: 1
+                text: '円形'
+
+              ConfigOptionLabel:
+                size_hint_x: 1
+                text: '半径(cm)：'
+
+              ConfigOptionTextField:
+                id: ssl_circ_radius
+                size_hint_x: 1
+                text: '5'
+                # on_focus: if self.focus: root.ssl_mic_array_rotation_direction_menu.open()
+
+              Widget:
+                size_hint_x: .5
+
+              ConfigOptionLabel:
+                size_hint_x: 1
+                text: '方向：'
+
+              ConfigOptionTextField:
+                id: ssl_circ_direction
+                size_hint_x: 1
+                text: '左(反時計回り)'
+                on_focus: if self.focus: root.ssl_circ_direction_menu.open()
+
+              Widget:
+                size_hint_x: 1
+
+            MDBoxLayout:
+              orientation: 'horizontal'
+              padding: dp(50), dp(5)
+              adaptive_height: True
+
+              ConfigCheckbox:
+                group: 'ssl_impulse'
+                pos_hint: {'center_y': .5}
+
+              ConfigOptionLabel:
+                size_hint_x: 1
+                text: '直線(未実装)'
+
+            MDBoxLayout:
+              orientation: 'horizontal'
+              padding: dp(50), dp(5)
+              adaptive_height: True
+
+              ConfigCheckbox:
+                group: 'ssl_impulse'
+                pos_hint: {'center_y': .5}
+
+              ConfigOptionLabel:
+                size_hint_x: 1
+                text: '座標から指定(未実装)'
+
+              ConfigOptionTextField:
+                id: ssl_mic_array_coordinate
+                size_hint_x: 1
+                text: ''
+
+            MDBoxLayout:
+              padding: [dp(15), 0]
+              adaptive_height: True
+
+              ConfigOptionLabel:
+                font_style: 'Subtitle1'
+                text: 'インパルス応答を読み込み(未実装)'
+
+
     MDNavigationDrawer:
       id: nav_drawer
       type: 'standard'
@@ -197,3 +304,9 @@
           text: 'STFT'
           on_press:
             screen_manager.current = 'stft'
+
+        ConfigDrawerItem:
+          icon: 'cog-outline'
+          text: '音源定位'
+          on_press:
+            screen_manager.current = 'ssl'
