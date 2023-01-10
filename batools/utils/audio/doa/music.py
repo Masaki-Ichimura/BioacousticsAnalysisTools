@@ -1,6 +1,6 @@
 """
     This module is based on Pyroomacoustics
-        - License:
+        - License :
             - MIT License
             - https://github.com/LCAV/pyroomacoustics/blob/pypi-release/LICENSE
         - Original @ fakufaku, 4bian, Womac :
@@ -17,7 +17,7 @@ class MUSIC(DOA):
         mic_locs,
         sample_rate,
         n_fft,
-        num_src=1,
+        n_src=1,
         r=1.,
         n_grid=360,
         mode="far",
@@ -28,7 +28,7 @@ class MUSIC(DOA):
             mic_locs=mic_locs,
             sample_rate=sample_rate,
             n_fft=n_fft,
-            num_src=num_src,
+            n_src=n_src,
             r=r,
             n_grid=n_grid,
             mode=mode,
@@ -36,41 +36,49 @@ class MUSIC(DOA):
         )
         self.frequency_normalization = frequency_normalization
 
-    def forward(self, xblkn):
-        M = xblkn.shape[-1]
+    def forward(self, signals=None, scms=None):
+        assert signals is not None or scms is not None, 'DoA estimation needs signals or spacial correlation matrices.'
 
-        Cbkmn = self.compute_correlation_matricesvec(xblkn)
-        Ebkmn_s, Ebkmn_n, wbkn_s, wbkn_n = self.subspace_decomposition(Cbkmn)
+        if signals is not None:
+            Xblkm = signals
+            Cbkmm = self.compute_correlation_matricesvec(Xblkm)
+        elif scms is not None:
+            Cbkmm = scms[:, list(self.freq_bins)]
 
-        identity = torch.eye(M, device=xblkn.device)[None, :].tile(self.num_freq, 1, 1)
-        Fbkmn = identity-torch.einsum('bkmp,bknp->bkmn', Ebkmn_s, Ebkmn_s.conj())
+        M = Cbkmm.size(-1)
 
-        Pbrk = self.compute_spatial_spectrumvec(Fbkmn)
+        Ebkmm_s, Ebkmm_n, wbkm_s, wbkm_n = self.subspace_decomposition(Cbkmm)
+
+        identity = torch.eye(M, device=Cbkmm.device).tile(self.num_freq, 1, 1)
+        Fbkmm = identity-torch.einsum('bkmp,bknp->bkmn', Ebkmm_s, Ebkmm_s.conj())
+
+        Pbrk = self.compute_spatial_spectrumvec(Fbkmm)
         if self.frequency_normalization:
             Pbrk = Pbrk / Pbrk.max(1, keepdim=True).values
 
         Pbr = Pbrk.mean(-1)
         return Pbr
 
-    def compute_correlation_matricesvec(self, xblkn):
-        xblkn = xblkn[..., list(self.freq_bins), :]
-        Cbkmn = torch.einsum('blkm,blkn->blkmn', xblkn, xblkn.conj()).mean(1)
-        return Cbkmn
+    def compute_correlation_matricesvec(self, Xblkn):
+        Xblkn = Xblkn[..., list(self.freq_bins), :]
+        Cbkmm = torch.einsum('blkm,blkn->blkmn', Xblkn, Xblkn.conj()).mean(1)
+        return Cbkmm
 
-    def compute_spatial_spectrumvec(self, Rbkmn):
+    def compute_spatial_spectrumvec(self, Rbkmm):
         mode_vec = self.get_mode_vec()
-        mrkn = mode_vec[list(self.freq_bins), :, :].permute(2, 0, 1)
+        mrkm = mode_vec[list(self.freq_bins)].permute(2, 0, 1)
         Pbrk = torch.einsum(
-            'rkn,brkn->brk',
-            mrkn.conj(),
-            torch.einsum('bkmn,rkn->brkm', Rbkmn, mrkn)
+            'rkn,brkn->brk', mrkm.conj(), torch.einsum('bkmn,rkn->brkm', Rbkmm, mrkm)
         ).abs().reciprocal()
         return Pbrk
 
-    def subspace_decomposition(self, Rbkmn):
-        w, v = torch.linalg.eigh(Rbkmn)
+    def subspace_decomposition(self, Rbkmm):
+        w, v = torch.linalg.eigh(Rbkmm)
+        indices = w.real.argsort(dim=-1)
+        w = torch.take_along_dim(w, indices, dim=-1)
+        v = torch.take_along_dim(v, indices[..., None, :], dim=-1)
 
-        Ebkmn_s, Ebkmn_n = v[..., -self.num_src:], v[..., :-self.num_src]
-        wbkn_s, wbkn_n = w[..., -self.num_src:], w[..., :-self.num_src]
+        Ebkmm_s, Ebkmm_n = v[..., -self.n_src:], v[..., :-self.n_src]
+        wbkm_s, wbkm_n = w[..., -self.n_src:], w[..., :-self.n_src]
 
-        return (Ebkmn_s, Ebkmn_n, wbkn_s, wbkn_n)
+        return (Ebkmm_s, Ebkmm_n, wbkm_s, wbkm_n)

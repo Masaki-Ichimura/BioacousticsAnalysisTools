@@ -373,15 +373,13 @@ def spectral_rolloff(fft_magnitude, c):
 
 def mfcc_filter_banks(
     sample_rate, n_fft,
-    freq_low=133.33, linc=200 / 3, logsc=1.0711703,
-    num_lin_filt=13, num_log_filt=27
+    freq_low=133.33, linc=200 / 3, logsc=1.0711703, num_lin_filt=13, num_log_filt=27
 ):
     num_filt_total = num_lin_filt + num_log_filt
 
     freq = torch.zeros(num_filt_total+2)
     freq[:num_lin_filt] = freq_low + torch.arange(num_lin_filt) * linc
-    freq[num_lin_filt:] = \
-        freq[num_lin_filt-1] * logsc ** torch.arange(1, num_log_filt+3)
+    freq[num_lin_filt:] = freq[num_lin_filt-1] * logsc ** torch.arange(1, num_log_filt+3)
     heights = 2. / (freq[2:] - freq[:-2])
 
     fbank = torch.zeros((num_filt_total, n_fft))
@@ -412,10 +410,10 @@ def mfcc_filter_banks(
 def mfcc(fft_magnitude, fbank, num_mfcc_feats):
     if num_mfcc_feats == -1:
         num_mfcc_feats = None
-    mspec = (fbank@fft_magnitude + EPS).log10()
+    mspec = (fbank.type(fft_magnitude.dtype) @ fft_magnitude + EPS).log10()
     n = mspec.size(0)
     dct_ceps = create_dct(n_mfcc=n, n_mels=n, norm='ortho')
-    return (dct_ceps.T@mspec)[:num_mfcc_feats]
+    return (dct_ceps.T.type(mspec.dtype) @ mspec)[:num_mfcc_feats]
 
 def chroma_features_init(sample_rate, n_fft):
     freq = torch.arange(1, n_fft+1) * sample_rate / (2 * n_fft)
@@ -445,7 +443,7 @@ def chroma_features(
 
     spec = fft_magnitude.square()
 
-    C = torch.zeros(n_fft)
+    C = torch.zeros(n_fft, dtype=spec.dtype)
     if num_chroma.max() < n_fft:
         C[num_chroma] = spec
         C /= num_freq_per_chroma[num_chroma]
@@ -455,7 +453,7 @@ def chroma_features(
         C /= num_freq_per_chroma
 
     # ceil(x/y) -> -(-x//y)
-    C2 = torch.zeros(-(-n_fft//12) * 12)
+    C2 = torch.zeros(-(-n_fft//12) * 12, dtype=C.dtype)
     C2[:n_fft] = C
 
     final_matrix = C2.reshape(-1, 12).sum(0) / max(EPS, spec.sum())

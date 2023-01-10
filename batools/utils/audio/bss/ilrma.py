@@ -32,7 +32,8 @@ class ILRMA(tf_bss_model_base):
         callback=None,
     ):
         n_chan, n_freq, n_frames = Xnkl.shape
-        dtype, device = Xnkl.dtype, Xnkl.device
+        COMPLEX_DTYPE, FLOAT_DTYPE = Xnkl.dtype, Xnkl.real.dtype
+        DEVICE = Xnkl.device
 
         X = Xnkl.permute(1, 0, 2)
 
@@ -46,12 +47,12 @@ class ILRMA(tf_bss_model_base):
         # initialize the demixing matrices
         # The demixing matrix has the following dimensions (nfrequencies, nchannels, nsources),
         if W0 is None:
-            W = torch.eye(n_chan, n_src, dtype=dtype, device=device).tile(n_freq, 1, 1)
+            W = torch.eye(n_chan, n_src, dtype=COMPLEX_DTYPE, device=DEVICE).tile(n_freq, 1, 1)
         else:
             W = W0
 
         # Things are more efficient when the frequencies are over the first axis
-        Y = torch.zeros((n_freq, n_src, n_frames), dtype=dtype, device=device)
+        Y = torch.zeros((n_freq, n_src, n_frames), dtype=COMPLEX_DTYPE, device=DEVICE)
 
         # Compute the demixed output
         def demix(Y, X, W):
@@ -61,11 +62,11 @@ class ILRMA(tf_bss_model_base):
 
         # initialize the nonnegative matrixes with random values
         P = torch.einsum('inj,inj->nij', Y, Y.conj()).real.clamp(min=EPS)
-        T = 0.1 + 0.9*torch.rand((n_src, n_freq, n_components), device=device)
-        V = 0.1 + 0.9*torch.rand((n_src, n_frames, n_components), device=device)
+        T = 0.1 + 0.9*torch.rand((n_src, n_freq, n_components), dtype=FLOAT_DTYPE, device=DEVICE)
+        V = 0.1 + 0.9*torch.rand((n_src, n_frames, n_components), dtype=FLOAT_DTYPE, device=DEVICE)
         R = T @ V.mT
         rR = R.reciprocal()
-        E = torch.eye(n_src, dtype=dtype, device=device).tile(n_freq, 1, 1)
+        E = torch.eye(n_src, dtype=COMPLEX_DTYPE, device=DEVICE).tile(n_freq, 1, 1)
 
         lambda_aux = torch.zeros(n_src)
 
@@ -78,14 +79,6 @@ class ILRMA(tf_bss_model_base):
                     callback(Y_t * z[None].conj())
                 else:
                     callback(Y_t)
-
-            # if epoch < n_iter//4:
-            #     n_perm = torch.stack([torch.randperm(n_src) for i in range(n_freq)])
-            #     i_perm = torch.arange(n_freq)[:, None]
-            #     W[:] = W[i_perm, n_perm, :]
-            #     P[:] = P.permute(1, 0, 2)[i_perm, n_perm, :].permute(1, 0, 2)
-            #     R[:] = R.permute(1, 0, 2)[i_perm, n_perm, :].permute(1, 0, 2)
-            #     rR[:] = rR.permute(1, 0, 2)[i_perm, n_perm, :].permute(1, 0, 2)
 
             # simple loop as a start
             for n in range(n_src):
@@ -182,7 +175,8 @@ class ConsistentILRMA(tf_bss_model_base):
         return_scms=False,
     ):
         n_chan, n_freq, n_frames = Xnkl.shape
-        dtype, device = Xnkl.dtype, Xnkl.device
+        COMPLEX_DTYPE, FLOAT_DTYPE = Xnkl.dtype, Xnkl.real.dtype
+        DEVICE = Xnkl.device
 
         if n_src is None:
             n_src = n_chan
@@ -192,11 +186,11 @@ class ConsistentILRMA(tf_bss_model_base):
         X = Xnkl.permute(1, 0, 2)
 
         if W0 is None:
-            W = torch.eye(n_src, dtype=dtype, device=device).tile(n_freq, 1, 1)
+            W = torch.eye(n_src, dtype=COMPLEX_DTYPE, device=DEVICE).tile(n_freq, 1, 1)
         else:
             W = W0
 
-        Y = torch.zeros((n_freq, n_src, n_frames), dtype=dtype, device=device)
+        Y = torch.zeros((n_freq, n_src, n_frames), dtype=COMPLEX_DTYPE, device=DEVICE)
 
         def demix(W, X, Y):
             Y[:] = torch.einsum('inm,imj->inj', W, X)
@@ -204,11 +198,11 @@ class ConsistentILRMA(tf_bss_model_base):
         demix(W, X, Y)
 
         P = torch.einsum('inj,inj->nij', Y, Y.conj()).real.clamp(min=EPS)
-        T = torch.rand((n_src, n_freq, n_components), device=device).clamp(min=EPS)
-        V = torch.rand((n_src, n_components, n_frames), device=device).clamp(min=EPS)
+        T = torch.rand((n_src, n_freq, n_components), dtype=FLOAT_DTYPE, device=DEVICE).clamp(min=EPS)
+        V = torch.rand((n_src, n_components, n_frames), dtype=FLOAT_DTYPE, device=DEVICE).clamp(min=EPS)
         R = T @ V
         rR = R.reciprocal()
-        E = torch.eye(n_src, dtype=dtype, device=device).tile(n_freq, 1, 1)
+        E = torch.eye(n_src, dtype=COMPLEX_DTYPE, device=DEVICE).tile(n_freq, 1, 1)
         # cost = torch.zeros(n_iter+1)
 
         # cost[0] = self.calc_cost_fn(P, R, W)
@@ -308,7 +302,8 @@ class tILRMA(tf_bss_model_base):
         return_scms=False,
     ):
         n_chan, n_freq, n_frames = Xnkl.shape
-        dtype, device = Xnkl.dtype, Xnkl.device
+        COMPLEX_DTYPE, FLOAT_DTYPE = Xnkl.dtype, Xnkl.real.dtype
+        DEVICE = Xnkl.device
 
         if n_src is None:
             n_src = n_chan
@@ -318,11 +313,11 @@ class tILRMA(tf_bss_model_base):
         X = Xnkl.permute(1, 0, 2)
 
         if W0 is None:
-            W = torch.eye(n_src, dtype=dtype, device=device).tile(n_freq, 1, 1)
+            W = torch.eye(n_src, dtype=COMPLEX_DTYPE, device=DEVICE).tile(n_freq, 1, 1)
         else:
             W = W0
 
-        Y = torch.zeros((n_freq, n_src, n_frames), dtype=dtype, device=device)
+        Y = torch.zeros((n_freq, n_src, n_frames), dtype=COMPLEX_DTYPE, device=DEVICE)
 
         def demix(W, X, Y):
             Y[:] = torch.einsum('inm,imj->inj', W, X)
@@ -330,12 +325,12 @@ class tILRMA(tf_bss_model_base):
         demix(W, X, Y)
 
         P = torch.einsum('inj,inj->nij', Y, Y.conj()).real.clamp(min=EPS)
-        T = torch.rand((n_src, n_freq, n_components), device=device).clamp(min=EPS)
-        V = torch.rand((n_src, n_components, n_frames), device=device).clamp(min=EPS)
+        T = torch.rand((n_src, n_freq, n_components), dtype=FLOAT_DTYPE, device=DEVICE).clamp(min=EPS)
+        V = torch.rand((n_src, n_components, n_frames), dtype=FLOAT_DTYPE, device=DEVICE).clamp(min=EPS)
         R = T @ V
         rR = R.reciprocal()
         B = (1-(2/(nu+2))) * R**(2/p) + (2/(nu+2)) * P
-        E = torch.eye(n_src, dtype=dtype, device=device).tile(n_freq, 1, 1)
+        E = torch.eye(n_src, dtype=COMPLEX_DTYPE, device=DEVICE).tile(n_freq, 1, 1)
 
         # lambda_aux = torch.zeros(n_src)
         # cost = torch.zeros(n_iter+1)

@@ -434,9 +434,9 @@ class AudioMiniplot(FloatLayout):
     def set_plot(self):
         if self.figure is None:
             fig, axes = plt.subplots(2, 1)
+            self.figure = fig
 
             ax_wave, ax_spec = axes
-
             show_wave(self.audio_data, self.audio_fs, ax=ax_wave, color='b')
             show_spec(self.audio_data, self.audio_fs, ax=ax_spec, n_fft=2048)
 
@@ -458,8 +458,6 @@ class AudioMiniplot(FloatLayout):
             fig.patch.set_alpha(0)
             _ = [ax.patch.set_alpha(0) for ax in axes]
             fig.subplots_adjust(left=0, right=1, bottom=0.1, top=0.9, wspace=0, hspace=0)
-
-            self.figure = fig
 
         plot_widget = FigureCanvasKivyAgg(self.figure)
         plot_widget.size_hint = (.9, 1.)

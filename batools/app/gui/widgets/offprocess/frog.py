@@ -6,7 +6,6 @@ from functools import partial
 from itertools import combinations
 
 import torch
-import torchaudio
 import matplotlib.pyplot as plt
 from scipy.stats import kurtosis
 
@@ -25,8 +24,8 @@ from kivymd.color_definitions import colors
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.button import MDIconButton
 from kivymd.uix.dialog import MDDialog
-from kivymd.uix.screen import MDScreen
 from kivymd.uix.label.label import MDIcon
+from kivymd.uix.screen import MDScreen
 from kivymd.uix.selectioncontrol.selectioncontrol import MDCheckbox
 
 from batools.app.gui.widgets.sub_tab import SubTab
@@ -133,7 +132,9 @@ class FrogSeparate(MDScreen):
             args = dict(
                 n_src=int(self.ids.fastmnmf_n_src.text),
                 n_iter=int(self.ids.fastmnmf_n_iter.text),
-                n_components=int(self.ids.fastmnmf_n_components.text)
+                n_components=int(self.ids.fastmnmf_n_components.text),
+                mic_index=0,
+                accelerate=True
             )
 
         return args
@@ -154,7 +155,8 @@ class FrogSeparate(MDScreen):
                     self.ids.progressbar.value = 100
                     return False
                 else:
-                    self.ids.progressbar.value = 100 * n // total
+                    if total:
+                        self.ids.progressbar.value = 100 * n // total
 
             self.check_progress = Clock.schedule_interval(check_progress, .5)
 
@@ -189,7 +191,8 @@ class FrogSeparate(MDScreen):
 
             def update_process(dt):
                 self.parent_tab.ids.select.audio_dict = self.sep_dict
-                self.parent_tab.ids.screen_manager.current = 'select'
+                if self.parent_tab.ids.screen_manager.current == 'separate':
+                    self.parent_tab.ids.screen_manager.current = 'select'
                 self.ids.separate_button.disabled = False
                 self.ids.mode_control.disabled = False
                 self.ids.progressbar.value = 0
@@ -294,6 +297,7 @@ class FrogAnalysis(MDScreen):
     audio_dict = DictProperty({})
     peaks = None
     results = None
+    sound = None
 
     def on_kv_post(self, *args, **kwargs):
         self.fig_hist = plt.figure()
@@ -317,10 +321,13 @@ class FrogAnalysis(MDScreen):
                     for ana_data in ana_datas
                 ]
 
+                if self.sound is None:
+                    self.sound = self.parent_tab.ids.select.sound
+
                 sct_miniplots = [
                     AudioMiniplot(
                         data=mp.audio_data, fs=mp.audio_fs, path=mp.audio_path, figure=plt.figure(),
-                        size=mp.size, size_hint=(None, None)
+                        sound=self.sound, size=mp.size, size_hint=(None, None)
                     )
                     for mp in sct_miniplots
                 ]

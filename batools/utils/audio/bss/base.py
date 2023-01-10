@@ -54,6 +54,9 @@ class tf_bss_model_base(torch.nn.Module):
         self.pbar = trange(0)
 
     def forward(self, xnt, **separate_args):
+        if xnt.dtype is not torch.float64:
+            xnt = xnt.type(torch.float64)
+
         Xnkl = self.stft(xnt)
 
         wpe = separate_args.pop('wpe') if 'wpe' in separate_args else False
@@ -65,7 +68,10 @@ class tf_bss_model_base(torch.nn.Module):
         ret_val = self.separate(Xnkl, **separate_args)
 
         Ynkl = ret_val['signals']
-        ynt = self.istft(Ynkl, xnt.shape[-1])
+        ynt = self.istft(Ynkl, xnt.shape[-1]).type(torch.float32)
+
+        # if ret_val['scms'] is not torch.complex128:
+        #     ret_val['scms'] = ret_val['scms'].type(torch.complex128)
 
         if len(ret_val) == 1:
             return ynt

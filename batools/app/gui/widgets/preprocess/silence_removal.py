@@ -121,7 +121,7 @@ class SilenceRemovalTab(SubTab):
 
         if self.ids.smooth_window_checkbox.state == 'down':
             try:
-                smooth_window_ms = max(int(self.ids.smooth_window_value), func_args['seek_ms'])
+                smooth_window_ms = max(int(self.ids.smooth_window_value.text), func_args['seek_ms'])
             except ValueError:
                 smooth_window_ms = None
 
