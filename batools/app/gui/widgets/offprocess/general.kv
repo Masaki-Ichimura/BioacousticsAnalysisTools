@@ -15,6 +15,15 @@
   line_color_normal: app.theme_cls.text_color
   disabled_foreground_color: app.theme_cls.secondary_text_color
 
+<GeneralLocalizeOptionTextField@MDTextField>:
+  font_size: '15sp'
+  mode: 'line'
+  halign: 'center'
+  multiline: False
+  text_color_normal: app.theme_cls.text_color
+  line_color_normal: app.theme_cls.text_color
+  disabled_foreground_color: app.theme_cls.secondary_text_color
+
 <GeneralCheckbox@MDCheckbox>:
   size: dp(48), dp(48)
   size_hint: None, None
@@ -124,15 +133,15 @@
               padding: [dp(15), dp(10)]
               adaptive_height: True
 
-              MDBoxLayout:
-                orientation: 'horizontal'
-                adaptive_height: True
+              # MDBoxLayout:
+              #   orientation: 'horizontal'
+              #   adaptive_height: True
 
-                GeneralCheckbox:
-                  id: ilrma_wpe
+              #   GeneralCheckbox:
+              #     id: ilrma_wpe
 
-                MDLabel:
-                  text: '分離処理の前に残響除去を行う'
+              #   MDLabel:
+              #     text: '分離処理の前に残響除去を行う'
 
               MDBoxLayout:
                 orientation: 'horizontal'
@@ -292,7 +301,6 @@
                   size_hint_x: 2
                   disabled: True
 
-
     VSeparator:
 
     Button:
@@ -343,9 +351,200 @@
     audio_toolbar: audio_toolbar
 
 <GeneralLocalize>:
-  BoxLayout:
-    orientation: 'horizontal'
-    size: root.size
+  ScreenManager:
+    id: screen_manager
 
-    Button:
-      text: '未実装'
+    MDScreen:
+      name: 'localize'
+
+      BoxLayout:
+        orientation: 'horizontal'
+        size: root.size
+
+        BoxLayout:
+          orientation: 'vertical'
+          size_hint_x: 2
+
+          ScrollView:
+            do_scroll_y: False
+            size_hint_y: 1
+
+            MDBoxLayout:
+              id: box_signals
+              orientation: 'horizontal'
+              adaptive_width: True
+              md_bg_color: 1, 1, 1, .8
+
+          MDBoxLayout:
+            size_hint_y: 2
+            orientation: 'horizontal'
+
+            MDBoxLayout:
+              id: box_doa
+              md_bg_color: 1, 1, 1, .8
+              width: self.parent.height
+              size_hint_x: None
+
+            ScrollView:
+              do_scroll_x: False
+
+              ScrollableTreeView:
+                id: doa_treeview
+                root_options: {'text': 'DoA', 'font_size': '15sp'}
+
+        VSeparator:
+
+        BoxLayout:
+          orientation: 'vertical'
+          size_hint_x: 1
+
+          Button:
+            id: localize_by_target_signal
+            text: '上の信号を使用'
+            disabled: True
+            on_press: root.localize(mode='target')
+
+          Button:
+            id: localize_by_separated_signal
+            text: '全ての分離信号を使用\n(ILRMA or MNMF)'
+            disabled: True
+            on_press: root.localize(mode='separated')
+
+          Button:
+            id: localize_by_selected_signal
+            text: '選択した分離信号のみ使用\n(ILRMA or MNMF)'
+            disabled: True
+            on_press: root.localize(mode='selected')
+
+          Button:
+            text: '詳細設定'
+            on_press:
+              screen_manager.current = 'option'
+
+    MDScreen:
+      name: 'option'
+
+      BoxLayout:
+        orientation: 'horizontal'
+        size: root.size
+
+        BoxLayout:
+          # orientation: 'vertical'
+          size_hint_x: 2
+
+          ScrollView:
+            do_scroll: False
+
+            MDBoxLayout:
+              orientation: 'vertical'
+              padding: [dp(15), dp(5)]
+              adaptive_height: True
+
+              MDBoxLayout:
+                orientation: 'horizontal'
+                adaptive_height: True
+
+                MDLabel:
+                  text: '音源数'
+
+                GeneralLocalizeOptionTextField:
+                  id: ssl_n_src
+                  text: '1'
+
+                Widget:
+
+              MDBoxLayout:
+                orientation: 'horizontal'
+                adaptive_height: True
+
+                MDLabel:
+                  text: '音速(m)'
+
+                GeneralLocalizeOptionTextField:
+                  id: ssl_c
+                  text: '343'
+
+                Widget:
+
+              MDBoxLayout:
+                orientation: 'horizontal'
+                adaptive_height: True
+
+                MDLabel:
+                  text: '基準の距離(m)'
+
+                GeneralLocalizeOptionTextField:
+                  id: ssl_r
+                  text: '1'
+
+                Widget:
+
+              MDBoxLayout:
+                orientation: 'horizontal'
+                adaptive_height: True
+
+                MDLabel:
+                  text: 'グリッド数'
+
+                GeneralLocalizeOptionTextField:
+                  id: ssl_n_grid
+                  text: '360'
+
+                Widget:
+
+              MDBoxLayout:
+                orientation: 'horizontal'
+                adaptive_height: True
+
+                MDLabel:
+                  size_hint_x: 1
+                  text: '使用帯域(Hz)'
+
+                MDLabel:
+                  size_hint_x: .4
+                  halign: 'center'
+                  text: 'min:'
+
+                GeneralLocalizeOptionTextField:
+                  id: ssl_freq_min
+                  size_hint_x: .4
+                  text: '0'
+
+                MDLabel:
+                  size_hint_x: .4
+                  halign: 'center'
+                  text: '〜'
+
+                MDLabel:
+                  size_hint_x: .4
+                  halign: 'center'
+                  text: 'max:'
+
+                GeneralLocalizeOptionTextField:
+                  id: ssl_freq_max
+                  size_hint_x: .4
+                  text: ''
+
+              MDBoxLayout:
+                orientation: 'horizontal'
+                adaptive_height: True
+
+                GeneralCheckbox:
+                  id: ssl_display_mic_locs_checkbox
+                  # state: 'down'
+                  on_state: root.display_mic_locs()
+
+                MDLabel:
+                  text: 'マイクロホンのプロット'
+
+
+        VSeparator:
+
+        BoxLayout:
+          orientation: 'vertical'
+          size_hint_x: 1
+
+          Button:
+            text: '戻る'
+            on_press:
+              screen_manager.current = 'localize'
