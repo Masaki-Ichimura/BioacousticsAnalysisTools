@@ -8,6 +8,15 @@
   text_color: app.theme_cls.text_color
   selected_color: app.theme_cls.secondary_text_color
 
+<FrogSelectOptionTextField@MDTextField>:
+  font_size: '15sp'
+  mode: 'line'
+  halign: 'center'
+  multiline: False
+  text_color_normal: app.theme_cls.text_color
+  line_color_normal: app.theme_cls.text_color
+  disabled_foreground_color: app.theme_cls.secondary_text_color
+
 <FrogSeparateOptionTextField@MDTextField>:
   font_size: '15sp'
   mode: 'line'
@@ -290,7 +299,7 @@
     Button:
       id: separate_button
       size_hint_x: 1
-      text: 'separate'
+      text: '音源分離を実行'
       disabled: True
       on_press:
         self.disabled = bool(root.audio_dict)
@@ -298,33 +307,112 @@
         root.separate()
 
 <FrogSelect>:
-  BoxLayout:
-    orientation: 'horizontal'
-    size: root.size
+  ScreenManager:
+    id: screen_manager
 
-    MDStackLayout:
-      id: stack_sep
-      orientation: 'lr-tb'
-      size_hint_x: 2
-      md_bg_color: 1, 1, 1, .8
+    MDScreen:
+      name: 'select'
 
-    BoxLayout:
-      orientation: 'vertical'
-      size_hint_x: 1
+      BoxLayout:
+        orientation: 'horizontal'
+        size: root.size
 
-      Button:
-        text: 'forward'
-        on_press:
-          root.forward()
-          audio_detail = app.links['offprocess_tab'].ids.working_container.ids.audio_detail
-          audio_detail.ids.tabs.switch_tab('一般')
-          audio_detail.ids.general.ids.screen_manager.current = 'sepout'
+        MDStackLayout:
+          id: stack_sep
+          orientation: 'lr-tb'
+          size_hint_x: 2
+          md_bg_color: 1, 1, 1, .8
 
-      Button:
-        text: 'select'
-        on_press:
-          root.select()
-          root.parent_tab.ids.screen_manager.current = 'analysis'
+        BoxLayout:
+          orientation: 'vertical'
+          size_hint_x: 1
+
+          Button:
+            text: '一般タブへデータを移動'
+            on_press:
+              root.forward()
+              audio_detail = app.links['offprocess_tab'].ids.working_container.ids.audio_detail
+              audio_detail.ids.tabs.switch_tab('一般')
+              audio_detail.ids.general.ids.screen_manager.current = 'sepout'
+
+          Button:
+            text: '選択データを保存'
+            on_press: root.save()
+
+          Button:
+            text: '発声タイミング検出設定'
+            on_press:
+              screen_manager.current = 'option'
+
+          Button:
+            text: '選択データを解析'
+            on_press:
+              root.select()
+              root.parent_tab.ids.screen_manager.current = 'analysis'
+
+    MDScreen:
+      name: 'option'
+
+      BoxLayout:
+        orientation: 'horizontal'
+        size: root.size
+
+        BoxLayout:
+          size_hint_x: 2
+
+          ScrollView:
+            do_scroll_y: False
+
+            MDBoxLayout:
+              orientation: 'vertical'
+              padding: [dp(15), dp(5)]
+              adaptive_height: True
+
+              MDBoxLayout:
+                orientation: 'horizontal'
+                adaptive_height: True
+
+                MDLabel:
+                  text: '発声間隔の最低長(ms)'
+                  size_hint_x: 1
+
+                Widget:
+                  size_hint_x: .25
+
+                FrogSelectOptionTextField:
+                  id: call_interval_ms
+                  text: '150'
+                  size_hint_x: 1
+
+                Widget:
+                  size_hint_x: .25
+
+              MDBoxLayout:
+                orientation: 'horizontal'
+                adaptive_height: True
+
+                MDLabel:
+                  text: '最大振幅値に対する\nピーク振幅値の最低割合'
+                  size_hint_x: 1
+
+                Widget:
+                  size_hint_x: .25
+
+                FrogSelectOptionTextField:
+                  id: minimum_amplitude_rate
+                  text: '0.5'
+                  size_hint_x: 1
+
+                Widget:
+                  size_hint_x: .25
+
+        VSeparator:
+
+        Button:
+          size_hint_x: 1
+          text: '戻る'
+          on_press:
+            screen_manager.current = 'select'
 
 <FrogAnalysis>:
   BoxLayout:

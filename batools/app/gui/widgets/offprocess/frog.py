@@ -18,8 +18,7 @@ from kivy.properties import DictProperty
 from kivy.uix.treeview import TreeViewLabel
 from kivy.utils import platform
 from kivy.garden.matplotlib import FigureCanvasKivyAgg
-from plyer import filechooser
-from plyer import notification
+from plyer import filechooser, notification
 from kivymd.color_definitions import colors
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.button import MDIconButton
@@ -260,7 +259,7 @@ class FrogSelect(MDScreen):
             audio_display = FrogAudioDisplay()
             self.dialog = MDDialog(
                 title='Figure',
-                type="custom",
+                type='custom',
                 content_cls=audio_display,
                 size_hint=(None, None),
                 size=(audio_display.width+dp(24)*2, audio_display.height)
@@ -269,9 +268,16 @@ class FrogSelect(MDScreen):
         self.dialog.content_cls.audio_dict = audio_dict
         self.dialog.open()
 
+    def get_check_synchronization_args(self):
+        args = dict(
+            call_interval_ms=int(self.ids.call_interval_ms.text),
+            minimum_amplitude_rate=float(self.ids.minimum_amplitude_rate.text)
+        )
+        return args
+
     def select(self):
         indices = [checkbox.active for checkbox in self.checkboxes]
-        if self.audio_dict and any(indices):
+        if self.audio_dict and sum(indices) > 1:
             app = App.get_running_app()
             cache_dir = app.tmp_dir
 
@@ -284,6 +290,29 @@ class FrogSelect(MDScreen):
             )
 
             self.parent_tab.ids.analysis.audio_dict = sct_dict
+
+    def save(self):
+        indices = [checkbox.active for checkbox in self.checkboxes]
+        if self.audio_dict and any(indices):
+
+            sct_data, sct_fs = self.audio_dict['data'][indices], self.audio_dict['fs']
+
+            selections = filechooser.save_file(
+                title='save selected audio file', filters=[('audio file', '*.wav')],
+                use_extensions=True
+            )
+
+            if selections:
+                sct_path = selections[0]
+
+                app = App.get_running_app()
+                config_tab = app.links['config_tab']
+                save_args = config_tab.ids.working_container.get_save_args()
+
+                if save_args['normalization']:
+                    save_args['normalization'] = 'ch'
+
+                save_wave(sct_path, sct_data, sct_fs, **save_args)
 
     def forward(self):
         if self.audio_dict:
@@ -345,13 +374,15 @@ class FrogAnalysis(MDScreen):
                     mp.add_widget(i_widget)
                     self.ids.box_signals.add_widget(mp)
 
+                check_synchronization_args = self.parent_tab.ids.select.get_check_synchronization_args()
+
                 peaks, results = {}, {}
                 for comb in combs:
                     A_idx, B_idx = comb
                     At = self.ids.box_signals.children[-A_idx-1].audio_data
                     Bt = self.ids.box_signals.children[-B_idx-1].audio_data
 
-                    result = check_synchronization(At, Bt, ana_fs)
+                    result = check_synchronization(At, Bt, ana_fs, **check_synchronization_args)
                     peaks_dict = result.pop('peaks')
 
                     results[str(comb)] = result

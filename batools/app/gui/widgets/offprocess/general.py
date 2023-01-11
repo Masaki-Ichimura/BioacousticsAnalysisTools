@@ -27,7 +27,6 @@ from plyer import filechooser, notification
 
 from batools.app.gui.widgets.sub_tab import SubTab
 from batools.app.gui.widgets.audiodisplay import AudioMiniplot
-# from batools.app.kivy_utils import TorchTensorProperty
 from batools.utils.audio.bss.auxiva import AuxIVA
 from batools.utils.audio.bss.fastmnmf import FastMNMF
 from batools.utils.audio.bss.ilrma import ILRMA

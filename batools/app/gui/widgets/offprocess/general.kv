@@ -306,7 +306,7 @@
     Button:
       id: separate_button
       size_hint_x: 1
-      text: 'separate'
+      text: '音源分離を実行'
       disabled: True
       on_press:
         self.disabled = bool(root.audio_dict)
@@ -326,7 +326,7 @@
 
     Button:
       size_hint_x: 1
-      text: 'save'
+      text: '選択データを保存'
       on_press:
         root.save()
         # root.parent_tab.ids.screen_manager.current = 'analysis'
