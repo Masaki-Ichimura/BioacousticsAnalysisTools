@@ -1,7 +1,6 @@
 import datetime
 import gc
 
-from kivy.core.window import Window
 from kivy.lang import Builder
 from kivy.properties import ListProperty, ObjectProperty
 from plyer import filechooser
@@ -17,31 +16,6 @@ class EditSidebar(Sidebar):
     choosed_audio_labels = ObjectProperty(set())
     target_audio_dicts = ListProperty([])
     target_audio_labels = ObjectProperty(set())
-
-    def on_kv_post(self, *args, **kwargs):
-        def on_drop_file(instance, value, x, y, *args):
-            audio_path = value.decode()
-            audio_dict = self.audio_path2dict(audio_path)
-
-            choosed_labels = [ad['label'] for ad in self.choosed_audio_dicts]
-
-            if audio_dict['label'] not in choosed_labels:
-                self.choosed_audio_dicts.append(audio_dict)
-
-        Window.bind(on_drop_file=on_drop_file)
-
-    def audio_path2dict(self, audio_path):
-        audio_label = audio_path.split('/')[-1]
-        audio_label = audio_label[:-audio_label[::-1].index('.')-1]
-        cache_dir = self.parent_tab.app.tmp_dir
-        audio_cache = f'{cache_dir.name}/org_{audio_label}.wav'
-        audio_data, audio_fs, audio_ch = None, None, -1
-
-        audio_dict = dict(
-            label=audio_label, path=audio_path, cache=audio_cache,
-            data=audio_data, fs=audio_fs, ch=audio_ch
-        )
-        return audio_dict
 
     def choose_button_clicked(self):
         selections = filechooser.open_file(

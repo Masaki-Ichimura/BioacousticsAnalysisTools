@@ -6,6 +6,7 @@ from kivy.properties import ListProperty, ObjectProperty
 
 from batools.app.gui.widgets.sidebar import Sidebar
 from batools.app.gui.widgets.scrollable_treeview import AudioTreeViewLabel
+from batools.utils.audio.wave import load_wave
 
 Builder.load_file(__file__[:-3]+'.kv')
 
@@ -63,6 +64,10 @@ class OffprocessSidebar(Sidebar):
 
         for ad in audio_dicts:
             audio_label, audio_data, audio_fs = ad['label'], ad['data'], ad['fs']
+
+            if audio_data is None:
+                audio_data, audio_fs = ad['data'], ad['fs'] = load_wave(ad['path'])
+
             metadata = {
                 '再生時間': datetime.timedelta(seconds=audio_data.size(-1)//audio_fs),
                 'オーディオチャンネル': audio_data.size(0),
