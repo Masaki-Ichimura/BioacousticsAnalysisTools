@@ -170,7 +170,8 @@ class GeneralSeparate(MDScreen):
                 sep_label = f'bss_{self.mode}_{self.audio_dict["label"]}'
                 sep_cache = f'{cache_dir.name}/{sep_label}.wav'
                 self.sep_dict = dict(
-                    label=sep_label, path=None, cache=sep_cache, data=sep_data, fs=sep_fs, ch=-1
+                    label=sep_label, path=None, cache=sep_cache, data=sep_data, fs=sep_fs, ch=-1,
+                    scms=scms
                 )
 
                 config_tab = app.links['config_tab']
@@ -317,11 +318,18 @@ class GeneralLocalize(MDScreen):
             self.ids.ssl_freq_max.text = f'{self.audio_dict["fs"]//2}'
         self.ids.localize_by_target_signal.disabled = not value
         self.sep_dict = {}
-        self.scms = None
         self.mic_plots = None
 
     def on_sep_dict(self, instance, value):
-        self.ids.localize_by_separated_signal.disabled = self.ids.localize_by_selected_signal.disabled = not value
+        self.scms = value.get('scms')
+
+        if self.scms is None:
+            ssl_by_using_scms_disabled = True
+        else:
+            ssl_by_using_scms_disabled = False
+
+        self.ids.localize_by_separated_signal.disabled = ssl_by_using_scms_disabled
+        self.ids.localize_by_selected_signal.disabled = ssl_by_using_scms_disabled
 
     def get_ssl_args(self):
         app = App.get_running_app()
@@ -375,7 +383,7 @@ class GeneralLocalize(MDScreen):
         qbn, Qbn = [], []
         for Pr in Pbr:
             qn = torch.from_numpy(detect_peaks(Pr))
-            qbn.append(qn[Pr[qn].argsort()[-n_src:]])
+            qbn.append(qn[Pr[qn].argsort(descending=True)[:n_src]])
         qbn = torch.stack(qbn)
         Qbn = Pbr[torch.arange(B)[:, None], qbn]
 
