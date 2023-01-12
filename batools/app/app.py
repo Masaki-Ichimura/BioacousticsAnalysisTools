@@ -17,9 +17,9 @@ from batools.app.gui import (
     offprocess_workarea, offprocess_sidebar,
     config_workarea
 )
-from batools.app.gui.widgets import audiodisplay, scrollable_treeview, statusbar
+from batools.app.gui.widgets import audiodisplay, scrollable_treeview
 from batools.app.gui.widgets.preprocess import preprocessed, silence_removal
-from batools.app.gui.widgets.offprocess import target, general, frog
+from batools.app.gui.widgets.offprocess import general, frog
 # .kv
 Builder.load_file(str(pathlib.Path(__file__).parent/'gui'/'widgets'/'separator.kv'))
 
