@@ -1,6 +1,7 @@
 import datetime
 import gc
 
+from kivy.app import App
 from kivy.lang import Builder
 from kivy.properties import ListProperty, ObjectProperty
 from plyer import filechooser
@@ -32,6 +33,22 @@ class EditSidebar(Sidebar):
                     add_dicts.append(audio_dict)
 
             self.choosed_audio_dicts.extend(add_dicts)
+
+    def audio_path2dict(self, audio_path):
+        audio_label = audio_path.split('/')[-1]
+        audio_label = audio_label[:-audio_label[::-1].index('.')-1]
+
+        app = App.get_running_app()
+        cache_dir = app.tmp_dir
+
+        audio_cache = f'{cache_dir.name}/org_{audio_label}.wav'
+        audio_data, audio_fs, audio_ch = None, None, -1
+
+        audio_dict = dict(
+            label=audio_label, path=audio_path, cache=audio_cache,
+            data=audio_data, fs=audio_fs, ch=audio_ch
+        )
+        return audio_dict
 
     def move_button_clicked(self, select):
         audio_dicts = self.choosed_audio_dicts
